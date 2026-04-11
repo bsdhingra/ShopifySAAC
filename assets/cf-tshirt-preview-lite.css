@@ -1,0 +1,48 @@
+/* CF TSHIRT: canvas host */
+#cf-tshirt-preview-container .cf-preview-canvas { position: relative; }
+
+/* Print zone: visual only (JS controls size/position) */
+#cf-tshirt-preview-container .cf-print-zone{
+  position:absolute;
+  border:2px dashed rgba(0,0,0,.25);
+  border-radius:10px;
+  pointer-events:none;
+  z-index:1;
+}
+
+/* ===== CF TSHIRT: Visual-only — single resize control (bottom-right) ===== */
+
+/* Hide ALL handles */
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle {
+  display: none !important;
+}
+
+/* Show only bottom-right handle */
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle.se {
+  display: block !important;
+
+  width: 22px;
+  height: 22px;
+
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(17, 24, 39, 0.25);
+  border-radius: 999px;
+
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+
+  right: -10px;
+  bottom: -10px;
+
+  cursor: nwse-resize;
+}
+
+/* Extra safety: hide other handles */
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle.n,
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle.s,
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle.e,
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle.w,
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle.nw,
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle.ne,
+#cf-tshirt-preview-container .cf-design-wrap .cf-handle.sw {
+  display: none !important;
+}

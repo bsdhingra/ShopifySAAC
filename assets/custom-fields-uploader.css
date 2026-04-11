@@ -1,0 +1,26 @@
+.cf-uploader { margin: 1rem 0; }
+.cf-uploader__inner { display: grid; gap: 1rem; }
+.cf-uploader__block { padding: .9rem; border: 1px solid rgba(0,0,0,.08); border-radius: 12px; }
+.cf-uploader__label { display:block; font-weight: 600; margin-bottom: .4rem; }
+.cf-uploader__input { width: 100%; }
+.cf-uploader__textarea { width: 100%; min-height: 90px; }
+.cf-uploader__help { margin: .4rem 0 0; opacity: .75; font-size: .92em; }
+.cf-uploader__status { margin-top: .5rem; font-size: .95em; }
+.cf-uploader__status[data-type="error"] { color: #b00020; }
+.cf-uploader__status[data-type="warn"] { color: #8a6d00; }
+.cf-uploader__progress { margin-top: .6rem; height: 8px; background: rgba(0,0,0,.08); border-radius: 999px; overflow: hidden; }
+.cf-uploader__bar { height: 100%; background: rgba(0,0,0,.45); width: 0%; }
+.cf-uploader__preview { margin-top: .7rem; }
+.cf-uploader__preview-title { margin: 0 0 .35rem; font-weight: 600; }
+.cf-uploader__img {
+  width: 240px;
+  height: auto;
+  max-width: 100%;
+  border: 1px solid rgba(0,0,0,.10);
+  border-radius: 10px;
+  display: block;
+}
+
+.cf-uploader__meta { margin-top: .35rem; opacity: .8; font-size: .9em; }
+.cf-uploader__global-status { margin-top: .25rem; font-size: .95em; }
+.cf-uploader__global-status[data-type="error"] { color: #b00020; }

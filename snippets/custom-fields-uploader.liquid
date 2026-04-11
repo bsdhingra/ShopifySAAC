@@ -1,0 +1,236 @@
+{% comment %}
+  Custom Fields Uploader (Dawn 15.4.1)
+  - Bulk enable via tags:
+      cf-text, cf-upload1, cf-upload2
+  - Soft mode default: does NOT block add-to-cart if empty
+  - Strict mode optional: blocks only if you enable strict + required toggles
+  - Uploads go to Cloudinary (original file, no resizing/compression)
+{% endcomment %}
+
+{% assign has_text = false %}
+{% assign has_u1 = false %}
+{% assign has_u2 = false %}
+{% if product.tags contains 'cf-text' %}
+  {% assign has_text = true %}
+{% endif %}
+{% if product.tags contains 'cf-upload1' %}
+  {% assign has_u1 = true %}
+{% endif %}
+{% if product.tags contains 'cf-upload2' %}
+  {% assign has_u2 = true %}
+{% endif %}
+
+{% assign s = settings %}
+{% assign enforcement_mode = s.cf_enforcement_mode | default: 'soft' %}
+{% assign preview_mode = s.cf_preview_mode | default: 'on' %}
+{% assign hide_tshirt_upload_blocks = false %}
+{% if product.tags contains 'cf-tshirt-preview' %}
+  {% assign hide_tshirt_upload_blocks = true %}
+{% endif %}
+
+{%- assign u1_mf = product.metafields.custom.cf_upload1_label | default: product.metafields.custom.custom_cf_upload1_label -%}
+{%- assign u2_mf = product.metafields.custom.cf_upload2_label | default: product.metafields.custom.custom_cf_upload2_label -%}
+{%- assign tx_mf = product.metafields.custom.cf_text_label   | default: product.metafields.custom.custom_cf_text_label -%}
+
+{%- assign u1_label = u1_mf.value | default: s.cf_upload1_label | default: 'Upload your image' -%}
+{%- assign u2_label = u2_mf.value | default: s.cf_upload2_label | default: 'Upload second image' -%}
+{%- assign text_label = tx_mf.value | default: s.cf_text_label | default: 'Add your customization' -%}
+
+{%- assign u1_label = u1_label | strip -%}
+{%- assign u2_label = u2_label | strip -%}
+{%- assign text_label = text_label | strip -%}
+
+
+ {% if has_text or has_u1 or has_u2 %}
+ 
+  <div
+    class="cf-uploader"
+    data-cf-uploader
+    data-enforcement="{{ enforcement_mode }}"
+    data-preview="{{ preview_mode }}"
+    data-cloud="{{ s.cloudinary_cloud_name | escape }}"
+    data-preset="{{ s.cloudinary_upload_preset | escape }}"
+    data-folder="{{ s.cloudinary_folder | escape }}"
+    data-has-text="{{ has_text }}"
+    data-has-u1="{{ has_u1 }}"
+    data-has-u2="{{ has_u2 }}"
+    data-text-required="{{ s.cf_text_required }}"
+    data-u1-required="{{ s.cf_upload1_required }}"
+    data-u2-required="{{ s.cf_upload2_required }}"
+    data-min-width="{{ s.cf_min_width | default: 2000 }}"
+    data-quality-mode="{{ s.cf_quality_mode | default: 'warn' }}"
+  >
+    <div class="cf-uploader__inner">
+
+      {% if has_u1 %}
+      <div
+        class="cf-uploader__block"
+        data-upload-block="1"
+        {% if hide_tshirt_upload_blocks %}
+        style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; opacity:0;"
+        {% endif %}
+      >
+          <label class="cf-uploader__label" for="{% if product.tags contains 'cf-tshirt-preview' %}cfUploadFront{% else %}CFUpload1-{{ section.id | default: 'main' }}{% endif %}">
+           {{ u1_label }}
+          </label>
+
+   <input
+  id="{% if product.tags contains 'cf-tshirt-preview' %}cfUploadFront{% else %}CFUpload1-{{ section.id | default: 'main' }}{% endif %}"
+  class="cf-uploader__input"
+  type="file"
+  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+  data-upload-input="1"
+>
+
+
+         
+         {% assign upload1_help = s.cf_upload1_help | strip %}
+            {% if upload1_help != blank and upload1_help != '__none__' %}
+            <p class="cf-uploader__help">{{ upload1_help }}</p>
+            {% endif %}
+          <div class="cf-uploader__status" role="status" aria-live="polite" data-status="1"></div>
+
+          <div class="cf-uploader__progress" hidden data-progress="1">
+            <div class="cf-uploader__bar" style="width:0%"></div>
+          </div>
+
+          <div class="cf-uploader__preview" hidden data-preview-wrap="1">
+            <p class="cf-uploader__preview-title">{{ s.cf_preview_title | default: 'Preview' }}</p>
+           <img
+            class="cf-uploader__img"
+            alt="Uploaded image preview"
+            data-preview-img="1"
+            width="600"
+            height="600"
+            loading="lazy"
+            >
+            <div class="cf-uploader__meta" data-meta="1"></div>
+          </div>
+
+          <!-- Saved to order as line item properties -->
+          <input type="hidden" name="properties[Design 1 URL]" value="" data-url="1">
+          <input type="hidden" name="properties[_Design 1 public_id]" value="" data-publicid="1">
+          <input type="hidden" name="properties[_Design 1 width]" value="" data-width="1">
+          <input type="hidden" name="properties[_Design 1 height]" value="" data-height="1">
+          <input type="hidden" name="properties[_Design 1 filename]" value="" data-filename="1">
+        </div>
+      {% endif %}
+
+      {% if has_u2 %}
+        <div
+          class="cf-uploader__block"
+          data-upload-block="2"
+          {% if hide_tshirt_upload_blocks %}
+          style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; opacity:0;"
+          {% endif %}
+        >
+          <label class="cf-uploader__label" for="{% if product.tags contains 'cf-tshirt-preview' %}cfUploadBack{% else %}CFUpload2-{{ section.id | default: 'main' }}{% endif %}">
+            {{ u2_label }} 
+
+         </label>
+
+   <input
+  id="{% if product.tags contains 'cf-tshirt-preview' %}cfUploadBack{% else %}CFUpload2-{{ section.id | default: 'main' }}{% endif %}"
+  class="cf-uploader__input"
+  type="file"
+  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+  data-upload-input="2"
+>
+
+
+          {% assign upload2_help = s.cf_upload2_help | strip %}
+          {% assign upload1_help = s.cf_upload1_help | strip %}
+
+          {% if upload2_help != blank and upload2_help != '__none__' %}
+            <p class="cf-uploader__help">{{ upload2_help }}</p>
+          {% elsif upload1_help != blank and upload1_help != '__none__' %}
+            <p class="cf-uploader__help">{{ upload1_help }}</p>
+          {% endif %}
+
+          <div class="cf-uploader__status" role="status" aria-live="polite" data-status="2"></div>
+
+          <div class="cf-uploader__progress" hidden data-progress="2">
+            <div class="cf-uploader__bar" style="width:0%"></div>
+          </div>
+
+          <div class="cf-uploader__preview" hidden data-preview-wrap="2">
+            <p class="cf-uploader__preview-title">{{ s.cf_preview_title | default: 'Preview' }}</p>
+            <img
+            class="cf-uploader__img"
+            alt="Uploaded image preview"
+            data-preview-img="2"
+            width="600"
+            height="600"
+            loading="lazy"
+            >
+
+            <div class="cf-uploader__meta" data-meta="2"></div>
+          </div>
+
+          <!-- Saved to order as line item properties -->
+          <input type="hidden" name="properties[Design 2 URL]" value="" data-url="2">
+          <input type="hidden" name="properties[Design 2 public_id]" value="" data-publicid="2">
+          <input type="hidden" name="properties[Design 2 width]" value="" data-width="2">
+          <input type="hidden" name="properties[Design 2 height]" value="" data-height="2">
+          <input type="hidden" name="properties[Design 2 filename]" value="" data-filename="2">
+        </div>
+      {% endif %}
+      {% if has_text %}
+        <div class="cf-uploader__block">
+          <label class="cf-uploader__label" for="CFText-{{ section.id | default: 'main' }}">
+            {{ text_label }}
+          </label>
+
+          <textarea
+            id="CFText-{{ section.id | default: 'main' }}"
+            class="cf-uploader__textarea"
+            name="properties[Customization text]"
+            rows="3"
+            maxlength="{{ s.cf_text_maxlen | default: 500 }}"
+            placeholder="{{ s.cf_text_placeholder | default: 'Type your customization details here…' }}"
+          ></textarea>
+
+            {% assign text_help = s.cf_text_help | strip %}
+            {% if text_help != blank and text_help != '__none__' %}
+            <p class="cf-uploader__help">{{ text_help }}</p>
+            {% endif %}
+
+        </div>
+        {% endif %}
+
+   
+ {%- comment -%} --- TUMBLER MOCKUP PREVIEW (WRAP) --- {%- endcomment -%}
+{% if product.tags contains 'cf-tumbler-preview' %}
+  {{ 'cf-tumbler-preview.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'cf-tumbler-preview.js' | asset_url }}" defer></script>
+
+  <div class="cf-tumbler-preview" data-cf-tumbler hidden>
+    <div class="cf-tumbler-stage">
+      <img
+        src="{{ 'tumbler-20oz-mockup.png' | asset_url }}"
+        class="cf-tumbler-base"
+        alt="Tumbler preview"
+        loading="lazy"
+        width="800"
+        height="1000"
+      >
+
+      <div class="cf-wrap">
+        <img
+          class="cf-tumbler-design"
+          data-cf-design
+          alt="Design preview"
+          loading="lazy"
+          width="1200"
+          height="1200"
+        >
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+      <div class="cf-uploader__global-status" role="status" aria-live="polite" data-global-status></div>
+
+    </div>
+  </div>
+{% endif %}

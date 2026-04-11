@@ -1,0 +1,160 @@
+/* ============================================================
+   Dawn Slideshow (All devices)
+   - Constrain slideshow width on desktop (prevents full-bleed)
+   - Fixed height that actually applies (kills Dawn ratio sizing)
+   - No crop (contain)
+   - Center + reduce control bar width
+   ============================================================ */
+
+/* =========================
+   0) DEFAULTS (mobile/tablet)
+   =========================
+   Mobile should stay responsive/full width, and height should be reasonable.
+   Change these if you want.
+*/
+:root {
+  --SLIDESHOW_H_MOBILE: 420px;  /* mobile height */
+  --SLIDESHOW_H_TABLET: 520px;  /* tablet height */
+}
+
+/* Mobile/tablet heights only (keeps Dawn behavior mostly intact but consistent) */
+@media screen and (max-width: 989px) {
+  slideshow-component .slideshow__media,
+  slideshow-component .slideshow__media.banner__media,
+  slideshow-component .banner__media {
+    height: var(--SLIDESHOW_H_MOBILE) !important;
+    min-height: var(--SLIDESHOW_H_MOBILE) !important;
+    overflow: hidden !important;
+  }
+
+  @media screen and (min-width: 750px) {
+    slideshow-component .slideshow__media,
+    slideshow-component .slideshow__media.banner__media,
+    slideshow-component .banner__media {
+      height: var(--SLIDESHOW_H_TABLET) !important;
+      min-height: var(--SLIDESHOW_H_TABLET) !important;
+    }
+  }
+
+  /* Keep no-crop on small screens too */
+  slideshow-component .slideshow__media img,
+  slideshow-component .banner__media img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+}
+
+
+/* =========================
+   1) DESKTOP (>= 990px)
+   ========================= */
+@media screen and (min-width: 990px) {
+
+  /* Change ONLY these 3 values */
+  :root {
+    --SLIDESHOW_MAX: 1470px; /* overall slideshow width */
+    --CONTROLS_W: 420px;     /* arrows + counter bar width */
+    --SLIDESHOW_H: 600px;    /* slideshow height */
+  }
+
+  /* 1) Constrain OUTER slideshow component width */
+  slideshow-component {
+    display: block !important;
+    width: 100% !important;
+    max-width: var(--SLIDESHOW_MAX) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* 2) Ensure inner slideshow doesn't bleed full screen */
+  slideshow-component .slideshow,
+  slideshow-component .banner,
+  slideshow-component .slider,
+  slideshow-component .slideshow__controls {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Remove Dawn's inner page-width padding inside slideshow */
+  slideshow-component .page-width {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* =====================================================
+     IMPORTANT FIX: Disable Dawn's ratio-based media sizing
+     (this is why height wasn't changing reliably)
+     ===================================================== */
+
+  /* A) Kill aspect-ratio sizing */
+  slideshow-component .media,
+  slideshow-component .slideshow__media,
+  slideshow-component .banner__media {
+    aspect-ratio: auto !important;
+  }
+
+  /* B) Remove the ::before padding-bottom trick Dawn uses */
+  slideshow-component .media::before,
+  slideshow-component .slideshow__media::before,
+  slideshow-component .banner__media::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  /* 3) Apply real height to the actual media containers */
+  slideshow-component .slideshow__media,
+  slideshow-component .slideshow__media.banner__media,
+  slideshow-component .banner__media {
+    height: var(--SLIDESHOW_H) !important;
+    min-height: var(--SLIDESHOW_H) !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+
+  /* 4) No-crop images */
+  slideshow-component .slideshow__media img,
+  slideshow-component .banner__media img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+
+  /* 5) Center the controls strip */
+  slideshow-component .slideshow__controls {
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  /* 6) Control bar width (arrows + counter) */
+  slideshow-component .slideshow__controls .slider-buttons {
+    width: var(--CONTROLS_W) !important;
+    max-width: var(--CONTROLS_W) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.2rem !important;
+  }
+
+  /* Keep counter from pushing layout */
+  slideshow-component .slideshow__controls .slider-counter {
+    margin: 0 !important;
+  }
+
+  /* 7) Optional: keep text wrapper aligned (no extra stretching) */
+  slideshow-component .slideshow__text-wrapper.page-width {
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}

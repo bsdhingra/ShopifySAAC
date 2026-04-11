@@ -1,0 +1,762 @@
+{% comment %}
+  Collections Carousel (Carousel DAWN)
+  - Dawn 15.4.1 compatible
+  - Manual collection selection only (no fallback to all collections)
+  - Width modes: Theme (Dawn page width) / Full / Custom
+  - Keeps arrows + pagination INSIDE the container (no bleed)
+  - Typography + Card settings
+  - Theme-check friendly: fixes mismatched divs + img width/height
+  - Swiper safe-loader: loads Swiper only once even if multiple sections exist
+{% endcomment %}
+
+{%- liquid
+  assign s = section.settings
+
+  # Collections
+  assign collections_selected = s.collection_list
+  assign max_show = s.collections_show
+  assign show_count = s.show_count
+  assign count_label = s.count_label
+
+  # Width controls
+  assign width_mode = s.width_mode
+  assign custom_max_width = s.custom_max_width
+
+  # Spacing + background + border
+  assign padding_horizontal = s.padding_horizontal
+  assign padding_horizontal_mobile = s.padding_horizontal_mobile
+  assign padding_top = s.padding_top
+  assign padding_bottom = s.padding_bottom
+  assign margin_top = s.margin_top
+  assign margin_bottom = s.margin_bottom
+  assign background_color = s.background_color
+  assign background_gradient = s.background_gradient
+  assign border_color = s.border_color
+  assign border_thickness = s.border_thickness
+
+  # Heading/subheading + link
+  assign heading = s.heading
+  assign heading_align = s.heading_align
+  assign sub_heading = s.sub_heading
+  assign sub_heading_align = s.sub_heading_align
+  assign invert_content = s.invert_content
+
+  assign link = s.link
+  assign link_url = s.link_url
+  assign link_position = s.link_position
+  assign link_mobile = s.link_mobile
+
+  # Slider layout
+  assign items_mt = s.items_mt
+  assign per_mobile = s.items_per_mobile
+  assign per_desktop = s.items_per_desktop
+  assign space_between = s.space_between
+  assign show_bar = s.show_bar
+  assign top_bar = s.top_bar
+
+  # Image + card
+  assign image_radius = s.image_radius
+  assign use_custom_height = s.use_custom_height
+  assign image_height_desktop = s.image_height_desktop
+  assign image_height_mobile = s.image_height_mobile
+  assign image_ratio = s.image_ratio
+  assign use_shadow = s.use_shadow
+  assign use_radius = s.use_radius
+  assign card_padding_horizontal = s.card_padding_horizontal
+  assign card_padding_vertical = s.card_padding_vertical
+  assign card_content_bg_color = s.card_content_bg_color
+
+  # Arrows
+  assign arrow_size = s.arrow_size
+  assign arrow_size_mobile = s.arrow_size_mobile
+  assign arrow_color = s.arrow_color
+  assign arrow_hover_color = s.arrow_hover_color
+  assign arrow_bg_color = s.arrow_bg_color
+  assign arrow_bg_hover_color = s.arrow_bg_hover_color
+  assign arrow_border_color = s.arrow_border_color
+  assign arrow_border_hover_color = s.arrow_border_hover_color
+  assign progress_color = s.progress_color
+  assign arrow_hide_mobile = s.arrow_hide_mobile
+
+  # Typography
+  assign heading_font = s.heading_font
+  assign subheading_font = s.subheading_font
+  assign card_font = s.card_font
+
+  assign heading_size = s.heading_size
+  assign heading_size_mobile = s.heading_size_mobile
+  assign subheading_size = s.subheading_size
+  assign subheading_size_mobile = s.subheading_size_mobile
+  assign card_title_size = s.card_title_size
+  assign card_meta_size = s.card_meta_size
+-%}
+
+{%- style -%}
+  {{ heading_font | font_face: font_display: 'swap' }}
+  {{ subheading_font | font_face: font_display: 'swap' }}
+  {{ card_font | font_face: font_display: 'swap' }}
+
+  .ccds-{{ section.id }} {
+    margin-top: {{ margin_top | times: 0.75 | round: 0 }}px;
+    margin-bottom: {{ margin_bottom | times: 0.75 | round: 0 }}px;
+    border-top: solid {{ border_color }} {{ border_thickness }}px;
+    border-bottom: solid {{ border_color }} {{ border_thickness }}px;
+    background-color: {{ background_color }};
+    background-image: {{ background_gradient }};
+  }
+  @media(min-width: 1024px) {
+    .ccds-{{ section.id }} {
+      margin-top: {{ margin_top }}px;
+      margin-bottom: {{ margin_bottom }}px;
+    }
+  }
+
+  .ccds-{{ section.id }}__outer {
+    width: 100%;
+    margin: 0 auto;
+  }
+  {% if width_mode == 'custom' %}
+    .ccds-{{ section.id }}__outer { max-width: {{ custom_max_width }}px; }
+  {% elsif width_mode == 'full' %}
+    .ccds-{{ section.id }}__outer { max-width: none; width: 100%; }
+  {% endif %}
+
+  .ccds-{{ section.id }}__inner {
+    padding-top: {{ padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ padding_bottom | times: 0.75 | round: 0 }}px;
+    padding-left: {{ padding_horizontal_mobile }}rem;
+    padding-right: {{ padding_horizontal_mobile }}rem;
+  }
+  @media(min-width: 1024px) {
+    .ccds-{{ section.id }}__inner {
+      padding-top: {{ padding_top }}px;
+      padding-bottom: {{ padding_bottom }}px;
+      padding-left: {{ padding_horizontal }}rem;
+      padding-right: {{ padding_horizontal }}rem;
+    }
+  }
+
+  .ccds-{{ section.id }}__heading {
+    margin: 0;
+    text-align: {{ heading_align }};
+    color: rgb(var(--color-foreground));
+    font-family: {{ heading_font.family }}, {{ heading_font.fallback_families }};
+    font-weight: {{ heading_font.weight }};
+    font-style: {{ heading_font.style }};
+    font-size: {{ heading_size_mobile }}px;
+    line-height: 1.15;
+  }
+  @media(min-width: 1024px) {
+    .ccds-{{ section.id }}__heading { font-size: {{ heading_size }}px; }
+  }
+
+  .ccds-{{ section.id }}__subheading {
+    margin: 0;
+    text-align: {{ sub_heading_align }};
+    color: rgb(var(--color-foreground));
+    opacity: .75;
+    font-family: {{ subheading_font.family }}, {{ subheading_font.fallback_families }};
+    font-weight: {{ subheading_font.weight }};
+    font-style: {{ subheading_font.style }};
+    font-size: {{ subheading_size_mobile }}px;
+    line-height: 1.35;
+  }
+  @media(min-width: 1024px) {
+    .ccds-{{ section.id }}__subheading { font-size: {{ subheading_size }}px; }
+  }
+
+  .ccds-{{ section.id }}__top { display: block; }
+  {% unless link_position %}
+    .ccds-{{ section.id }}__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+  {% endunless %}
+
+  .ccds-{{ section.id }}__link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: fit-content;
+    text-decoration: none;
+    color: rgb(var(--color-foreground));
+    font: var(--font-body);
+    transition: all 0.3s ease;
+  }
+  .ccds-{{ section.id }}__link:hover { opacity: .85; }
+
+  .ccds-{{ section.id }}__arrow-pill {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: {{ s.link_background_color }};
+    transition: all 0.3s ease;
+  }
+  .ccds-{{ section.id }}__arrow-pill svg { width: 5px; height: 8px; transform: rotate(-90deg); }
+  .ccds-{{ section.id }}__arrow-pill svg path { fill: {{ s.link_color }}; }
+  .ccds-{{ section.id }}__link:hover .ccds-{{ section.id }}__arrow-pill { background-color: {{ s.link_background_hover_color }}; }
+  .ccds-{{ section.id }}__link:hover .ccds-{{ section.id }}__arrow-pill svg path { fill: #fff; }
+
+  {% unless link_mobile %}
+    .ccds-{{ section.id }}__link { display: none; }
+    @media(min-width: 1024px) { .ccds-{{ section.id }}__link { display: flex; } }
+  {% endunless %}
+
+  .ccds-{{ section.id }}__slider {
+    margin-top: {{ items_mt | times: 0.75 | round: 0 }}px;
+    position: relative;
+  }
+  @media(min-width: 1024px) {
+    .ccds-{{ section.id }}__slider { margin-top: {{ items_mt }}px; }
+  }
+
+  .ccds-{{ section.id }}__swiper {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .ccds-{{ section.id }} .swiper-slide {
+    height: auto;
+    text-decoration: none;
+    display: block;
+    box-sizing: border-box !important;
+  }
+
+  .ccds-{{ section.id }}__card {
+    background-color: {{ card_content_bg_color }};
+    overflow: hidden;
+    border-radius: {{ image_radius }}px;
+  }
+
+  {% if use_shadow %}
+    .ccds-{{ section.id }}__card { box-shadow: 0 6px 20px rgba(0,0,0,.10); }
+  {% endif %}
+
+  {% if use_radius %}
+    .ccds-{{ section.id }}__card { border-radius: {{ image_radius }}px; }
+  {% endif %}
+
+  .ccds-{{ section.id }}__image {
+    width: 100%;
+    overflow: hidden;
+    background: rgba(var(--color-foreground), .04);
+  }
+
+  .ccds-{{ section.id }}__image img,
+  .ccds-{{ section.id }}__image svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+
+  {% if use_custom_height %}
+    .ccds-{{ section.id }}__image { height: {{ image_height_mobile }}px; }
+    @media(min-width: 1024px) { .ccds-{{ section.id }}__image { height: {{ image_height_desktop }}px; } }
+  {% else %}
+    {% if image_ratio == "square" %}
+      .ccds-{{ section.id }}__image { aspect-ratio: 1 / 1; }
+    {% elsif image_ratio == "portrait" %}
+      .ccds-{{ section.id }}__image { aspect-ratio: 1 / 1.3; }
+    {% endif %}
+  {% endif %}
+
+  .ccds-{{ section.id }}__content {
+    padding: {{ card_padding_vertical | times: 0.75 | round: 0 }}px {{ card_padding_horizontal | times: 0.75 | round: 0 }}px;
+  }
+  @media(min-width: 1024px) {
+    .ccds-{{ section.id }}__content {
+      padding: {{ card_padding_vertical }}px {{ card_padding_horizontal }}px;
+    }
+  }
+
+  .ccds-{{ section.id }}__title {
+    margin: 0;
+    color: rgb(var(--color-foreground));
+    font-family: {{ card_font.family }}, {{ card_font.fallback_families }};
+    font-weight: 600;
+    font-style: {{ card_font.style }};
+    font-size: {{ card_title_size }}px;
+    line-height: 1.2;
+  }
+
+  .ccds-{{ section.id }}__meta {
+    margin: 8px 0 0;
+    color: rgb(var(--color-foreground));
+    opacity: .75;
+    font-family: {{ card_font.family }}, {{ card_font.fallback_families }};
+    font-weight: {{ card_font.weight }};
+    font-style: {{ card_font.style }};
+    font-size: {{ card_meta_size }}px;
+    line-height: 1.25;
+  }
+
+  .ccds-{{ section.id }}__btn {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    transform: translateY(-50%);
+    width: {{ arrow_size_mobile }}px;
+    height: {{ arrow_size_mobile }}px;
+    border: 1px solid {{ arrow_border_color }};
+    border-radius: 999px;
+    background: {{ arrow_bg_color }};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .3s ease;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .ccds-{{ section.id }}__btn svg { width: 18px; height: 18px; display: block; }
+  .ccds-{{ section.id }}__btn svg path { fill: currentColor; }
+  .ccds-{{ section.id }}__btn { color: {{ arrow_color }}; }
+
+  .ccds-{{ section.id }}__btn:hover {
+    border-color: {{ arrow_border_hover_color }};
+    background: {{ arrow_bg_hover_color }};
+    color: {{ arrow_hover_color }};
+  }
+
+  .ccds-{{ section.id }}__btn.swiper-button-disabled { opacity: .3; }
+
+  .ccds-{{ section.id }}__btn--prev { left: 10px; }
+  .ccds-{{ section.id }}__btn--next { right: 10px; }
+
+  @media(min-width: 1024px) {
+    .ccds-{{ section.id }}__btn {
+      width: {{ arrow_size }}px;
+      height: {{ arrow_size }}px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .ccds-{{ section.id }}__slider:hover .ccds-{{ section.id }}__btn {
+      opacity: 1;
+      pointer-events: all;
+    }
+  }
+
+  {% if arrow_hide_mobile %}
+    .ccds-{{ section.id }}__btn { display: none; }
+    @media(min-width: 1024px) { .ccds-{{ section.id }}__btn { display: flex; } }
+  {% endif %}
+
+  .ccds-{{ section.id }}__pagination {
+    position: static !important;
+    height: 3px;
+    {% if top_bar %} margin-bottom: 15px; {% else %} margin-top: 15px; {% endif %}
+  }
+  .ccds-{{ section.id }}__pagination.swiper-pagination-progressbar .swiper-pagination-progressbar-fill {
+    background: {{ progress_color }};
+  }
+  .ccds-{{ section.id }}__pagination.hide { display: none; }
+{%- endstyle -%}
+
+{%- comment -%}
+  Swiper CSS (load once)
+{%- endcomment -%}
+<script>
+  (function() {
+    if (document.querySelector('link[data-swiper-v9-css="true"]')) return;
+    var l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = "{{ 'swiper-bundle.min.css' | asset_url }}";
+    l.dataset.swiperV9Css = 'true';
+    document.head.appendChild(l);
+  })();
+</script>
+
+<div class="ccds-{{ section.id }}" id="CCDS-{{ section.id }}">
+  {%- if width_mode == 'theme' -%}<div class="page-width">{%- endif -%}
+
+  <div class="ccds-{{ section.id }}__outer">
+    <div class="ccds-{{ section.id }}__inner">
+
+      {% if invert_content %}
+        {% if sub_heading != blank %}
+          <p class="ccds-{{ section.id }}__subheading">{{ sub_heading }}</p>
+        {% endif %}
+      {% endif %}
+
+      {% if heading != blank %}
+        <div class="ccds-{{ section.id }}__top">
+          <h2 class="ccds-{{ section.id }}__heading">{{ heading }}</h2>
+
+          {% if link != blank and link_url != blank %}
+            <a class="ccds-{{ section.id }}__link" href="{{ link_url }}">
+              {{ link }}
+              <div class="ccds-{{ section.id }}__arrow-pill">
+                <svg aria-hidden="true" focusable="false" viewBox="0 0 10 6">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M9.354.646a.5.5 0 00-.708 0L5 4.293 1.354.646a.5.5 0 00-.708.708l4 4a.5.5 0 00.708 0l4-4a.5.5 0 000-.708z"></path>
+                </svg>
+              </div>
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% unless invert_content %}
+        {% if sub_heading != blank %}
+          <p class="ccds-{{ section.id }}__subheading">{{ sub_heading }}</p>
+        {% endif %}
+      {% endunless %}
+
+      <div class="ccds-{{ section.id }}__slider">
+        {% if top_bar %}
+          <div class="ccds-{{ section.id }}__pagination {% unless show_bar %}hide{% endunless %} swiper-pagination"></div>
+        {% endif %}
+
+        <div class="swiper ccds-{{ section.id }}__swiper" id="CCDSwiper-{{ section.id }}">
+          <div class="swiper-wrapper">
+            {%- assign rendered = 0 -%}
+
+            {%- if collections_selected != blank and collections_selected.size > 0 -%}
+              {%- for c in collections_selected limit: max_show -%}
+                {%- assign rendered = rendered | plus: 1 -%}
+                <a class="swiper-slide" href="{{ c.url }}">
+                  <div class="ccds-{{ section.id }}__card">
+                    <div class="ccds-{{ section.id }}__image">
+                      {% if c.featured_image %}
+                        {{ c.featured_image
+                          | image_url: width: 1200
+                          | image_tag:
+                            loading: 'lazy',
+                            widths: '240, 360, 480, 640, 800, 960, 1200',
+                            sizes: '(min-width: 1024px) 25vw, 60vw',
+                            alt: c.title,
+                            width: c.featured_image.width,
+                            height: c.featured_image.height
+                        }}
+                      {% else %}
+                        {{ 'collection-1' | placeholder_svg_tag }}
+                      {% endif %}
+                    </div>
+
+                    <div class="ccds-{{ section.id }}__content">
+                      <p class="ccds-{{ section.id }}__title">{{ c.title }}</p>
+                      {% if show_count %}
+                        <p class="ccds-{{ section.id }}__meta">{{ c.all_products_count }} {{ count_label }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </a>
+              {%- endfor -%}
+            {%- endif -%}
+
+            {%- if rendered == 0 -%}
+              {%- for i in (1..6) -%}
+                <a class="swiper-slide" href="#" aria-disabled="true" tabindex="-1">
+                  <div class="ccds-{{ section.id }}__card">
+                    <div class="ccds-{{ section.id }}__image">{{ 'collection-1' | placeholder_svg_tag }}</div>
+                    <div class="ccds-{{ section.id }}__content">
+                      <p class="ccds-{{ section.id }}__title">Select collections</p>
+                      {% if show_count %}
+                        <p class="ccds-{{ section.id }}__meta">0 {{ count_label }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </a>
+              {%- endfor -%}
+            {%- endif -%}
+          </div>
+        </div>
+
+        <button type="button" class="ccds-{{ section.id }}__btn ccds-{{ section.id }}__btn--prev" aria-label="Previous">
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <path d="M12.7 15.7a1 1 0 0 1-1.4 0l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 1 1 1.4 1.4L8.4 10l4.3 4.3a1 1 0 0 1 0 1.4z"></path>
+          </svg>
+        </button>
+
+        <button type="button" class="ccds-{{ section.id }}__btn ccds-{{ section.id }}__btn--next" aria-label="Next">
+          <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+            <path d="M7.3 4.3a1 1 0 0 1 1.4 0l5 5a1 1 0 0 1 0 1.4l-5 5a1 1 0 1 1-1.4-1.4L11.6 10 7.3 5.7a1 1 0 0 1 0-1.4z"></path>
+          </svg>
+        </button>
+
+        {% unless top_bar %}
+          <div class="ccds-{{ section.id }}__pagination {% unless show_bar %}hide{% endunless %} swiper-pagination"></div>
+        {% endunless %}
+      </div>
+
+    </div>
+  </div>
+
+  {%- if width_mode == 'theme' -%}</div>{%- endif -%}
+</div>
+
+{%- comment -%}
+  Swiper v9 safe-loader (loads only once, even if multiple sections use it)
+{%- endcomment -%}
+<script>
+  window.__swiperV9Loader = window.__swiperV9Loader || (function () {
+    var p;
+    function load() {
+      if (p) return p;
+      p = new Promise(function (resolve, reject) {
+        if (window.Swiper) return resolve();
+        var existing = document.querySelector('script[data-swiper-v9="true"]');
+        if (existing) {
+          existing.addEventListener('load', function () { resolve(); }, { once: true });
+          existing.addEventListener('error', function () { reject(new Error('Swiper v9 failed to load')); }, { once: true });
+          return;
+        }
+        var s = document.createElement('script');
+        s.src = "{{ 'swiper-bundle.min.js' | asset_url }}";
+        s.defer = true;
+        s.dataset.swiperV9 = 'true';
+        s.onload = function () { resolve(); };
+        s.onerror = function () { reject(new Error('Swiper v9 failed to load')); };
+        document.head.appendChild(s);
+      });
+      return p;
+    }
+    return { load: load };
+  })();
+</script>
+
+<script>
+(function() {
+  var SECTION_ID = "{{ section.id }}";
+  var root = document.getElementById("CCDS-" + SECTION_ID);
+
+  function init() {
+    if (!root) return;
+
+    var el = root.querySelector("#CCDSwiper-" + SECTION_ID);
+    if (!el) return;
+
+    if (el.swiper) el.swiper.destroy(true, true);
+
+    var perMobile = parseFloat("{{ per_mobile }}") || 1;
+    var perDesktop = parseFloat("{{ per_desktop }}") || 4;
+    var gap = parseInt("{{ space_between }}", 10) || 20;
+
+    if (typeof Swiper === "undefined") return;
+
+    new Swiper(el, {
+      speed: 350,
+      spaceBetween: gap,
+      slidesPerView: perMobile,
+      watchOverflow: true,
+      navigation: {
+        nextEl: root.querySelector(".ccds-" + SECTION_ID + "__btn--next"),
+        prevEl: root.querySelector(".ccds-" + SECTION_ID + "__btn--prev")
+      },
+      pagination: {
+        el: root.querySelector(".ccds-" + SECTION_ID + "__pagination"),
+        type: "progressbar"
+      },
+      breakpoints: {
+        1024: { slidesPerView: perDesktop }
+      }
+    });
+  }
+
+  function boot() {
+    window.__swiperV9Loader.load().then(function() {
+      init();
+    }).catch(function(){});
+  }
+
+  document.addEventListener("DOMContentLoaded", boot);
+
+  if (window.Shopify && Shopify.designMode) {
+    document.addEventListener("shopify:section:load", function(e) {
+      if (e.detail && e.detail.sectionId === SECTION_ID) boot();
+    });
+    document.addEventListener("shopify:section:select", function(e) {
+      if (e.detail && e.detail.sectionId === SECTION_ID) boot();
+    });
+    document.addEventListener("shopify:section:settings:change", function(e) {
+      if (e.detail && e.detail.sectionId === SECTION_ID) boot();
+    });
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Collections(Dawn)",
+  "settings": [
+    { "type": "header", "content": "Collections" },
+    {
+      "type": "collection_list",
+      "id": "collection_list",
+      "label": "Select collections",
+      "info": "Starts empty. Pick collections manually. If none selected, placeholder cards show."
+    },
+    {
+      "type": "range",
+      "id": "collections_show",
+      "min": 1,
+      "max": 50,
+      "step": 1,
+      "label": "Collections to show",
+      "default": 12
+    },
+    { "type": "checkbox", "id": "show_count", "label": "Show product count", "default": true },
+    { "type": "text", "id": "count_label", "label": "Count label", "default": "products" },
+
+    { "type": "header", "content": "Width" },
+    {
+      "type": "select",
+      "id": "width_mode",
+      "label": "Carousel width mode",
+      "default": "theme",
+      "options": [
+        { "value": "theme", "label": "Dawn page width (theme container)" },
+        { "value": "full", "label": "Full width (edge to edge)" },
+        { "value": "custom", "label": "Custom max width (px)" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "custom_max_width",
+      "min": 600,
+      "max": 2200,
+      "step": 20,
+      "unit": "px",
+      "label": "Custom max width",
+      "default": 1400
+    },
+
+    { "type": "header", "content": "Typography" },
+    { "type": "font_picker", "id": "heading_font", "label": "Heading font", "default": "assistant_n4" },
+    { "type": "range", "id": "heading_size", "min": 16, "max": 80, "step": 2, "unit": "px", "label": "Heading size (desktop)", "default": 40 },
+    { "type": "range", "id": "heading_size_mobile", "min": 14, "max": 50, "step": 2, "unit": "px", "label": "Heading size (mobile)", "default": 28 },
+
+    { "type": "font_picker", "id": "subheading_font", "label": "Subheading font", "default": "assistant_n4" },
+    { "type": "range", "id": "subheading_size", "min": 12, "max": 48, "step": 2, "unit": "px", "label": "Subheading size (desktop)", "default": 18 },
+    { "type": "range", "id": "subheading_size_mobile", "min": 12, "max": 40, "step": 2, "unit": "px", "label": "Subheading size (mobile)", "default": 16 },
+
+    { "type": "font_picker", "id": "card_font", "label": "Card text font", "default": "assistant_n4" },
+    { "type": "range", "id": "card_title_size", "min": 12, "max": 40, "step": 1, "unit": "px", "label": "Card title size", "default": 18 },
+    { "type": "range", "id": "card_meta_size", "min": 10, "max": 28, "step": 1, "unit": "px", "label": "Card meta size", "default": 14 },
+
+    { "type": "header", "content": "Text" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Shop by collection" },
+    {
+      "type": "select",
+      "id": "heading_align",
+      "label": "Heading align",
+      "default": "center",
+      "options": [
+        { "label": "Center", "value": "center" },
+        { "label": "Left", "value": "left" },
+        { "label": "Right", "value": "right" }
+      ]
+    },
+    { "type": "text", "id": "sub_heading", "label": "Subheading", "default": "Add description here" },
+    {
+      "type": "select",
+      "id": "sub_heading_align",
+      "label": "Subheading align",
+      "default": "center",
+      "options": [
+        { "label": "Center", "value": "center" },
+        { "label": "Left", "value": "left" },
+        { "label": "Right", "value": "right" }
+      ]
+    },
+    { "type": "checkbox", "id": "invert_content", "label": "Invert heading/subheading order", "default": false },
+
+    { "type": "header", "content": "Link" },
+    { "type": "text", "id": "link", "label": "Link text", "default": "View all" },
+    { "type": "url", "id": "link_url", "label": "Link URL" },
+    { "type": "checkbox", "id": "link_position", "label": "Link under heading", "default": false },
+    { "type": "checkbox", "id": "link_mobile", "label": "Show link on mobile", "default": true },
+
+    { "type": "header", "content": "Link colors" },
+    { "type": "color", "id": "link_color", "label": "Link color", "default": "#000000" },
+    { "type": "color", "id": "link_background_color", "label": "Link arrow background", "default": "#E6E6E6" },
+    { "type": "color", "id": "link_background_hover_color", "label": "Link arrow hover background", "default": "#000000" },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "items_mt", "min": 0, "max": 100, "step": 4, "unit": "px", "label": "Cards margin top", "default": 40 },
+    { "type": "range", "id": "space_between", "min": 8, "max": 40, "step": 2, "unit": "px", "label": "Space between cards", "default": 20 },
+    { "type": "checkbox", "id": "show_bar", "label": "Show progress bar", "default": true },
+    { "type": "checkbox", "id": "top_bar", "label": "Top position bar", "default": false },
+    { "type": "range", "id": "items_per_desktop", "min": 1, "max": 6, "step": 1, "label": "Items per row (desktop)", "default": 4 },
+    {
+      "type": "select",
+      "id": "items_per_mobile",
+      "label": "Items per row (mobile)",
+      "default": "1.3",
+      "options": [
+        { "label": "1", "value": "1" },
+        { "label": "1.3", "value": "1.3" },
+        { "label": "2", "value": "2" }
+      ]
+    },
+
+    { "type": "header", "content": "Image" },
+    { "type": "range", "id": "image_radius", "min": 0, "max": 40, "step": 2, "unit": "px", "label": "Image/card radius", "default": 12 },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image aspect ratio",
+      "default": "square",
+      "options": [
+        { "label": "None", "value": "none" },
+        { "label": "Square", "value": "square" },
+        { "label": "Portrait", "value": "portrait" }
+      ]
+    },
+    { "type": "checkbox", "id": "use_custom_height", "label": "Use custom height", "default": false },
+    { "type": "range", "id": "image_height_desktop", "min": 120, "max": 700, "step": 10, "unit": "px", "label": "Image height desktop", "default": 380 },
+    { "type": "range", "id": "image_height_mobile", "min": 80, "max": 500, "step": 10, "unit": "px", "label": "Image height mobile", "default": 220 },
+
+    { "type": "header", "content": "Card" },
+    { "type": "checkbox", "id": "use_shadow", "label": "Use box shadow", "default": false },
+    { "type": "checkbox", "id": "use_radius", "label": "Use card roundness", "default": true },
+    { "type": "range", "id": "card_padding_horizontal", "min": 0, "max": 40, "step": 2, "unit": "px", "label": "Card padding horizontal", "default": 12 },
+    { "type": "range", "id": "card_padding_vertical", "min": 0, "max": 40, "step": 2, "unit": "px", "label": "Card padding vertical", "default": 16 },
+    { "type": "color", "id": "card_content_bg_color", "label": "Card background color", "default": "#FFFFFF" },
+
+    { "type": "header", "content": "Navigation colors" },
+    { "type": "range", "id": "arrow_size", "min": 20, "max": 100, "step": 2, "unit": "px", "label": "Arrow size", "default": 50 },
+    { "type": "range", "id": "arrow_size_mobile", "min": 20, "max": 100, "step": 2, "unit": "px", "label": "Arrow size (mobile)", "default": 40 },
+    { "type": "checkbox", "id": "arrow_hide_mobile", "label": "Hide arrows on mobile", "default": false },
+    { "type": "color", "id": "arrow_color", "label": "Arrow color", "default": "#000000" },
+    { "type": "color", "id": "arrow_hover_color", "label": "Arrow hover color", "default": "#000000" },
+    { "type": "color", "id": "arrow_bg_color", "label": "Arrow background", "default": "#F2F2F2" },
+    { "type": "color", "id": "arrow_bg_hover_color", "label": "Arrow background hover", "default": "#F2F2F2" },
+    { "type": "color", "id": "arrow_border_color", "label": "Arrow border", "default": "#C4C4C4" },
+    { "type": "color", "id": "arrow_border_hover_color", "label": "Arrow border hover", "default": "#C4C4C4" },
+    { "type": "color", "id": "progress_color", "label": "Progress bar color", "default": "#000000" },
+
+    { "type": "header", "content": "Section background + spacing" },
+    { "type": "color", "id": "background_color", "label": "Background color", "default": "#FFFFFF" },
+    { "type": "color_background", "id": "background_gradient", "label": "Background gradient" },
+    { "type": "color", "id": "border_color", "label": "Border color", "default": "#000000" },
+    { "type": "range", "id": "border_thickness", "min": 0, "max": 12, "step": 1, "unit": "px", "label": "Border thickness", "default": 0 },
+
+    { "type": "range", "id": "margin_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Margin top", "default": 0 },
+    { "type": "range", "id": "margin_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Margin bottom", "default": 0 },
+
+    { "type": "range", "id": "padding_top", "min": 0, "max": 140, "step": 4, "unit": "px", "label": "Padding top", "default": 36 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 140, "step": 4, "unit": "px", "label": "Padding bottom", "default": 36 },
+    { "type": "range", "id": "padding_horizontal", "min": 0, "max": 10, "step": 0.5, "unit": "rem", "label": "Side padding desktop (rem)", "default": 5 },
+    { "type": "range", "id": "padding_horizontal_mobile", "min": 0, "max": 6, "step": 0.2, "unit": "rem", "label": "Side padding mobile (rem)", "default": 1 }
+  ],
+  "presets": [
+    {
+      "name": "Collections(Dawn)",
+      "settings": {
+        "width_mode": "theme",
+        "custom_max_width": 1400,
+        "items_per_desktop": 4,
+        "items_per_mobile": "1.3",
+        "collections_show": 12
+      }
+    }
+  ]
+}
+{% endschema %}

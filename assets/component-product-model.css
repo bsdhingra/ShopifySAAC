@@ -1,0 +1,72 @@
+.product__xr-button {
+  background: rgba(var(--color-foreground), 0.08);
+  color: rgb(var(--color-foreground));
+  margin: 1rem auto;
+  box-shadow: none;
+  display: flex;
+}
+
+.button.product__xr-button:hover {
+  box-shadow: none;
+}
+
+.product__xr-button[data-shopify-xr-hidden] {
+  visibility: hidden;
+}
+
+.shopify-design-mode .product__xr-button[data-shopify-xr-hidden] {
+  display: none;
+}
+
+@media screen and (max-width: 749px) {
+  slider-component .product__xr-button {
+    display: none;
+  }
+
+  .active .product__xr-button:not([data-shopify-xr-hidden]) {
+    display: block;
+  }
+}
+
+@media screen and (min-width: 750px) {
+  slider-component + .button.product__xr-button {
+    display: none;
+  }
+
+  .product__xr-button[data-shopify-xr-hidden] {
+    display: none;
+  }
+}
+
+.product__xr-button .icon {
+  width: 1.4rem;
+  margin-right: 1rem;
+}
+/* PRODUCT PAGE: Hide thumbnail strip (keep main image + variant switching working) */
+.template-product media-gallery .thumbnail-list,
+.template-product media-gallery .thumbnail-slider,
+.template-product media-gallery [id^="Slider-Thumbnails-"],
+.template-product media-gallery [id^="GalleryViewer-Thumbnails-"],
+.template-product media-gallery .product__media-sublist,
+.template-product .product__media-wrapper .thumbnail-list,
+.template-product .product__media-wrapper .thumbnail-slider {
+  display: none !important;
+}
+
+/* Remove the extra spacing that the hidden thumbnails can leave behind */
+.template-product media-gallery .thumbnail,
+.template-product media-gallery .thumbnail-list__item,
+.template-product media-gallery .thumbnail-slider__slide,
+.template-product .product__media-wrapper .thumbnail,
+.template-product .product__media-wrapper .thumbnail-list__item {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Hide ONLY variant-specific thumbnails (if theme generates them) */
+.template-product media-gallery .thumbnail-list__item.thumbnail--variant,
+.template-product media-gallery .thumbnail-list__item--variant,
+.template-product media-gallery [class*="thumbnail--variant"],
+.template-product media-gallery [class*="thumbnail-list__item--variant"] {
+  display: none !important;
+}

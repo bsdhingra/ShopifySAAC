@@ -1,0 +1,98 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "How-it-works-process",
+      "blocks": {
+        "step_1": {
+          "type": "step",
+          "settings": {
+            "icon": "browse",
+            "title": "Select Your Product (e.g., Tumbler)",
+            "text": "Shop All • Collections • Featured • Menu • Then pick your product"
+          }
+        },
+        "step_2": {
+          "type": "step",
+          "settings": {
+            "icon": "upload",
+            "title": "Customize (Upload Image)",
+            "text": "Upload your design image (for fully customizable products)"
+          }
+        },
+        "step_3": {
+          "type": "step",
+          "settings": {
+            "icon": "message",
+            "title": "Add Customization Details",
+            "text": "Add Name • Message • Design URL (optional) • Print size (if needed)"
+          }
+        },
+        "step_4": {
+          "type": "step",
+          "settings": {
+            "icon": "checkout",
+            "title": "Secure Checkout",
+            "text": "Add to cart • Safe payment • Order confirmation"
+          }
+        },
+        "step_5": {
+          "type": "step",
+          "settings": {
+            "icon": "print",
+            "title": "Proof & Approval → Print",
+            "text": "We finalize design & send proof (if needed) • You approve • Then we print"
+          }
+        },
+        "step_6": {
+          "type": "step",
+          "settings": {
+            "icon": "ship",
+            "title": "Packed & Shipped With Care",
+            "text": "Quality checked • Packed safely • Delivered to you"
+          }
+        }
+      },
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3",
+        "step_4",
+        "step_5",
+        "step_6"
+      ],
+      "settings": {
+        "heading": "How It Works",
+        "subheading": "<p>From browsing to delivery — here’s how your custom order is made with care.</p>",
+        "color_scheme": "",
+        "padding_top": 32,
+        "padding_bottom": 36,
+        "show_extras": false,
+        "intro_text": "<p>Creating your custom order is simple. Choose a product, upload your design, approve the proof (if needed), and we’ll print and ship it with care.</p>",
+        "expect_title": "What to expect",
+        "expect_1": "Proof approval for many custom designs",
+        "expect_2": "Printing starts after approval",
+        "expect_3": "Packed safely and shipped with care",
+        "need_title": "What we need from you",
+        "need_1": "Design upload or link (optional)",
+        "need_2": "Name/message (optional)",
+        "need_3": "Print size preference (if needed)",
+        "show_cta": true,
+        "cta_message": "Ready to start? Browse products and place your custom order in minutes.",
+        "cta_label": "Start Your Order",
+        "cta_link": "shopify://collections"
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

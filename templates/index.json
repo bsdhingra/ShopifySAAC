@@ -1,0 +1,617 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "rich_text_TEVXgm": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_c39QxG": {
+          "type": "heading",
+          "settings": {
+            "heading": "Personalized Perfection",
+            "heading_size": "h1"
+          }
+        },
+        "text_PHh6KK": {
+          "type": "text",
+          "settings": {
+            "text": "<h2>Embrace Individuality with our Customized Creations</h2>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_c39QxG",
+        "text_PHh6KK"
+      ],
+      "settings": {
+        "custom_class": "tight-spacing",
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 0,
+        "padding_bottom": 12
+      }
+    },
+    "slideshow_JYz3Gj": {
+      "type": "slideshow",
+      "blocks": {
+        "slide_jXtV9H": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/clothes-1.png",
+            "image_mobile": "shopify://shop_images/clothes-1_655a9e54-cc11-447a-b726-d6631ba86fb0.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": true,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": ""
+          }
+        },
+        "slide_dYRkRg": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/tumblers-2.png",
+            "image_mobile": "shopify://shop_images/tumbler-2.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": "scheme-1"
+          }
+        },
+        "slide_UAF4VY": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/photo-gift-3.png",
+            "image_mobile": "shopify://shop_images/photo-gifts-3.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": "scheme-1"
+          }
+        },
+        "slide_xAKDLa": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/bags-wine-4.png",
+            "image_mobile": "shopify://shop_images/bags-wine-4_240199e6-8898-4966-96cc-6bde3ad3b1f4.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": ""
+          }
+        }
+      },
+      "block_order": [
+        "slide_jXtV9H",
+        "slide_dYRkRg",
+        "slide_UAF4VY",
+        "slide_xAKDLa"
+      ],
+      "custom_css": [],
+      "name": "t:sections.slideshow.presets.name",
+      "settings": {
+        "layout": "grid",
+        "slide_height": "adapt_image",
+        "slider_visual": "dots",
+        "auto_rotate": true,
+        "change_slides_speed": 5,
+        "image_behavior": "none",
+        "show_text_below": false,
+        "accessibility_info": "Slideshow about customized designs from our sarvsartsandcrafts store"
+      }
+    },
+    "slideshow_6QVLK4": {
+      "type": "slideshow",
+      "blocks": {
+        "slide_PRGEMi": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/Website_collage_for_slide_show_1080_x_1350_px.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": "scheme-1"
+          }
+        }
+      },
+      "block_order": [
+        "slide_PRGEMi"
+      ],
+      "disabled": true,
+      "custom_css": [],
+      "name": "t:sections.slideshow.presets.name",
+      "settings": {
+        "layout": "full_bleed",
+        "slide_height": "adapt_image",
+        "slider_visual": "dots",
+        "auto_rotate": false,
+        "change_slides_speed": 5,
+        "image_behavior": "none",
+        "show_text_below": false,
+        "accessibility_info": "Slideshow about our brand"
+      }
+    },
+    "image_with_text_DYDtwA": {
+      "type": "image-with-text",
+      "blocks": {
+        "heading_c6fF64": {
+          "type": "heading",
+          "disabled": true,
+          "settings": {
+            "heading": "Our Shop",
+            "heading_size": "h1"
+          }
+        },
+        "text_PLAK8A": {
+          "type": "text",
+          "settings": {
+            "text": "<h2>Custom-made products crafted in-house to reflect your unique style. From apparel and drinkware to thoughtful gifts and promotional products — every piece is personalized with love and care.</h2>",
+            "text_style": "body"
+          }
+        },
+        "button_L7GN3F": {
+          "type": "button",
+          "settings": {
+            "button_label": "Shop all",
+            "button_link": "shopify://collections/all",
+            "button_style_secondary": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_c6fF64",
+        "text_PLAK8A",
+        "button_L7GN3F"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/4_87fdc850-b1d0-4c0a-bbdd-f0a46070ec81.png",
+        "height": "adapt",
+        "desktop_image_width": "large",
+        "layout": "image_first",
+        "image_behavior": "none",
+        "content_layout": "no-overlap",
+        "desktop_content_position": "middle",
+        "desktop_content_alignment": "left",
+        "mobile_content_alignment": "center",
+        "section_color_scheme": "",
+        "color_scheme": "accent-1",
+        "padding_top": 20,
+        "padding_bottom": 16
+      }
+    },
+    "slideshow_deG3DG": {
+      "type": "slideshow",
+      "blocks": {
+        "slide_Aqn3di": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/tshirt_collage.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": "scheme-1"
+          }
+        },
+        "slide_cLRYHG": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/26_6a554567-56cb-48b5-8c51-f8b022acc974.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": "scheme-1"
+          }
+        },
+        "slide_6GQ3Ld": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/Gemini_Generated_Image_a9tl7da9tl7da9tl_d5fdf04a-986a-44df-bf01-ddeefedc6b86.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": "scheme-1"
+          }
+        },
+        "slide_rpmBNy": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/mug.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": "scheme-1"
+          }
+        },
+        "slide_datytr": {
+          "type": "slide",
+          "settings": {
+            "image": "shopify://shop_images/home.png",
+            "image_overlay_opacity": 0,
+            "heading": "",
+            "heading_size": "h1",
+            "subheading": "",
+            "button_label": "",
+            "link": "",
+            "button_style_secondary": false,
+            "show_text_box": false,
+            "box_align": "middle-center",
+            "text_alignment": "center",
+            "text_alignment_mobile": "center",
+            "color_scheme": "scheme-1"
+          }
+        }
+      },
+      "block_order": [
+        "slide_Aqn3di",
+        "slide_cLRYHG",
+        "slide_6GQ3Ld",
+        "slide_rpmBNy",
+        "slide_datytr"
+      ],
+      "disabled": true,
+      "name": "t:sections.slideshow.presets.name",
+      "settings": {
+        "layout": "grid",
+        "slide_height": "adapt_image",
+        "slider_visual": "dots",
+        "auto_rotate": true,
+        "change_slides_speed": 5,
+        "image_behavior": "none",
+        "show_text_below": true,
+        "accessibility_info": "Slideshow about our brand"
+      }
+    },
+    "collage_Ji34he": {
+      "type": "collage",
+      "blocks": {
+        "image_npPA7A": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/couple.png"
+          }
+        },
+        "image_Ur8hUb": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/26.png"
+          }
+        },
+        "image_bgXpDr": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/2_840f13a6-3ffe-4e00-8b61-076840690d2f.png"
+          }
+        }
+      },
+      "block_order": [
+        "image_npPA7A",
+        "image_Ur8hUb",
+        "image_bgXpDr"
+      ],
+      "disabled": true,
+      "settings": {
+        "heading": "",
+        "heading_size": "h0",
+        "desktop_layout": "left",
+        "mobile_layout": "column",
+        "card_styles": "none",
+        "color_scheme": "",
+        "padding_top": 16,
+        "padding_bottom": 16
+      }
+    },
+    "image_with_text_tz9Af9": {
+      "type": "image-with-text",
+      "blocks": {
+        "heading_hKWUGD": {
+          "type": "heading",
+          "settings": {
+            "heading": "Tailored Creations",
+            "heading_size": "h1"
+          }
+        },
+        "text_Fka4eU": {
+          "type": "text",
+          "settings": {
+            "text": "<h3>Unique and personalized items for every occasion.</h3>",
+            "text_style": "body"
+          }
+        },
+        "button_nbyXaA": {
+          "type": "button",
+          "settings": {
+            "button_label": "",
+            "button_link": "shopify://pages/contact",
+            "button_style_secondary": false
+          }
+        }
+      },
+      "block_order": [
+        "heading_hKWUGD",
+        "text_Fka4eU",
+        "button_nbyXaA"
+      ],
+      "disabled": true,
+      "settings": {
+        "image": "shopify://shop_images/4.png",
+        "height": "small",
+        "desktop_image_width": "large",
+        "layout": "image_first",
+        "image_behavior": "none",
+        "content_layout": "no-overlap",
+        "desktop_content_position": "middle",
+        "desktop_content_alignment": "left",
+        "mobile_content_alignment": "center",
+        "section_color_scheme": "",
+        "color_scheme": "accent-1",
+        "padding_top": 28,
+        "padding_bottom": 28
+      }
+    },
+    "custom_collections_carousel_CmzRkU": {
+      "type": "custom-collections-carousel",
+      "name": "Collections Carousel",
+      "settings": {
+        "collection_list": [
+          "tumblers",
+          "t-shirts",
+          "sweatshirts-and-hoodies",
+          "personalized-photo-gifts",
+          "hoodies",
+          "custom-made-items",
+          "door-signs",
+          "baby-stuff",
+          "sips-and-sacks",
+          "bookmarks",
+          "brand-and-event-displays",
+          "magnets",
+          "cutting-boards"
+        ],
+        "collections_show": 21,
+        "show_count": true,
+        "count_label": "products",
+        "width_mode": "custom",
+        "custom_max_width": 1600,
+        "use_custom_heading_font": false,
+        "heading_font": "assistant_n4",
+        "heading_size": 40,
+        "heading_size_mobile": 28,
+        "use_custom_subheading_font": false,
+        "subheading_font": "assistant_n4",
+        "subheading_size": 18,
+        "subheading_size_mobile": 16,
+        "use_custom_card_font": false,
+        "card_font": "assistant_n4",
+        "card_title_size": 18,
+        "card_meta_size": 14,
+        "items_mt": 40,
+        "progress_bar_position": "hide",
+        "items_per_desktop": 4,
+        "items_per_mobile": "1",
+        "image_radius": 12,
+        "image_ratio": "square",
+        "use_custom_height": false,
+        "image_height_desktop": 400,
+        "image_height_mobile": 200,
+        "use_shadow": false,
+        "use_radius": false,
+        "card_padding_horizontal": 12,
+        "card_padding_vertical": 16,
+        "card_content_bg_color": "#fcfbf5",
+        "heading": "Explore Our Collections",
+        "heading_align": "center",
+        "sub_heading": "Find personalized products across all collections",
+        "sub_heading_align": "left",
+        "invert_content": false,
+        "heading_subheading_gap": 8,
+        "link": "View all Collections",
+        "link_url": "shopify://collections",
+        "view_all_style": "button",
+        "view_all_position": "bottom_center",
+        "link_position": false,
+        "link_mobile": true,
+        "link_color": "#000000",
+        "link_background_color": "#e6e6e6",
+        "link_background_hover_color": "#000000",
+        "arrow_size": 50,
+        "arrow_size_mobile": 40,
+        "arrow_hide_mobile": false,
+        "arrow_color": "#000000",
+        "arrow_hover_color": "#55654b",
+        "arrow_bg_color": "#fcfbf5",
+        "arrow_bg_hover_color": "#f2f2f2",
+        "arrow_border_color": "#c4c4c4",
+        "arrow_border_hover_color": "#c4c4c4",
+        "progress_color": "#000000",
+        "margin_top": 16,
+        "margin_bottom": 0,
+        "padding_top": 0,
+        "padding_bottom": 12,
+        "padding_horizontal": 0,
+        "padding_horizontal_mobile": 1.5,
+        "border_color": "#000000",
+        "border_thickness": 0
+      }
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "custom_css": [],
+      "settings": {
+        "collection": "featured-collection",
+        "products_to_show": 4,
+        "title": "Featured Products",
+        "heading_size": "h1",
+        "description": "<p>Popular products this week</p>",
+        "show_description": false,
+        "description_style": "body",
+        "columns_desktop": 4,
+        "enable_desktop_slider": true,
+        "full_width": false,
+        "show_view_all": true,
+        "view_all_style": "outline",
+        "color_scheme": "background-1",
+        "image_ratio": "square",
+        "image_shape": "default",
+        "show_secondary_image": true,
+        "show_vendor": false,
+        "show_rating": false,
+        "quick_add": "none",
+        "columns_mobile": "2",
+        "swipe_on_mobile": false,
+        "padding_top": 16,
+        "padding_bottom": 16
+      }
+    },
+    "rich_text_azxCtt": {
+      "type": "rich-text",
+      "blocks": {
+        "text_Aht3qX": {
+          "type": "text",
+          "settings": {
+            "text": "<h2>⭐ Loved by Our Customers</h2>"
+          }
+        },
+        "text_3gwKAB": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Real reviews from happy customers who trust our custom creations.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "text_Aht3qX",
+        "text_3gwKAB"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "custom_class": "tight-spacing",
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "",
+        "full_width": true,
+        "padding_top": 28,
+        "padding_bottom": 0
+      }
+    },
+    "17573006044813f168": {
+      "type": "apps",
+      "blocks": {
+        "k_facebook_reviews_app_embeded_wK88F6": {
+          "type": "shopify://apps/k-facebook-reviews/blocks/app-embeded/c22b343a-ed48-43c8-89d2-f79edf7572bc",
+          "settings": {
+            "popup_embedded_id": "face-id-796"
+          }
+        }
+      },
+      "block_order": [
+        "k_facebook_reviews_app_embeded_wK88F6"
+      ],
+      "settings": {
+        "include_margins": true
+      }
+    },
+    "custom_liquid_UFLKGh": {
+      "type": "custom-liquid",
+      "name": "t:sections.custom-liquid.presets.name",
+      "settings": {
+        "custom_liquid": "<a class=\"sticky-contact-btn\" href=\"/pages/contact\" aria-label=\"Contact us\">\n  Contact Us\n</a>\n\n<style>\n  .sticky-contact-btn{\n    position: fixed;\n    right: 18px;\n    bottom: 18px;\n    z-index: 9999;\n    display: inline-flex;\n    align-items: center;\n    justify-content: center;\n\n    padding: 12px 16px;\n    border-radius: 999px;\n\n    background: rgb(var(--color-button));\n    color: rgb(var(--color-button-text));\n    text-decoration: none;\n\n    box-shadow: 0 10px 25px rgba(0,0,0,.18);\n    font-weight: 600;\n    line-height: 1;\n  }\n\n  .sticky-contact-btn:hover{\n    opacity: .92;\n  }\n\n  /* iPhone safe area */\n  @supports (padding: max(0px)) {\n    .sticky-contact-btn{\n      bottom: max(18px, env(safe-area-inset-bottom));\n      right: max(18px, env(safe-area-inset-right));\n    }\n  }\n</style>",
+        "color_scheme": "",
+        "padding_top": 40,
+        "padding_bottom": 52
+      }
+    }
+  },
+  "order": [
+    "rich_text_TEVXgm",
+    "slideshow_JYz3Gj",
+    "slideshow_6QVLK4",
+    "image_with_text_DYDtwA",
+    "slideshow_deG3DG",
+    "collage_Ji34he",
+    "image_with_text_tz9Af9",
+    "custom_collections_carousel_CmzRkU",
+    "featured_collection",
+    "rich_text_azxCtt",
+    "17573006044813f168",
+    "custom_liquid_UFLKGh"
+  ]
+}

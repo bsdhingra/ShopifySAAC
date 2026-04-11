@@ -1,0 +1,530 @@
+{% comment %}
+  How it Works – Premium Timeline (SVG + Animations) + CTA + Optional Page Text
+  Dawn 15.4.1 compatible
+{% endcomment %}
+
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+.section-{{ section.id }}-padding {
+  padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+  padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+}
+@media screen and (min-width: 750px) {
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+}
+
+.hiw-{{ section.id }} .hiw__heading {
+  text-align: center;
+  margin-bottom: 2.25rem;
+}
+
+/* ===== Optional page text (added, does not affect existing unless enabled) ===== */
+.hiw-{{ section.id }} .hiw__extras {
+  max-width: 820px;
+  margin: 0 auto 1.75rem;
+  text-align: left;
+}
+.hiw-{{ section.id }} .hiw__intro {
+  margin: 0 0 1.25rem;
+}
+.hiw-{{ section.id }} .hiw__extrasGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+.hiw-{{ section.id }} .hiw__extrasCard {
+  border-radius: 16px;
+  padding: 1.1rem 1.1rem;
+  background: rgba(var(--color-background), 1);
+  border: 1px solid rgba(var(--color-foreground), 0.09);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.04);
+}
+.hiw-{{ section.id }} .hiw__extrasTitle {
+  margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+}
+.hiw-{{ section.id }} .hiw__list {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+.hiw-{{ section.id }} .hiw__list li {
+  margin: 0.35rem 0;
+  opacity: 0.88;
+  line-height: 1.35;
+}
+@media screen and (max-width: 749px) {
+  .hiw-{{ section.id }} .hiw__extrasGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Timeline ===== */
+.hiw-{{ section.id }} .hiw__grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1rem;
+  position: relative;
+  margin-top: 2rem;
+}
+
+.hiw-{{ section.id }} .hiw__line {
+  position: absolute;
+  top: 54px;
+  left: 3%;
+  right: 3%;
+  height: 2px;
+  background: rgba(var(--color-foreground), 0.14);
+}
+
+.hiw-{{ section.id }} .hiw__card {
+  border-radius: 18px;
+  padding: 1.15rem 1.1rem;
+  background: rgba(var(--color-background), 1);
+  border: 1px solid rgba(var(--color-foreground), 0.09);
+  text-align: center;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.06);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  will-change: transform;
+}
+
+.hiw-{{ section.id }} .hiw__iconWrap {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 0.9rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  position: relative;
+
+  background: linear-gradient(
+    180deg,
+    rgba(var(--color-foreground), 0.06),
+    rgba(var(--color-foreground), 0.02)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--color-foreground), 0.08),
+    0 10px 22px rgba(0,0,0,0.08);
+}
+
+.hiw-{{ section.id }} .hiw__badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(var(--color-foreground), 0.92);
+  color: rgb(var(--color-background));
+  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+
+.hiw-{{ section.id }} .hiw__icon svg {
+  width: 38px;
+  height: 38px;
+  stroke: rgba(var(--color-foreground), 0.92);
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hiw-{{ section.id }} .hiw__title {
+  font-size: 1rem;
+  margin: 0 0 0.45rem;
+}
+
+.hiw-{{ section.id }} .hiw__text {
+  font-size: 0.86rem;
+  opacity: 0.82;
+  line-height: 1.35;
+}
+
+/* ===== Premium animations (FIXED: run when section is in view) ===== */
+.hiw-{{ section.id }} .hiw__card {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.hiw-{{ section.id }}.hiw--inview .hiw__card {
+  animation: hiwFadeUp 650ms cubic-bezier(.2,.7,.2,1) forwards;
+  animation-delay: calc(var(--hiw-i) * 90ms);
+}
+
+.hiw-{{ section.id }} .hiw__iconWrap {
+  transform: translateY(0);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.hiw-{{ section.id }} .hiw__card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(var(--color-foreground), 0.14);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.10);
+}
+
+.hiw-{{ section.id }} .hiw__card:hover .hiw__iconWrap {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--color-foreground), 0.10),
+    0 16px 28px rgba(0,0,0,0.14);
+}
+
+@keyframes hiwFadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hiw-{{ section.id }} .hiw__card {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .hiw-{{ section.id }} .hiw__card,
+  .hiw-{{ section.id }} .hiw__iconWrap {
+    transition: none;
+  }
+}
+
+/* Responsive */
+@media screen and (max-width: 989px) {
+  .hiw-{{ section.id }} .hiw__grid {
+    grid-template-columns: 1fr;
+  }
+  .hiw-{{ section.id }} .hiw__line {
+    display: none;
+  }
+  .hiw-{{ section.id }} .hiw__card {
+    text-align: left;
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    gap: 0.9rem;
+    align-items: center;
+  }
+  .hiw-{{ section.id }} .hiw__iconWrap {
+    margin: 0;
+  }
+}
+
+/* ===== CTA (unchanged behavior, but entrance waits for in-view) ===== */
+.hiw-{{ section.id }} .hiw__cta {
+  text-align: center;
+  margin-top: 2.25rem;
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.hiw-{{ section.id }}.hiw--inview .hiw__cta {
+  animation: hiwFadeUp 650ms cubic-bezier(.2,.7,.2,1) forwards;
+  animation-delay: calc((var(--hiw-count, 6) * 90ms) + 120ms);
+}
+
+.hiw-{{ section.id }} .hiw__ctaMsg {
+  margin: 0 0 0.9rem;
+  opacity: 0.9;
+}
+
+.hiw-{{ section.id }} .hiw__ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 0.9rem 1.25rem;
+  border: 1px solid rgba(var(--color-foreground), 0.14);
+  background: rgba(var(--color-background), 1);
+  color: rgb(var(--color-foreground));
+  box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  will-change: transform;
+}
+
+.hiw-{{ section.id }} .hiw__ctaBtn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.hiw-{{ section.id }} .hiw__ctaBtn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--color-foreground), 0.22);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.14);
+}
+
+.hiw-{{ section.id }} .hiw__ctaBtn:focus-visible {
+  outline: 2px solid rgba(var(--color-foreground), 0.35);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hiw-{{ section.id }} .hiw__cta {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .hiw-{{ section.id }} .hiw__ctaBtn {
+    transition: none;
+  }
+}
+{%- endstyle -%}
+
+<section class="hiw-{{ section.id }} color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding">
+  <div class="page-width">
+
+    <div class="hiw__heading">
+      <h2 class="h1">{{ section.settings.heading }}</h2>
+      <div class="rte">{{ section.settings.subheading }}</div>
+    </div>
+
+    {%- if section.settings.show_extras -%}
+      <div class="hiw__extras">
+        {%- if section.settings.intro_text != blank -%}
+          <div class="hiw__intro rte">{{ section.settings.intro_text }}</div>
+        {%- endif -%}
+
+        <div class="hiw__extrasGrid">
+          {%- if section.settings.expect_title != blank or section.settings.expect_1 != blank or section.settings.expect_2 != blank or section.settings.expect_3 != blank -%}
+            <div class="hiw__extrasCard">
+              {%- if section.settings.expect_title != blank -%}
+                <h3 class="hiw__extrasTitle">{{ section.settings.expect_title }}</h3>
+              {%- endif -%}
+              <ul class="hiw__list">
+                {%- if section.settings.expect_1 != blank -%}<li>{{ section.settings.expect_1 }}</li>{%- endif -%}
+                {%- if section.settings.expect_2 != blank -%}<li>{{ section.settings.expect_2 }}</li>{%- endif -%}
+                {%- if section.settings.expect_3 != blank -%}<li>{{ section.settings.expect_3 }}</li>{%- endif -%}
+              </ul>
+            </div>
+          {%- endif -%}
+
+          {%- if section.settings.need_title != blank or section.settings.need_1 != blank or section.settings.need_2 != blank or section.settings.need_3 != blank -%}
+            <div class="hiw__extrasCard">
+              {%- if section.settings.need_title != blank -%}
+                <h3 class="hiw__extrasTitle">{{ section.settings.need_title }}</h3>
+              {%- endif -%}
+              <ul class="hiw__list">
+                {%- if section.settings.need_1 != blank -%}<li>{{ section.settings.need_1 }}</li>{%- endif -%}
+                {%- if section.settings.need_2 != blank -%}<li>{{ section.settings.need_2 }}</li>{%- endif -%}
+                {%- if section.settings.need_3 != blank -%}<li>{{ section.settings.need_3 }}</li>{%- endif -%}
+              </ul>
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    <div class="hiw__grid" role="list" aria-label="How it works steps" style="--hiw-count: {{ section.blocks.size }};">
+      <div class="hiw__line" aria-hidden="true"></div>
+
+      {% for block in section.blocks %}
+        <div
+          class="hiw__card"
+          style="--hiw-i: {{ forloop.index0 }};"
+          role="listitem"
+          {{ block.shopify_attributes }}
+        >
+          <div class="hiw__iconWrap" aria-hidden="true">
+            <div class="hiw__badge">{{ forloop.index }}</div>
+            <span class="hiw__icon">
+
+              {% case block.settings.icon %}
+
+                {% when 'browse' %}
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M7 7h14l-1.2 12.5a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 4.5" />
+                  <path d="M6 4.5H4" />
+                  <path d="M9 10h10" />
+                  <path d="M9 14h8" />
+                  <path d="M10 7a2.5 2.5 0 0 1 5 0" />
+                </svg>
+
+                {% when 'upload' %}
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M4 16.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.5" />
+                  <path d="M12 3v10" />
+                  <path d="M8.5 6.5 12 3l3.5 3.5" />
+                  <path d="M7 14h10" />
+                </svg>
+
+                {% when 'message' %}
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M7 7h10" />
+                  <path d="M7 11h7" />
+                  <path d="M7 15h5" />
+                  <path d="M20 4v12a2 2 0 0 1-2 2H9l-5 3v-3H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2Z" />
+                </svg>
+
+                {% when 'checkout' %}
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M3.5 8.5h17" />
+                  <path d="M6.5 16.5h4" />
+                  <path d="M3.5 7a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3Z" />
+                  <path d="M14.5 16.5h3" />
+                </svg>
+
+                {% when 'print' %}
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M7 8V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v4" />
+                  <path d="M6 14h12v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-6Z" />
+                  <path d="M6 10h12a3 3 0 0 1 3 3v1H3v-1a3 3 0 0 1 3-3Z" />
+                  <path d="M16.5 13.5h.01" />
+                </svg>
+
+                {% when 'ship' %}
+                <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                  <path d="M3.5 8.5 12 4l8.5 4.5L12 13 3.5 8.5Z" />
+                  <path d="M3.5 8.5V16a2 2 0 0 0 1.1 1.8L12 22l7.4-4.2A2 2 0 0 0 20.5 16V8.5" />
+                  <path d="M12 13v9" />
+                  <path d="M8.5 6.7 16 10.6" />
+                </svg>
+
+              {% endcase %}
+            </span>
+          </div>
+
+          <div class="hiw__content">
+            <h3 class="hiw__title">{{ block.settings.title }}</h3>
+            <p class="hiw__text">{{ block.settings.text }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if section.settings.show_cta %}
+      <div class="hiw__cta">
+        {% if section.settings.cta_message != blank %}
+          <p class="hiw__ctaMsg">{{ section.settings.cta_message }}</p>
+        {% endif %}
+
+        {% if section.settings.cta_label != blank and section.settings.cta_link != blank %}
+          <a class="hiw__ctaBtn button" href="{{ section.settings.cta_link }}">
+            {{ section.settings.cta_label }}
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M5 12h13" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<script>
+  (function () {
+    var sectionId = {{ section.id | json }};
+    var root = document.querySelector('.hiw-' + sectionId);
+    if (!root) return;
+
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      root.classList.add('hiw--inview');
+      return;
+    }
+
+    if (root.dataset.hiwObserved === '1') return;
+    root.dataset.hiwObserved = '1';
+
+    // If already visible (e.g., homepage), trigger immediately
+    var rect = root.getBoundingClientRect();
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    if (rect.top < vh * 0.9 && rect.bottom > vh * 0.1) {
+      root.classList.add('hiw--inview');
+      return;
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          root.classList.add('hiw--inview');
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.25 });
+
+    io.observe(root);
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "How it Works (Premium)",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Heading", "default": "How It Works" },
+    {
+      "type": "richtext",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "<p>From browsing to delivery — here’s how your custom order is made with care.</p>"
+    },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "background-1" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Padding top", "default": 72 },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 120, "step": 4, "unit": "px", "label": "Padding bottom", "default": 72 },
+
+    { "type": "header", "content": "Page Text (Optional)" },
+    { "type": "checkbox", "id": "show_extras", "label": "Show intro + lists", "default": false },
+    { "type": "richtext", "id": "intro_text", "label": "Intro text", "default": "<p>Creating your custom order is simple. Choose a product, upload your design, approve the proof (if needed), and we’ll print and ship it with care.</p>" },
+
+    { "type": "text", "id": "expect_title", "label": "What to expect title", "default": "What to expect" },
+    { "type": "text", "id": "expect_1", "label": "Expect bullet 1", "default": "Proof approval for many custom designs" },
+    { "type": "text", "id": "expect_2", "label": "Expect bullet 2", "default": "Printing starts after approval" },
+    { "type": "text", "id": "expect_3", "label": "Expect bullet 3", "default": "Packed safely and shipped with care" },
+
+    { "type": "text", "id": "need_title", "label": "What we need title", "default": "What we need from you" },
+    { "type": "text", "id": "need_1", "label": "Need bullet 1", "default": "Design upload or link (optional)" },
+    { "type": "text", "id": "need_2", "label": "Need bullet 2", "default": "Name/message (optional)" },
+    { "type": "text", "id": "need_3", "label": "Need bullet 3", "default": "Print size preference (if needed)" },
+
+    { "type": "header", "content": "CTA Button" },
+    { "type": "checkbox", "id": "show_cta", "label": "Show CTA", "default": true },
+    { "type": "text", "id": "cta_message", "label": "CTA message", "default": "Ready to start? Browse products and place your custom order in minutes." },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "Start Your Custom Order" },
+    { "type": "url", "id": "cta_link", "label": "Button link" }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "default": "browse",
+          "options": [
+            { "value": "browse", "label": "Select product" },
+            { "value": "upload", "label": "Upload image" },
+            { "value": "message", "label": "Customization details" },
+            { "value": "checkout", "label": "Checkout" },
+            { "value": "print", "label": "Proof & print" },
+            { "value": "ship", "label": "Packed & shipped" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Step title" },
+        { "type": "text", "id": "text", "label": "Text", "default": "Step description" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "How it Works (Premium)",
+      "blocks": [
+        { "type": "step", "settings": { "icon": "browse", "title": "Select Your Product (e.g., Tumbler)", "text": "Shop All • Collections • Featured • Menu • Then pick your product" } },
+        { "type": "step", "settings": { "icon": "upload", "title": "Customize (Upload Image)", "text": "Upload your design image (for fully customizable products)" } },
+        { "type": "step", "settings": { "icon": "message", "title": "Add Customization Details", "text": "Add Name • Message • Design URL (optional) • Print size (if needed)" } },
+        { "type": "step", "settings": { "icon": "checkout", "title": "Secure Checkout", "text": "Add to cart • Safe payment • Order confirmation" } },
+        { "type": "step", "settings": { "icon": "print", "title": "Proof & Approval → Print", "text": "We finalize design & send proof (if needed) • You approve • Then we print" } },
+        { "type": "step", "settings": { "icon": "ship", "title": "Packed & Shipped With Care", "text": "Quality checked • Packed safely • Delivered to you" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

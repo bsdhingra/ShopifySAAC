@@ -1,0 +1,1014 @@
+{{ 'section-image-banner.css' | asset_url | stylesheet_tag }}
+{{ 'component-slider.css' | asset_url | stylesheet_tag }}
+{{ 'component-slideshow.css' | asset_url | stylesheet_tag }}
+
+{%- comment -%}
+Dawn 15.4.1 - Slideshow + Side Text (Custom, Immersive)
+- Keeps Dawn slideshow behavior
+- Immersive single component: no gap between slideshow + content
+- Content can be LEFT or RIGHT
+- Width control: slideshow % vs content %
+- Optional divider line
+- Supports per-slide mobile image
+- STRICT Shopify schema safe: no blank defaults anywhere
+- Overlay text on image can be fully disabled at section level
+
+CUSTOM (added now):
+- Option: Copy Slide 1 side content to all slides
+- Option: Hide control labels (numbers only)
+{%- endcomment -%}
+
+{%- if section.settings.slide_height == 'adapt_image' and section.blocks.first.settings.image != blank -%}
+  {%- liquid
+    assign desktop_ratio = section.blocks.first.settings.image.aspect_ratio
+    assign mobile_ratio = desktop_ratio
+    if section.blocks.first.settings.image_mobile != blank
+      assign mobile_ratio = section.blocks.first.settings.image_mobile.aspect_ratio
+    endif
+  -%}
+
+  {%- style -%}
+    @media screen and (max-width: 749px) {
+      #Slider-{{ section.id }}::before,
+      #Slider-{{ section.id }} .media::before,
+      #Slider-{{ section.id }}:not(.banner--mobile-bottom) .banner__content::before {
+        padding-bottom: {{ 1 | divided_by: mobile_ratio | times: 100 }}%;
+        content: '';
+        display: block;
+      }
+    }
+
+    @media screen and (min-width: 750px) {
+      #Slider-{{ section.id }}::before,
+      #Slider-{{ section.id }} .media::before {
+        padding-bottom: {{ 1 | divided_by: desktop_ratio | times: 100 }}%;
+        content: '';
+        display: block;
+      }
+    }
+  {%- endstyle -%}
+{%- endif -%}
+
+{%- style -%}
+  /* ===== Immersive single shell (like Image with text) ===== */
+  #shopify-section-{{ section.id }} .sst-shell {
+    border-radius: {{ section.settings.corner_radius }}px;
+    overflow: hidden;
+    background: rgb(var(--color-background));
+    border: 1px solid rgba(var(--color-foreground), 0.10);
+  }
+
+  /* Two columns, NO GAP */
+  #shopify-section-{{ section.id }} .sst-wrap {
+    display: grid;
+    grid-template-columns: {{ section.settings.media_width }}% {{ 100 | minus: section.settings.media_width }}%;
+    gap: 0 !important;
+    align-items: stretch;
+  }
+
+  /* Content left option */
+  #shopify-section-{{ section.id }} .sst-wrap.is-reversed {
+    grid-template-columns: {{ 100 | minus: section.settings.media_width }}% {{ section.settings.media_width }}%;
+  }
+
+  /* Mobile stack */
+  @media screen and (max-width: 989px) {
+    #shopify-section-{{ section.id }} .sst-wrap,
+    #shopify-section-{{ section.id }} .sst-wrap.is-reversed {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  #shopify-section-{{ section.id }} .sst-inner.page-width {
+    padding-left: var(--page-width-padding);
+    padding-right: var(--page-width-padding);
+  }
+
+  /* Optional divider line (no gap, just a border line) */
+  #shopify-section-{{ section.id }} .sst-divider {
+    width: 1px;
+    background: rgba(var(--color-foreground), 0.12);
+  }
+  @media screen and (max-width: 989px) {
+    #shopify-section-{{ section.id }} .sst-divider { display: none; }
+  }
+
+  /* Keep Dawn's layout: DO NOT change .banner__media position */
+  #Slider-{{ section.id }} .banner__media {
+    overflow: hidden;
+    background: rgb(var(--color-background));
+  }
+
+  /* Desktop + mobile images behave like Dawn media images */
+  #Slider-{{ section.id }} .banner__media > img.sst-img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    object-fit: {{ section.settings.image_fit }} !important;
+  }
+
+  /* Hide mobile image by default (desktop) */
+  #Slider-{{ section.id }} img.sst-img--mobile { display: none !important; }
+
+  /* On mobile: swap only if slide has mobile image */
+  @media screen and (max-width: 749px) {
+    #Slider-{{ section.id }} img.sst-img--desktop.has-mobile { display: none !important; }
+    #Slider-{{ section.id }} img.sst-img--mobile { display: block !important; }
+  }
+
+  /* Reduce gap above default controls */
+  #shopify-section-{{ section.id }} .slideshow__controls {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* ===== Side content area (no separate "box" look) ===== */
+  #shopify-section-{{ section.id }} .sst-side {
+    padding: {{ section.settings.content_padding }}px;
+    background: rgb(var(--color-background));
+    border: none;
+    border-radius: 0;
+  }
+  @media screen and (max-width: 989px) {
+    #shopify-section-{{ section.id }} .sst-side {
+      padding: {{ section.settings.content_padding_mobile }}px;
+    }
+  }
+
+  #shopify-section-{{ section.id }} .sst-side__top { margin-bottom: 14px; }
+
+  #shopify-section-{{ section.id }} .sst-side__kicker {
+    font-size: 0.95rem;
+    opacity: 0.75;
+    margin: 0 0 8px;
+  }
+
+  #shopify-section-{{ section.id }} .sst-side__title { margin: 0 0 12px; }
+
+  #shopify-section-{{ section.id }} .sst-side__rte { margin: 0 0 16px; }
+
+  #shopify-section-{{ section.id }} .sst-side__btns {
+    margin: 10px 0 18px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* ===== Custom slide control list ===== */
+  #shopify-section-{{ section.id }} .sst-controls {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  #shopify-section-{{ section.id }} .sst-control {
+    width: 100%;
+    text-align: left;
+    border-radius: 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(var(--color-foreground), 0.12);
+    background: rgba(var(--color-background), 0.6);
+    cursor: pointer;
+    transition: transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+
+  #shopify-section-{{ section.id }} .sst-control:hover {
+    transform: translateY(-1px);
+    border-color: rgba(var(--color-foreground), 0.22);
+  }
+
+  #shopify-section-{{ section.id }} .sst-control.is-active {
+    border-color: rgba(var(--color-foreground), 0.38);
+    background: rgba(var(--color-foreground), 0.04);
+  }
+
+  #shopify-section-{{ section.id }} .sst-control__row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  #shopify-section-{{ section.id }} .sst-control__num {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(var(--color-foreground), 0.14);
+    font-size: 0.85rem;
+    flex: 0 0 auto;
+  }
+
+  #shopify-section-{{ section.id }} .sst-control__text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  #shopify-section-{{ section.id }} .sst-control__label {
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #shopify-section-{{ section.id }} .sst-control__sub {
+    margin: 0;
+    opacity: 0.75;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Per-slide side panels (toggle visibility in JS) */
+  #shopify-section-{{ section.id }} .sst-sidepanel { display: none; }
+  #shopify-section-{{ section.id }} .sst-sidepanel.is-active { display: block; }
+
+  /* Optional: hide Dawn default controls if you want ONLY the custom control */
+  {% if section.settings.hide_default_controls %}
+    #shopify-section-{{ section.id }} .slideshow__controls { display: none !important; }
+  {% endif %}
+
+  /* If labels are hidden, center the number */
+  {% if section.settings.hide_control_labels %}
+    #shopify-section-{{ section.id }} .sst-control__row { justify-content: center; }
+    #shopify-section-{{ section.id }} .sst-control { padding: 12px; }
+  {% endif %}
+{%- endstyle -%}
+
+{%- liquid
+  assign wrap_class = ''
+  if section.settings.content_position == 'left'
+    assign wrap_class = ' is-reversed'
+  endif
+-%}
+
+<div class="sst-inner{% if section.settings.layout == 'grid' %} page-width{% endif %}">
+  <div class="sst-shell">
+    <div class="sst-wrap{{ wrap_class }}" data-sst-root>
+
+      <!-- LEFT/RIGHT: Dawn Slideshow (kept intact) -->
+      <div class="sst-left">
+        <slideshow-component
+          class="slider-mobile-gutter{% if section.settings.layout == 'grid' %} page-width{% endif %}{% if section.settings.show_text_below %} mobile-text-below{% endif %}"
+          role="region"
+          aria-roledescription="{{ 'sections.slideshow.carousel' | t }}"
+          aria-label="{{ section.settings.accessibility_info | escape }}"
+          data-sst-slideshow
+        >
+
+          {%- if section.settings.auto_rotate and section.blocks.size > 1 -%}
+            <div class="slideshow__controls slideshow__controls--top slider-buttons{% if section.settings.show_text_below %} slideshow__controls--border-radius-mobile{% endif %}">
+              <button
+                type="button"
+                class="slider-button slider-button--prev"
+                name="previous"
+                aria-label="{{ 'sections.slideshow.previous_slideshow' | t }}"
+                aria-controls="Slider-{{ section.id }}"
+              >
+                <span class="svg-wrapper">
+                  {{- 'icon-caret.svg' | inline_asset_content -}}
+                </span>
+              </button>
+
+              <div class="slider-counter slider-counter--{{ section.settings.slider_visual }}{% if section.settings.slider_visual == 'counter' or section.settings.slider_visual == 'numbers' %} caption{% endif %}">
+                {%- if section.settings.slider_visual == 'counter' -%}
+                  <span class="slider-counter--current">1</span>
+                  <span aria-hidden="true"> / </span>
+                  <span class="visually-hidden">{{ 'general.slider.of' | t }}</span>
+                  <span class="slider-counter--total">{{ section.blocks.size }}</span>
+                {%- else -%}
+                  <div class="slideshow__control-wrapper">
+                    {%- for block in section.blocks -%}
+                      <button
+                        class="slider-counter__link slider-counter__link--{{ section.settings.slider_visual }} link"
+                        aria-label="{{ 'sections.slideshow.load_slide' | t }} {{ forloop.index }} {{ 'general.slider.of' | t }} {{ forloop.length }}"
+                        aria-controls="Slider-{{ section.id }}"
+                      >
+                        {%- if section.settings.slider_visual == 'numbers' -%}
+                          {{ forloop.index -}}
+                        {%- else -%}
+                          <span class="dot"></span>
+                        {%- endif -%}
+                      </button>
+                    {%- endfor -%}
+                  </div>
+                {%- endif -%}
+              </div>
+
+              <button
+                type="button"
+                class="slider-button slider-button--next"
+                name="next"
+                aria-label="{{ 'sections.slideshow.next_slideshow' | t }}"
+                aria-controls="Slider-{{ section.id }}"
+              >
+                <span class="svg-wrapper">
+                  {{- 'icon-caret.svg' | inline_asset_content -}}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                class="slideshow__autoplay slider-button{% if section.settings.auto_rotate == false %} slideshow__autoplay--paused{% endif %}"
+                aria-label="{{ 'sections.slideshow.pause_slideshow' | t }}"
+              >
+                <span class="svg-wrapper">
+                  {{- 'icon-pause.svg' | inline_asset_content -}}
+                </span>
+                <span class="svg-wrapper">
+                  {{- 'icon-play.svg' | inline_asset_content -}}
+                </span>
+              </button>
+            </div>
+          {%- endif -%}
+
+          <div
+            class="slideshow banner banner--{{ section.settings.slide_height }} grid grid--1-col slider slider--everywhere{% if section.settings.show_text_below %} banner--mobile-bottom{% endif %}{% if section.blocks.first.settings.image == blank %} slideshow--placeholder{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+            id="Slider-{{ section.id }}"
+            aria-live="polite"
+            aria-atomic="true"
+            data-autoplay="{{ section.settings.auto_rotate }}"
+            data-speed="{{ section.settings.change_slides_speed }}"
+            data-sst-slider
+          >
+            {%- for block in section.blocks -%}
+              <style>
+                #Slide-{{ section.id }}-{{ forloop.index }} .banner__media::after {
+                  opacity: {{ block.settings.image_overlay_opacity | divided_by: 100.0 }};
+                }
+              </style>
+
+              <div
+                class="slideshow__slide grid__item grid--1-col slider__slide"
+                id="Slide-{{ section.id }}-{{ forloop.index }}"
+                {{ block.shopify_attributes }}
+                role="group"
+                aria-roledescription="{{ 'sections.slideshow.slide' | t }}"
+                aria-label="{{ forloop.index }} {{ 'general.slider.of' | t }} {{ forloop.length }}"
+                tabindex="-1"
+                data-sst-slide
+                data-sst-index="{{ forloop.index0 }}"
+              >
+                <div class="slideshow__media banner__media media{% if block.settings.image == blank %} placeholder{% endif %}{% if section.settings.image_behavior != 'none' %} animate--{{ section.settings.image_behavior }}{% endif %}">
+                  {%- if block.settings.image -%}
+                    {%- liquid
+                      assign desktop_image = block.settings.image
+                      assign mobile_image = block.settings.image_mobile
+
+                      assign desktop_height = desktop_image.width | divided_by: desktop_image.aspect_ratio | round
+
+                      assign desktop_sizes = '100vw'
+                      assign desktop_widths = '375, 550, 750, 1100, 1500, 1780, 2000, 3000, 3840'
+                      if section.settings.image_behavior == 'ambient'
+                        assign desktop_sizes = '120vw'
+                        assign desktop_widths = '450, 660, 900, 1320, 1800, 2136, 2400, 3600, 7680'
+                      endif
+
+                      assign fetch_priority = 'auto'
+                      if section.index == 1 and forloop.first
+                        assign fetch_priority = 'high'
+                      endif
+
+                      assign desktop_extra = ''
+                      if mobile_image != blank
+                        assign desktop_extra = ' has-mobile'
+                      endif
+
+                      capture desktop_class
+                        echo 'sst-img sst-img--desktop' | append: desktop_extra
+                      endcapture
+
+                      assign mobile_class = 'sst-img sst-img--mobile'
+                    -%}
+
+                    {%- if forloop.first and section.index == 1 -%}
+                      {{
+                        desktop_image
+                        | image_url: width: 3840
+                        | image_tag:
+                          class: desktop_class,
+                          height: desktop_height,
+                          sizes: desktop_sizes,
+                          widths: desktop_widths,
+                          fetchpriority: fetch_priority
+                      }}
+                    {%- else -%}
+                      {{
+                        desktop_image
+                        | image_url: width: 3840
+                        | image_tag:
+                          class: desktop_class,
+                          loading: 'lazy',
+                          height: desktop_height,
+                          sizes: desktop_sizes,
+                          widths: desktop_widths
+                      }}
+                    {%- endif -%}
+
+                    {%- if mobile_image != blank -%}
+                      {%- liquid
+                        assign mobile_height = mobile_image.width | divided_by: mobile_image.aspect_ratio | round
+                      -%}
+
+                      {%- if forloop.first and section.index == 1 -%}
+                        {{
+                          mobile_image
+                          | image_url: width: 1100
+                          | image_tag:
+                            class: mobile_class,
+                            height: mobile_height,
+                            sizes: '100vw',
+                            widths: '375, 550, 750, 1100'
+                        }}
+                      {%- else -%}
+                        {{
+                          mobile_image
+                          | image_url: width: 1100
+                          | image_tag:
+                            class: mobile_class,
+                            loading: 'lazy',
+                            height: mobile_height,
+                            sizes: '100vw',
+                            widths: '375, 550, 750, 1100'
+                        }}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- else -%}
+                    {%- assign placeholder_slide = forloop.index | modulo: 2 -%}
+                    {%- if placeholder_slide == 1 -%}
+                      {{ 'hero-apparel-2' | placeholder_svg_tag: 'placeholder-svg' }}
+                    {%- else -%}
+                      {{ 'hero-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                    {%- endif -%}
+                  {%- endif -%}
+                </div>
+
+                {%- comment -%}
+                Overlay text on image:
+                - Fully controlled by section toggle below.
+                - If disabled, NOTHING renders on the image.
+                {%- endcomment -%}
+                {%- if section.settings.enable_overlay_text -%}
+                  <div class="slideshow__text-wrapper banner__content banner__content--{{ block.settings.box_align }} page-width{% if block.settings.show_text_box == false %} banner--desktop-transparent{% endif %}{% if settings.animations_reveal_on_scroll and forloop.index == 1 %} scroll-trigger animate--slide-in{% endif %}">
+                    <div class="slideshow__text banner__box content-container content-container--full-width-mobile color-{{ block.settings.color_scheme }} gradient slideshow__text--{{ block.settings.text_alignment }} slideshow__text-mobile--{{ block.settings.text_alignment_mobile }}">
+
+                      {%- if block.settings.show_heading -%}
+                        {%- assign overlay_heading = block.settings.heading | strip -%}
+                        {%- if overlay_heading != blank -%}
+                          <h2 class="banner__heading inline-richtext {{ block.settings.heading_size }}">
+                            {{ block.settings.heading }}
+                          </h2>
+                        {%- endif -%}
+                      {%- endif -%}
+
+                      {%- if block.settings.show_subheading -%}
+                        {%- assign overlay_sub = block.settings.subheading | strip -%}
+                        {%- if overlay_sub != blank -%}
+                          <div class="banner__text rte">
+                            <p>{{ block.settings.subheading }}</p>
+                          </div>
+                        {%- endif -%}
+                      {%- endif -%}
+
+                      {%- if block.settings.show_overlay_button -%}
+                        {%- assign overlay_btn = block.settings.button_label | strip -%}
+                        {%- if overlay_btn != blank -%}
+                          <div class="banner__buttons">
+                            <a
+                              {% if block.settings.link %}
+                                href="{{ block.settings.link }}"
+                              {% else %}
+                                role="link" aria-disabled="true"
+                              {% endif %}
+                              class="button {% if block.settings.button_style_secondary %}button--secondary{% else %}button--primary{% endif %}"
+                            >
+                              {{ overlay_btn | escape }}
+                            </a>
+                          </div>
+                        {%- endif -%}
+                      {%- endif -%}
+
+                    </div>
+                  </div>
+                {%- endif -%}
+
+              </div>
+            {%- endfor -%}
+          </div>
+
+          {%- if section.blocks.size > 1 and section.settings.auto_rotate == false -%}
+            <div class="slideshow__controls slider-buttons{% if section.settings.show_text_below %} slideshow__controls--border-radius-mobile{% endif %}">
+              <button
+                type="button"
+                class="slider-button slider-button--prev"
+                name="previous"
+                aria-label="{{ 'sections.slideshow.previous_slideshow' | t }}"
+                aria-controls="Slider-{{ section.id }}"
+              >
+                <span class="svg-wrapper">
+                  {{- 'icon-caret.svg' | inline_asset_content -}}
+                </span>
+              </button>
+
+              <div class="slider-counter slider-counter--{{ section.settings.slider_visual }}{% if section.settings.slider_visual == 'counter' or section.settings.slider_visual == 'numbers' %} caption{% endif %}">
+                {%- if section.settings.slider_visual == 'counter' -%}
+                  <span class="slider-counter--current">1</span>
+                  <span aria-hidden="true"> / </span>
+                  <span class="visually-hidden">{{ 'general.slider.of' | t }}</span>
+                  <span class="slider-counter--total">{{ section.blocks.size }}</span>
+                {%- else -%}
+                  <div class="slideshow__control-wrapper">
+                    {%- for block in section.blocks -%}
+                      <button
+                        class="slider-counter__link slider-counter__link--{{ section.settings.slider_visual }} link"
+                        aria-label="{{ 'sections.slideshow.load_slide' | t }} {{ forloop.index }} {{ 'general.slider.of' | t }} {{ forloop.length }}"
+                        aria-controls="Slider-{{ section.id }}"
+                      >
+                        {%- if section.settings.slider_visual == 'numbers' -%}
+                          {{ forloop.index -}}
+                        {%- else -%}
+                          <span class="dot"></span>
+                        {%- endif -%}
+                      </button>
+                    {%- endfor -%}
+                  </div>
+                {%- endif -%}
+              </div>
+
+              <button
+                type="button"
+                class="slider-button slider-button--next"
+                name="next"
+                aria-label="{{ 'sections.slideshow.next_slideshow' | t }}"
+                aria-controls="Slider-{{ section.id }}"
+              >
+                <span class="svg-wrapper">
+                  {{- 'icon-caret.svg' | inline_asset_content -}}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                class="slideshow__autoplay slider-button{% if section.settings.auto_rotate == false %} slideshow__autoplay--paused{% endif %}"
+                aria-label="{{ 'sections.slideshow.pause_slideshow' | t }}"
+              >
+                <span class="svg-wrapper">
+                  {{- 'icon-pause.svg' | inline_asset_content -}}
+                </span>
+                <span class="svg-wrapper">
+                  {{- 'icon-play.svg' | inline_asset_content -}}
+                </span>
+              </button>
+            </div>
+          {%- endif -%}
+
+        </slideshow-component>
+      </div>
+
+      {%- if section.settings.show_divider -%}
+        <div class="sst-divider" aria-hidden="true"></div>
+      {%- endif -%}
+
+      <!-- Side panel + custom control (immersive, no separate box) -->
+      <aside class="sst-side" aria-label="Slideshow details and controls" data-sst-side>
+
+        <!-- Panels (optionally use Slide 1 content for all) -->
+        {%- assign master_block = section.blocks.first -%}
+
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign src = block
+            if section.settings.copy_slide1_content_to_all and master_block != blank
+              assign src = master_block
+            endif
+
+            assign side_kicker = src.settings.side_kicker | strip
+            assign side_title  = src.settings.side_title  | strip
+            assign side_btn    = src.settings.side_button_label | strip
+          -%}
+
+          <div class="sst-sidepanel{% if forloop.first %} is-active{% endif %}" data-sst-panel data-sst-index="{{ forloop.index0 }}">
+            <div class="sst-side__top">
+              {%- if src.settings.show_side_kicker and side_kicker != blank -%}
+                <p class="sst-side__kicker">{{ side_kicker }}</p>
+              {%- endif -%}
+
+              {%- if src.settings.show_side_title and side_title != blank -%}
+                <h3 class="sst-side__title h2">{{ side_title }}</h3>
+              {%- endif -%}
+
+              {%- if src.settings.show_side_text -%}
+                <div class="sst-side__rte rte">{{ src.settings.side_text }}</div>
+              {%- endif -%}
+            </div>
+
+            {%- if src.settings.show_side_button and side_btn != blank -%}
+              <div class="sst-side__btns">
+                <a
+                  class="button {% if src.settings.side_button_secondary %}button--secondary{% else %}button--primary{% endif %}"
+                  {% if src.settings.side_button_link != blank %}
+                    href="{{ src.settings.side_button_link }}"
+                  {% else %}
+                    role="link" aria-disabled="true"
+                  {% endif %}
+                >
+                  {{ side_btn | escape }}
+                </a>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+
+        <!-- OPTIONAL GLOBAL BUTTON -->
+        {%- assign global_btn_label = section.settings.side_button_label | strip -%}
+        {%- if section.settings.show_global_button and global_btn_label != blank -%}
+          <div class="sst-side__btns">
+            <a
+              class="button {% if section.settings.side_button_secondary %}button--secondary{% else %}button--primary{% endif %}"
+              {% if section.settings.side_button_link != blank %}
+                href="{{ section.settings.side_button_link }}"
+              {% else %}
+                role="link" aria-disabled="true"
+              {% endif %}
+            >
+              {{ global_btn_label | escape }}
+            </a>
+          </div>
+        {%- endif -%}
+
+        <!-- Custom control list -->
+        <div class="sst-controls" role="tablist" aria-label="Choose a slide">
+          {%- for block in section.blocks -%}
+            {%- liquid
+              assign label = block.settings.control_label | strip
+              if label == blank
+                assign label = block.settings.side_title | strip
+              endif
+              if label == blank
+                assign label = block.settings.heading | strip
+              endif
+              if label == blank
+                assign label = 'Slide ' | append: forloop.index
+              endif
+
+              assign sub = block.settings.control_sub | strip
+            -%}
+
+            <button
+              type="button"
+              class="sst-control{% if forloop.first %} is-active{% endif %}"
+              data-sst-control
+              data-sst-index="{{ forloop.index0 }}"
+              aria-controls="Slider-{{ section.id }}"
+              aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+              role="tab"
+            >
+              <span class="sst-control__row">
+                <span class="sst-control__num">{{ forloop.index }}</span>
+
+                {%- unless section.settings.hide_control_labels -%}
+                  <span class="sst-control__text">
+                    <span class="sst-control__label">{{ label }}</span>
+                    {%- if block.settings.show_control_sub and sub != blank -%}
+                      <span class="sst-control__sub">{{ sub }}</span>
+                    {%- endif -%}
+                  </span>
+                {%- endunless -%}
+              </span>
+            </button>
+          {%- endfor -%}
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const sectionEl = document.getElementById('shopify-section-{{ section.id }}');
+    if (!sectionEl) return;
+
+    const slider = sectionEl.querySelector('[data-sst-slider]');
+    const slides = slider ? Array.from(slider.querySelectorAll('[data-sst-slide]')) : [];
+    const controls = Array.from(sectionEl.querySelectorAll('[data-sst-control]'));
+    const panels = Array.from(sectionEl.querySelectorAll('[data-sst-panel]'));
+
+    if (!slider || slides.length === 0 || controls.length === 0) return;
+
+    const setActive = (index) => {
+      controls.forEach(btn => {
+        const isActive = Number(btn.dataset.sstIndex) === index;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      panels.forEach(p => {
+        p.classList.toggle('is-active', Number(p.dataset.sstIndex) === index);
+      });
+    };
+
+    const goTo = (index) => {
+      const target = slides[index];
+      if (!target) return;
+
+      target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+
+      const nativeDots = sectionEl.querySelectorAll('.slider-counter__link[aria-controls="Slider-{{ section.id }}"]');
+      const nativeBtn = nativeDots && nativeDots[index] ? nativeDots[index] : null;
+      if (nativeBtn) nativeBtn.click();
+
+      setActive(index);
+    };
+
+    controls.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.sstIndex);
+        goTo(i);
+      });
+    });
+
+    let raf = null;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+
+        const sliderRect = slider.getBoundingClientRect();
+        const sliderLeft = sliderRect.left;
+
+        let bestIndex = 0;
+        let bestDist = Infinity;
+
+        slides.forEach((s, idx) => {
+          const r = s.getBoundingClientRect();
+          const dist = Math.abs(r.left - sliderLeft);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestIndex = idx;
+          }
+        });
+
+        setActive(bestIndex);
+      });
+    };
+
+    slider.addEventListener('scroll', onScroll, { passive: true });
+    setActive(0);
+
+    const currentCounter = sectionEl.querySelector('.slider-counter--current');
+    if (currentCounter) {
+      const obs = new MutationObserver(() => {
+        const n = parseInt(currentCounter.textContent, 10);
+        if (!isNaN(n)) setActive(Math.max(0, n - 1));
+      });
+      obs.observe(currentCounter, { childList: true, characterData: true, subtree: true });
+    }
+  })();
+</script>
+
+{%- if request.design_mode -%}
+  <script src="{{ 'theme-editor.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Slideshow Side Text",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": { "groups": ["header", "footer"] },
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "options": [
+        { "value": "full_bleed", "label": "Full width" },
+        { "value": "grid", "label": "Page width" }
+      ],
+      "default": "grid",
+      "label": "Layout"
+    },
+
+    { "type": "header", "content": "Immersive layout" },
+    {
+      "type": "select",
+      "id": "content_position",
+      "options": [
+        { "value": "right", "label": "Content on right" },
+        { "value": "left", "label": "Content on left" }
+      ],
+      "default": "right",
+      "label": "Content position"
+    },
+    {
+      "type": "range",
+      "id": "media_width",
+      "min": 30,
+      "max": 75,
+      "step": 1,
+      "unit": "%",
+      "label": "Slideshow width",
+      "default": 58
+    },
+    {
+      "type": "checkbox",
+      "id": "copy_slide1_content_to_all",
+      "label": "Copy Slide 1 side content to all slides",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_control_labels",
+      "label": "Hide control labels (show only numbers)",
+      "default": false
+    },
+    { "type": "checkbox", "id": "show_divider", "label": "Show divider line", "default": true },
+    { "type": "range", "id": "corner_radius", "min": 0, "max": 28, "step": 2, "unit": "px", "label": "Corner radius", "default": 16 },
+    { "type": "range", "id": "content_padding", "min": 10, "max": 60, "step": 2, "unit": "px", "label": "Content padding (desktop)", "default": 24 },
+    { "type": "range", "id": "content_padding_mobile", "min": 10, "max": 40, "step": 2, "unit": "px", "label": "Content padding (mobile)", "default": 18 },
+
+    {
+      "type": "select",
+      "id": "slide_height",
+      "options": [
+        { "value": "adapt_image", "label": "Adapt to first image" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium",
+      "label": "Slide height"
+    },
+    {
+      "type": "select",
+      "id": "slider_visual",
+      "options": [
+        { "value": "dots", "label": "Dots" },
+        { "value": "counter", "label": "Counter" },
+        { "value": "numbers", "label": "Numbers" }
+      ],
+      "default": "counter",
+      "label": "Default indicators"
+    },
+    { "type": "checkbox", "id": "hide_default_controls", "label": "Hide Dawn controls", "default": true },
+
+    { "type": "checkbox", "id": "auto_rotate", "label": "Auto-rotate slides", "default": false },
+    { "type": "range", "id": "change_slides_speed", "min": 3, "max": 9, "step": 2, "unit": "s", "label": "Change every", "default": 5 },
+
+    {
+      "type": "select",
+      "id": "image_behavior",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "ambient", "label": "Ambient" }
+      ],
+      "default": "none",
+      "label": "Image behavior"
+    },
+
+    { "type": "header", "content": "Overlay text on image" },
+    {
+      "type": "checkbox",
+      "id": "enable_overlay_text",
+      "label": "Enable overlay content on slideshow image",
+      "default": false
+    },
+
+    { "type": "header", "content": "Global button" },
+    { "type": "checkbox", "id": "show_global_button", "label": "Show global button", "default": false },
+    { "type": "text", "id": "side_button_label", "label": "Button label", "default": "Learn more" },
+    { "type": "url", "id": "side_button_link", "label": "Button link" },
+    { "type": "checkbox", "id": "side_button_secondary", "label": "Use secondary button style", "default": false },
+
+    { "type": "header", "content": "Image fit" },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "options": [
+        { "value": "cover", "label": "Cover" },
+        { "value": "contain", "label": "Contain" }
+      ],
+      "default": "contain",
+      "label": "Object fit"
+    },
+
+    { "type": "header", "content": "Mobile" },
+    { "type": "checkbox", "id": "show_text_below", "label": "Text below on mobile", "default": true },
+
+    { "type": "header", "content": "Accessibility" },
+    { "type": "text", "id": "accessibility_info", "label": "ARIA label", "default": "Slideshow" }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "limit": 8,
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Desktop image" },
+        { "type": "image_picker", "id": "image_mobile", "label": "Mobile image" },
+        { "type": "range", "id": "image_overlay_opacity", "min": 0, "max": 100, "step": 10, "unit": "%", "label": "Overlay opacity", "default": 0 },
+
+        { "type": "header", "content": "Overlay text (only if enabled above)" },
+        { "type": "checkbox", "id": "show_heading", "label": "Show heading", "default": false },
+        { "type": "inline_richtext", "id": "heading", "default": "Heading", "label": "Heading" },
+
+        {
+          "type": "select",
+          "id": "heading_size",
+          "options": [
+            { "value": "h2", "label": "Small" },
+            { "value": "h1", "label": "Medium" },
+            { "value": "h0", "label": "Large" },
+            { "value": "hxl", "label": "XL" },
+            { "value": "hxxl", "label": "XXL" }
+          ],
+          "default": "h1",
+          "label": "Heading size"
+        },
+
+        { "type": "checkbox", "id": "show_subheading", "label": "Show subheading", "default": false },
+        { "type": "inline_richtext", "id": "subheading", "default": "Subheading", "label": "Subheading" },
+
+        { "type": "checkbox", "id": "show_overlay_button", "label": "Show overlay button", "default": false },
+        { "type": "text", "id": "button_label", "default": "Shop now", "label": "Button label" },
+        { "type": "url", "id": "link", "label": "Button link" },
+        { "type": "checkbox", "id": "button_style_secondary", "label": "Secondary style", "default": false },
+
+        { "type": "header", "content": "Overlay layout" },
+        { "type": "checkbox", "id": "show_text_box", "label": "Show text box", "default": true },
+        {
+          "type": "select",
+          "id": "box_align",
+          "options": [
+            { "value": "top-left", "label": "Top left" },
+            { "value": "top-center", "label": "Top center" },
+            { "value": "top-right", "label": "Top right" },
+            { "value": "middle-left", "label": "Middle left" },
+            { "value": "middle-center", "label": "Middle center" },
+            { "value": "middle-right", "label": "Middle right" },
+            { "value": "bottom-left", "label": "Bottom left" },
+            { "value": "bottom-center", "label": "Bottom center" },
+            { "value": "bottom-right", "label": "Bottom right" }
+          ],
+          "default": "middle-center",
+          "label": "Box alignment"
+        },
+        {
+          "type": "select",
+          "id": "text_alignment",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "center",
+          "label": "Text alignment"
+        },
+        {
+          "type": "select",
+          "id": "text_alignment_mobile",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "center",
+          "label": "Text alignment (mobile)"
+        },
+        { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+        { "type": "header", "content": "Side panel content" },
+        { "type": "checkbox", "id": "show_side_kicker", "label": "Show kicker", "default": false },
+        { "type": "text", "id": "side_kicker", "label": "Kicker", "default": "Kicker" },
+
+        { "type": "checkbox", "id": "show_side_title", "label": "Show title", "default": true },
+        { "type": "text", "id": "side_title", "label": "Title", "default": "Title" },
+
+        { "type": "checkbox", "id": "show_side_text", "label": "Show text", "default": true },
+        { "type": "richtext", "id": "side_text", "label": "Text", "default": "<p>Your text goes here.</p>" },
+
+        { "type": "header", "content": "Side button" },
+        { "type": "checkbox", "id": "show_side_button", "label": "Show side button", "default": false },
+        { "type": "text", "id": "side_button_label", "label": "Button label", "default": "Learn more" },
+        { "type": "url", "id": "side_button_link", "label": "Button link" },
+        { "type": "checkbox", "id": "side_button_secondary", "label": "Secondary style", "default": false },
+
+        { "type": "header", "content": "Control labels" },
+        { "type": "text", "id": "control_label", "label": "Control title", "default": "Slide" },
+        { "type": "checkbox", "id": "show_control_sub", "label": "Show subtitle", "default": false },
+        { "type": "text", "id": "control_sub", "label": "Control subtitle", "default": "Subtitle" }
+      ]
+    }
+  ],
+  "presets": [
+    { "name": "Slideshow Side Text", "blocks": [{ "type": "slide" }, { "type": "slide" }] }
+  ]
+}
+{% endschema %}

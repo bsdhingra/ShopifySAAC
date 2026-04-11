@@ -1,0 +1,619 @@
+{% comment %}
+  Renders a product media gallery. Should be used with 'media-gallery.js'
+  Also see 'product-media-modal'
+
+  Accepts:
+  - product: {Object} Product liquid object
+  - variant_images: {Array} Product images associated with a variant
+  - limit: {Number} (optional) When passed, limits the number of media items to render
+
+  Usage:
+  {% render 'product-media-gallery' %}
+{% endcomment %}
+
+{%- liquid
+  # ✅ Keep variant images available (needed for JS switching)
+  assign hide_variants = section.settings.hide_variants
+
+  if hide_variants and variant_images.size == product.media.size
+    assign single_media_visible = true
+  endif
+
+  if limit == 1
+    assign single_media_visible = true
+  endif
+
+  assign media_count = product.media.size
+  if hide_variants and media_count > 1 and variant_images.size > 0
+    assign media_count = media_count | minus: variant_images.size | plus: 1
+  endif
+
+  if media_count == 1 or single_media_visible
+    assign single_media_visible_mobile = true
+  endif
+
+  if media_count == 0 or single_media_visible_mobile or section.settings.mobile_thumbnails == 'show' or section.settings.mobile_thumbnails == 'columns' and media_count < 3
+    assign hide_mobile_slider = true
+  endif
+
+  if section.settings.media_size == 'large'
+    assign media_width = 0.65
+  elsif section.settings.media_size == 'medium'
+    assign media_width = 0.55
+  elsif section.settings.media_size == 'small'
+    assign media_width = 0.45
+  endif
+
+  # ✅ Always show PRODUCT featured image first (fallback: selected variant featured media)
+  assign default_featured_media = product.featured_media | default: product.selected_or_first_available_variant.featured_media
+
+  # ✅ Hide mockup images everywhere (gallery + thumbnails) for tshirt preview products
+  assign cf_hide_mockups = false
+  if product.tags contains 'cf-tshirt-preview'
+    assign cf_hide_mockups = true
+  endif
+
+
+  # ✅ If featured media is a mockup, pick the first NON-mockup image as featured
+if cf_hide_mockups and default_featured_media and default_featured_media.media_type == 'image'
+  assign alt_down = default_featured_media.alt | default: '' | downcase
+  if alt_down contains 'mockup'
+    assign default_featured_media = blank
+  endif
+endif
+
+if cf_hide_mockups and default_featured_media == blank
+  for m in product.media
+    if m.media_type == 'image'
+      assign alt_down = m.alt | default: '' | downcase
+      unless alt_down contains 'mockup'
+        assign default_featured_media = m
+        break
+      endunless
+    endif
+  endfor
+endif
+  # Helper: decide if a media item is a "mockup" image
+  # Supports:
+  # - "mockup-front" / "mockup-back"
+  # - "mockup side:front color:voilet" etc.
+  # - any alt containing "mockup"
+  # (we only treat IMAGES as mockups)
+
+
+  # ✅ Stable list of filenames for variant-linked images
+  capture variant_image_filenames
+  for vimg in variant_images
+    assign vimg_filename = vimg | split: '/' | last | split: '?' | first | downcase
+    echo vimg_filename
+    echo '|'
+  endfor
+endcapture
+
+  # ✅ Count ONLY "base" (non-variant) media for counter / thumbnail UX
+   assign base_media_count = 0
+  for m in product.media
+    # skip mockups entirely (L1)
+    if cf_hide_mockups and m.media_type == 'image'
+      assign alt_down = m.alt | default: '' | downcase
+      if alt_down contains 'mockup'
+        continue
+      endif
+    endif
+
+    assign fn = m.src | split: '/' | last | split: '?' | first | downcase
+    unless variant_image_filenames contains fn
+      assign base_media_count = base_media_count | plus: 1
+    endunless
+  endfor
+  if base_media_count < 1
+    assign base_media_count = media_count
+  endif
+-%}
+
+<style>
+  /* ✅ Hide variant slides ONLY when not active (do not break slider) */
+  #MediaGallery-{{ section.id }} .product__media-item--variant:not(.is-active) {
+    display: none !important;
+  }
+
+  /* Hide variant thumbnails */
+  #MediaGallery-{{ section.id }} .thumbnail-list__item--variant {
+    display: none !important;
+  }
+
+  /* Center thumbnails if few */
+  @media screen and (min-width: 750px) {
+    #MediaGallery-{{ section.id }}
+    .thumbnail-slider.thumbnail-slider--no-slide
+    .thumbnail-list {
+      justify-content: center !important;
+    }
+  }
+
+  /* Always show counter on desktop (only counter, no arrows) */
+  @media screen and (min-width: 750px) {
+    #MediaGallery-{{ section.id }} .slider-buttons {
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #MediaGallery-{{ section.id }} .slider-buttons .slider-button {
+      display: none !important;
+    }
+  }
+
+ /* ✅ (Disabled) Previously suppressed the default filled/highlighted pill on initial load.
+   Keeping for reference, but COMMENTED so Dawn default selection highlight works on load.
+
+html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input--pill input[type="radio"]:checked + label,
+html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input--swatch input[type="radio"]:checked + label {
+  background: transparent !important;
+  color: inherit !important;
+  border-color: rgba(var(--color-foreground), 0.2) !important;
+  box-shadow: none !important;
+}
+*/
+
+  /* ✅ Variant pill visual fallback (only after user interaction via JS) */
+  #ProductInfo-{{ section.id }} .product-form__input--pill label.bd-pill-active,
+  #ProductInfo-{{ section.id }} .product-form__input--swatch label.bd-pill-active {
+    background: rgb(var(--color-foreground)) !important;
+    color: rgb(var(--color-background)) !important;
+    border-color: rgb(var(--color-foreground)) !important;
+  }
+
+  /* ✅ Restore default selected-fill on load (scoped to this product section only) */
+#ProductInfo-{{ section.id }} .product-form__input--pill input[type="radio"]:not(.disabled):checked + label,
+#ProductInfo-{{ section.id }} .product-form__input--swatch input[type="radio"]:not(.disabled):checked + label {
+  background: rgb(var(--color-foreground)) !important;
+  color: rgb(var(--color-background)) !important;
+  border-color: rgb(var(--color-foreground)) !important;
+  box-shadow: none !important;
+}
+
+</style>
+
+<media-gallery
+  id="MediaGallery-{{ section.id }}"
+  role="region"
+  {% if section.settings.enable_sticky_info %}
+    class="product__column-sticky"
+  {% endif %}
+  aria-label="{{ 'products.product.media.gallery_viewer' | t }}"
+  data-desktop-layout="{{ section.settings.gallery_layout }}"
+>
+  <div id="GalleryStatus-{{ section.id }}" class="visually-hidden" role="status"></div>
+
+  <slider-component
+    id="GalleryViewer-{{ section.id }}"
+    class="slider-mobile-gutter"
+    data-initial-media-id="{% if default_featured_media %}{{ section.id }}-{{ default_featured_media.id }}{% endif %}"
+  >
+    <a class="skip-to-content-link button visually-hidden quick-add-hidden" href="#ProductInfo-{{ section.id }}">
+      {{ 'accessibility.skip_to_product_info' | t }}
+    </a>
+
+    <ul
+      id="Slider-Gallery-{{ section.id }}"
+      class="product__media-list contains-media grid grid--peek list-unstyled slider slider--mobile"
+      role="list"
+    >
+      {%- assign featured_media = default_featured_media -%}
+      {%- assign media_position = 0 -%}
+
+      {%- if featured_media != null -%}
+        {%- assign featured_filename = featured_media.src | split: '/' | last | split: '?' | first | downcase -%}
+        {%- assign is_featured_variant_media = false -%}
+        {%- if variant_image_filenames contains featured_filename -%}
+          {%- assign is_featured_variant_media = true -%}
+        {%- endif -%}
+
+        {%- assign media_position = 1 -%}
+        <li
+          id="Slide-{{ section.id }}-{{ featured_media.id }}"
+          class="product__media-item grid__item slider__slide is-active{% if is_featured_variant_media %} product__media-item--variant{% endif %}{% if single_media_visible %} product__media-item--single{% endif %}{% if featured_media.media_type != 'image' %} product__media-item--full{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+          data-media-id="{{ section.id }}-{{ featured_media.id }}"
+        >
+          {% render 'product-thumbnail',
+            media: featured_media,
+            media_count: media_count,
+            position: media_position,
+            desktop_layout: section.settings.gallery_layout,
+            mobile_layout: section.settings.mobile_thumbnails,
+            loop: section.settings.enable_video_looping,
+            modal_id: section.id,
+            xr_button: true,
+            media_width: media_width,
+            media_fit: section.settings.media_fit,
+            constrain_to_viewport: section.settings.constrain_to_viewport,
+            lazy_load: false
+          %}
+        </li>
+      {%- endif -%}
+
+      {%- assign cf_hide_mockups = false -%}
+      {%- if product.tags contains 'cf-tshirt-preview' -%}
+      {%- assign cf_hide_mockups = true -%}
+      {%- endif -%}
+
+      {%- for media in product.media -%}
+        
+        {%- if limit != blank and media_position >= limit -%}{% break %}{%- endif -%}
+        {%- if featured_media != null and media.id == featured_media.id -%}{% continue %}{%- endif -%}
+
+        {%- if cf_hide_mockups and media.media_type == 'image' -%}
+          {%- assign alt_down = media.alt | default: '' | downcase -%}
+          {%- if alt_down contains 'mockup' -%}{% continue %}{%- endif -%}
+        {%- endif -%}
+
+        
+        {%- liquid
+          assign media_position = media_position | plus: 1
+          assign lazy_load = true
+          if media_position == 1
+            assign lazy_load = false
+          endif
+        -%}
+
+        {%- assign media_filename = media.src | split: '/' | last | split: '?' | first | downcase -%}
+        {%- assign is_variant_media = false -%}
+        {%- if variant_image_filenames contains media_filename -%}
+          {%- assign is_variant_media = true -%}
+        {%- endif -%}
+
+        <li
+          id="Slide-{{ section.id }}-{{ media.id }}"
+          class="product__media-item grid__item slider__slide{% if is_variant_media %} product__media-item--variant{% endif %}{% if single_media_visible %} product__media-item--single{% endif %}{% if featured_media == nil and forloop.index == 1 %} is-active{% endif %}{% if media.media_type != 'image' %} product__media-item--full{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+          data-media-id="{{ section.id }}-{{ media.id }}"
+        >
+          {% render 'product-thumbnail',
+            media: media,
+            media_count: media_count,
+            position: media_position,
+            desktop_layout: section.settings.gallery_layout,
+            mobile_layout: section.settings.mobile_thumbnails,
+            loop: section.settings.enable_video_looping,
+            modal_id: section.id,
+            xr_button: true,
+            media_width: media_width,
+            media_fit: section.settings.media_fit,
+            constrain_to_viewport: section.settings.constrain_to_viewport,
+            lazy_load: lazy_load
+          %}
+        </li>
+      {%- endfor -%}
+    </ul>
+
+    <div class="slider-buttons quick-add-hidden{% if hide_mobile_slider %} small-hide{% endif %}">
+      <button type="button" class="slider-button slider-button--prev" name="previous" aria-label="{{ 'general.slider.previous_slide' | t }}">
+        <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
+      </button>
+
+      <div class="slider-counter caption">
+        <span class="slider-counter--current">1</span>
+        <span aria-hidden="true"> / </span>
+        <span class="visually-hidden">{{ 'general.slider.of' | t }}</span>
+        <span class="slider-counter--total">{{ base_media_count }}</span>
+      </div>
+
+      <button type="button" class="slider-button slider-button--next" name="next" aria-label="{{ 'general.slider.next_slide' | t }}">
+        <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
+      </button>
+    </div>
+  </slider-component>
+
+  {%- liquid
+    assign is_not_limited_to_single_item = false
+    if limit == null or limit > 1
+      assign is_not_limited_to_single_item = true
+    endif
+  -%}
+
+  {%- if is_not_limited_to_single_item and base_media_count > 1 and section.settings.gallery_layout contains 'thumbnail' or section.settings.mobile_thumbnails == 'show' -%}
+    <slider-component
+      id="GalleryThumbnails-{{ section.id }}"
+      class="thumbnail-slider slider-mobile-gutter quick-add-hidden{% unless section.settings.gallery_layout contains 'thumbnail' %} medium-hide large-up-hide{% endunless %}{% if section.settings.mobile_thumbnails != 'show' %} small-hide{% endif %}{% if base_media_count <= 3 %} thumbnail-slider--no-slide{% endif %}"
+    >
+      <button
+        type="button"
+        class="slider-button slider-button--prev{% if base_media_count <= 3 %} small-hide{% endif %}{% if base_media_count <= 4 %} medium-hide large-up-hide{% endif %}"
+        name="previous"
+        aria-label="{{ 'general.slider.previous_slide' | t }}"
+        aria-controls="GalleryThumbnails-{{ section.id }}"
+        data-step="3"
+      >
+        <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
+      </button>
+
+      <ul
+        id="Slider-Thumbnails-{{ section.id }}"
+        class="thumbnail-list list-unstyled slider slider--mobile{% if section.settings.gallery_layout == 'thumbnail_slider' %} slider--tablet-up{% endif %}"
+      >
+         {%- assign cf_thumb_pos = 0 -%}
+
+        {%- for media in product.media -%}
+          {%- if cf_hide_mockups and media.media_type == 'image' -%}
+            {%- assign alt_down = media.alt | default: '' | downcase -%}
+            {%- if alt_down contains 'mockup' -%}{% continue %}{%- endif -%}
+          {%- endif -%}
+
+          {%- assign cf_thumb_pos = cf_thumb_pos | plus: 1 -%}
+
+          {%- assign thumb_filename = media.src | split: '/' | last | split: '?' | first | downcase -%}
+          {%- assign is_variant_thumb = false -%}
+          {%- if variant_image_filenames contains thumb_filename -%}
+            {%- assign is_variant_thumb = true -%}
+          {%- endif -%}
+
+          <li
+            id="Slide-Thumbnails-{{ section.id }}-{{ cf_thumb_pos }}"
+            class="thumbnail-list__item slider__slide{% if is_variant_thumb %} thumbnail-list__item--variant{% endif %}"
+            data-target="{{ section.id }}-{{ media.id }}"
+            data-media-position="{{ cf_thumb_pos }}"
+          >
+            {%- capture thumbnail_id -%}Thumbnail-{{ section.id }}-{{ cf_thumb_pos }}{%- endcapture -%}
+
+            <button
+              class="thumbnail global-media-settings global-media-settings--no-shadow"
+              data-target="{{ section.id }}-{{ media.id }}"
+              aria-label="{{ 'products.product.media.load_image' | t: index: cf_thumb_pos }}"
+              aria-controls="GalleryViewer-{{ section.id }}"
+              aria-describedby="{{ thumbnail_id }}"
+            >
+              {{
+                media.preview_image
+                | image_url: width: 416
+                | image_tag:
+                  loading: 'lazy',
+                  widths: '54, 74, 104, 162, 208, 324, 416',
+                  id: thumbnail_id,
+                  alt: media.alt
+                | escape
+              }}
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      <button
+        type="button"
+        class="slider-button slider-button--next{% if base_media_count <= 3 %} small-hide{% endif %}{% if base_media_count <= 4 %} medium-hide large-up-hide{% endif %}"
+        name="next"
+        aria-label="{{ 'general.slider.next_slide' | t }}"
+        aria-controls="GalleryThumbnails-{{ section.id }}"
+        data-step="3"
+      >
+        <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
+      </button>
+    </slider-component>
+  {%- endif -%}
+</media-gallery>
+
+<script>
+(function () {
+  const gallery = document.getElementById('MediaGallery-{{ section.id }}');
+  if (!gallery) return;
+
+  if (gallery.__bdSyncFixV9) return;
+  gallery.__bdSyncFixV9 = true;
+
+  const sliderList = gallery.querySelector('#Slider-Gallery-{{ section.id }}');
+  const thumbsList = gallery.querySelector('#Slider-Thumbnails-{{ section.id }}');
+  const currentEl  = gallery.querySelector('.slider-counter--current');
+  const totalEl    = gallery.querySelector('.slider-counter--total');
+
+  function rafTwice(fn) {
+    requestAnimationFrame(() => requestAnimationFrame(fn));
+  }
+
+  // ✅ Optional: remove ?variant= on load so URL matches your "main product image" intent
+  if (!document.documentElement.classList.contains('variant-interacted')) {
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('variant')) {
+        url.searchParams.delete('variant');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch(e) {}
+  }
+
+  function getActiveMediaId() {
+    const active = sliderList?.querySelector(':scope > li.product__media-item.is-active[data-media-id]');
+    return active ? active.getAttribute('data-media-id') : null;
+  }
+
+  function getBaseSlides() {
+    if (!sliderList) return [];
+    return Array.from(
+      sliderList.querySelectorAll(':scope > li.product__media-item[data-media-id]:not(.product__media-item--variant)')
+    );
+  }
+
+ function updateCounter() {
+  if (!currentEl || !totalEl) return;
+
+  const isMobile = window.matchMedia('(max-width: 749px)').matches;
+
+  // ✅ MOBILE: compute exactly like Dawn (visible slides + scroll position)
+  if (isMobile) {
+    const viewport = getSliderViewport();
+    const visible = getVisibleSlides();
+
+    const total = visible.length || 1;
+    totalEl.textContent = String(total);
+
+    if (!viewport || visible.length < 1) {
+      currentEl.textContent = '1';
+      return;
+    }
+
+    // Determine slide offset (like Dawn SliderComponent)
+    let itemOffset = 0;
+    if (visible.length >= 2) {
+      itemOffset = visible[1].offsetLeft - visible[0].offsetLeft;
+    }
+    if (!itemOffset) {
+      // fallback: use first slide width
+      itemOffset = visible[0].clientWidth || 1;
+    }
+
+    const currentPage = Math.round(viewport.scrollLeft / itemOffset) + 1;
+    currentEl.textContent = String(Math.min(Math.max(currentPage, 1), total));
+    return;
+  }
+
+  // ✅ DESKTOP: keep your base-only behavior
+  const base = getBaseSlides();
+  const activeId = getActiveMediaId();
+  const total = base.length || parseInt(totalEl.textContent || '0', 10) || 1;
+
+  totalEl.textContent = String(total);
+  const idx = activeId ? base.findIndex(li => li.getAttribute('data-media-id') === activeId) : -1;
+  currentEl.textContent = String(idx >= 0 ? (idx + 1) : 1);
+}
+
+
+  function setActiveThumbnail(mediaId) {
+    if (!thumbsList || !mediaId) return;
+
+    thumbsList.querySelectorAll('button.thumbnail[aria-current="true"]').forEach(btn => {
+      btn.setAttribute('aria-current', 'false');
+    });
+
+    let targetBtn = thumbsList.querySelector(`button.thumbnail[data-target="${CSS.escape(mediaId)}"]`);
+    if (!targetBtn) {
+      const li = thumbsList.querySelector(`li.thumbnail-list__item[data-target="${CSS.escape(mediaId)}"]`);
+      targetBtn = li ? li.querySelector('button.thumbnail') : null;
+    }
+
+    if (targetBtn) {
+      targetBtn.setAttribute('aria-current', 'true');
+      targetBtn.scrollIntoView({ block: 'nearest', inline: 'center' });
+    }
+  }
+
+  function syncGallery() {
+    const id = getActiveMediaId();
+    setActiveThumbnail(id);
+    updateCounter();
+  }
+
+  /* ✅ SAFE pill highlight fallback (ONLY after user interaction) */
+  function applyPillHighlight() {
+    if (!document.documentElement.classList.contains('variant-interacted')) return;
+
+    const scope = document.getElementById('ProductInfo-{{ section.id }}') || document;
+    const vs = scope.querySelector(`#variant-selects-{{ section.id }}`) || scope.querySelector('variant-selects');
+    if (!vs) return;
+
+    const groups = vs.querySelectorAll('.product-form__input--pill, .product-form__input--swatch');
+    groups.forEach((group) => {
+      group.querySelectorAll('label.bd-pill-active').forEach((l) => l.classList.remove('bd-pill-active'));
+
+      const checked = group.querySelector('input[type="radio"]:checked');
+      if (!checked || !checked.id) return;
+
+      const label = group.querySelector(`label[for="${CSS.escape(checked.id)}"]`);
+      if (label) label.classList.add('bd-pill-active');
+    });
+  }
+
+  function applyPillHighlightStabilized() {
+    applyPillHighlight();
+    setTimeout(applyPillHighlight, 50);
+    setTimeout(applyPillHighlight, 150);
+  }
+
+  /* ✅ Fallback: if Dawn doesn't switch slides after thumbnail click, force switch */
+  function forceActivateMedia(targetMediaId) {
+    if (!sliderList || !targetMediaId) return;
+
+    const targetSlide = sliderList.querySelector(`:scope > li.product__media-item[data-media-id="${CSS.escape(targetMediaId)}"]`);
+    if (!targetSlide) return;
+
+    sliderList.querySelectorAll(':scope > li.product__media-item.is-active').forEach(li => li.classList.remove('is-active'));
+    targetSlide.classList.add('is-active');
+
+    const sliderViewport = gallery.querySelector('#GalleryViewer-{{ section.id }} [id^="Slider-"]');
+    if (sliderViewport) {
+      sliderViewport.scrollTo({ left: targetSlide.offsetLeft, behavior: 'smooth' });
+    }
+
+    syncGallery();
+  }
+
+  // ✅ Thumbnail click: let Dawn handle it; if not, fallback. Do not touch variants.
+  gallery.addEventListener('click', (e) => {
+    const btn = e.target.closest('button.thumbnail');
+    if (!btn) return;
+
+    const li = btn.closest('li[data-target]');
+    const targetMediaId = btn.getAttribute('data-target') || (li ? li.getAttribute('data-target') : null);
+    if (!targetMediaId) return;
+
+    setTimeout(() => {
+      const activeNow = getActiveMediaId();
+      if (activeNow !== targetMediaId) {
+        forceActivateMedia(targetMediaId);
+      } else {
+        syncGallery();
+      }
+    }, 0);
+  }, true);
+
+  // ✅ Variant interaction: stabilize highlight (prevents “flash then disappear”)
+  document.addEventListener('change', (e) => {
+    const scope = document.getElementById('ProductInfo-{{ section.id }}') || document;
+    const vs = scope.querySelector(`#variant-selects-{{ section.id }}`) || scope.querySelector('variant-selects');
+    if (!vs) return;
+
+    if (e.target.matches('input[type="radio"], select') && e.target.closest('variant-selects') === vs) {
+      rafTwice(() => {
+        document.documentElement.classList.add('variant-interacted');
+        applyPillHighlightStabilized();
+      });
+    }
+  }, true);
+
+function getSliderViewport() {
+  // Dawn slider element inside GalleryViewer
+  return gallery.querySelector('#GalleryViewer-{{ section.id }} [id^="Slider-"]');
+}
+
+function getVisibleSlides() {
+  if (!sliderList) return [];
+  // Only slides that are actually in the layout (displayed)
+  return Array.from(sliderList.querySelectorAll(':scope > li.product__media-item[data-media-id]'))
+    .filter((li) => li.clientWidth > 0);
+}
+
+
+
+  // ✅ If Dawn re-renders variant-selects subtree, re-apply highlight after it settles
+  const scope = document.getElementById('ProductInfo-{{ section.id }}') || document;
+  const vs = scope.querySelector(`#variant-selects-{{ section.id }}`) || scope.querySelector('variant-selects');
+  if (window.MutationObserver && vs) {
+    const moVS = new MutationObserver(() => {
+      applyPillHighlightStabilized();
+    });
+    moVS.observe(vs, { subtree: true, childList: true, attributes: true });
+  }
+
+  // ✅ When Dawn toggles is-active on slides, keep counter/thumb highlight correct
+  if (window.MutationObserver && sliderList) {
+    const mo = new MutationObserver(() => {
+      syncGallery();
+    });
+    mo.observe(sliderList, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  }
+
+  // Initial sync (no pill highlight until user interacts)
+  rafTwice(() => {
+    syncGallery();
+    applyPillHighlight();
+  });
+})();
+</script>

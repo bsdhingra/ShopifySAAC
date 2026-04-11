@@ -1,0 +1,105 @@
+/* --- Tumbler Mockup Preview (Wrap Effect) --- */
+
+.cf-tumbler-preview { margin-top: 16px; }
+
+/* Easy knobs (ONLY change these 6 when tuning) */
+.cf-tumbler-preview{
+  --stage-size: 320px;
+
+  /* bottle sizing */
+  --bottle-scale: 1.05;   /* keep bottle normal */
+  --bottle-y: 4%;
+
+  /* print area positioning */
+  --print-top: 22%;
+  --print-left: 50%;
+
+  /* print area size (THIS fixes your height issue) */
+  --print-w: 46%;
+  --print-h: 74%;         /* ↑ increase height (try 72–80%) */
+}
+
+.cf-tumbler-stage{
+  position: relative;
+  max-width: var(--stage-size);
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+}
+
+/* Base bottle image */
+.cf-tumbler-base{
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  transform-origin: center;
+  transform: scale(var(--bottle-scale)) translateY(var(--bottle-y));
+  pointer-events: none;
+}
+
+/* Wrap container positioned on bottle */
+.cf-wrap{
+  position: absolute;
+  z-index: 2;
+  left: var(--print-left);
+  top: var(--print-top);
+  width: var(--print-w);
+  height: var(--print-h);
+  transform: translateX(-50%);
+  pointer-events: none;
+
+  --design-url: none;
+}
+
+/* Real uploaded <img> (hidden; we render via ::before/::after) */
+.cf-wrap > .cf-tumbler-design{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0.98;
+  display: block;
+  visibility: hidden;
+}
+
+/* Two “printed halves” using the same image */
+.cf-wrap::before,
+.cf-wrap::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;  /* ✅ no crop */
+  background-image: var(--design-url);
+  opacity: 0.95;
+  filter: contrast(1.03) saturate(1.02);
+}
+
+/* Left half */
+.cf-wrap::before{
+  transform-origin: left center;
+  transform: perspective(900px) rotateY(-18deg) skewY(-1deg);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
+}
+
+/* Right half */
+.cf-wrap::after{
+  transform-origin: right center;
+  transform: perspective(900px) rotateY(12deg) skewY(1deg);
+  -webkit-mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
+}
+
+/* Optional debug */
+/*
+.cf-wrap { outline: 2px dashed red; }
+*/
