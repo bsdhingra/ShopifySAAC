@@ -885,14 +885,14 @@
 
     const btnFront = document.createElement("button");
     btnFront.type = "button";
-      btnFront.textContent = "Upload Front Design";
+      btnFront.textContent = "Upload Front";
     btnFront.setAttribute("data-bd-inline-front", "1");
     btnFront.className = "button button--secondary"; // Dawn button styling
     btnFront.style.flex = "1";
 
     const btnCrop = document.createElement("button");
     btnCrop.type = "button";
-    btnCrop.textContent = "Crop image";
+    btnCrop.textContent = "Crop Image";
     btnCrop.setAttribute("data-bd-inline-crop", "1");
     btnCrop.className = "button button--secondary";
     btnCrop.style.flex = "1";
@@ -924,7 +924,7 @@
 
     const btnBack = document.createElement("button");
     btnBack.type = "button";
-    btnBack.textContent = "Upload Back Design";
+    btnBack.textContent = "Upload Back";
     btnBack.setAttribute("data-bd-inline-back", "1");
     btnBack.className = "button button--secondary";
     btnBack.style.flex = "1";
@@ -1242,7 +1242,7 @@
       if (toggle) toggle.style.display = "none";
 
       if (inlineFrontBtn) inlineFrontBtn.style.display = "";
-      if (inlineFrontBtn) inlineFrontBtn.textContent = "Upload Front Design";
+      if (inlineFrontBtn) inlineFrontBtn.textContent = "Upload Front";
       if (inlineBackBtn) inlineBackBtn.style.display = "none";
       if (inlineTitle) inlineTitle.style.display = "none";
       if (inlineHint) inlineHint.textContent = "Upload your front design to preview it on the selected shirt color.";
@@ -1255,7 +1255,7 @@
 
       if (inlineFrontBtn) inlineFrontBtn.style.display = "none";
       if (inlineBackBtn) inlineBackBtn.style.display = "";
-      if (inlineBackBtn) inlineBackBtn.textContent = "Upload Back Design";
+      if (inlineBackBtn) inlineBackBtn.textContent = "Upload Back";
       if (inlineTitle) inlineTitle.style.display = "";
       if (inlineHint) inlineHint.textContent = "Upload your back design to preview it on the selected shirt color.";
 
@@ -1267,8 +1267,8 @@
 
       if (inlineFrontBtn) inlineFrontBtn.style.display = "";
       if (inlineBackBtn) inlineBackBtn.style.display = "";
-      if (inlineFrontBtn) inlineFrontBtn.textContent = "Upload Front Design";
-      if (inlineBackBtn) inlineBackBtn.textContent = "Upload Back Design";
+      if (inlineFrontBtn) inlineFrontBtn.textContent = "Upload Front";
+      if (inlineBackBtn) inlineBackBtn.textContent = "Upload Back";
       if (inlineTitle) inlineTitle.style.display = "";
       if (inlineHint) inlineHint.textContent = "Tip: Use the Front/Back toggle above to preview each side.";
 
