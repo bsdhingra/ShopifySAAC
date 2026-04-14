@@ -498,6 +498,13 @@
     {% endfor %}
   </div>
 
+  {%- assign bd_color_mockup_map = product.metafields.custom.color_mockup_map.value -%}
+  {%- if bd_color_mockup_map != blank -%}
+    <script id="bd-color-mockup-map" type="application/json">
+      {{ bd_color_mockup_map | json }}
+    </script>
+  {%- endif -%}
+
 {%- assign bd_preview_config = 'front-only' -%}
 {%- if product.tags contains 'cf-config-back-only' -%}
   {%- assign bd_preview_config = 'back-only' -%}

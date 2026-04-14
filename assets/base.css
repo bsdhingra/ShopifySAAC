@@ -4237,6 +4237,8 @@ details-disclosure > details {
   /* Make hero media a positioning context */
   .bd-hero-preview {
     position: relative;
+    overflow: hidden;
+    isolation: isolate;
   }
 
   /* Hide overlay if no design */
@@ -4250,9 +4252,10 @@ details-disclosure > details {
     inset: 0;
     pointer-events: none;
     z-index: 5;
+    overflow: hidden;
   }
 
-  /* Overlay design image */
+  .bd-hero-preview__base,
   .bd-hero-preview__img {
     position: absolute;
     pointer-events: none;
@@ -4264,6 +4267,15 @@ details-disclosure > details {
     /* Prevent image distortion limits */
     max-width: none;
     max-height: none;
+  }
+
+  .bd-hero-preview__base {
+    z-index: 0;
+    object-fit: contain;
+  }
+
+  .bd-hero-preview__img {
+    z-index: 1;
   }
 
   /* -------------------------------------------------------
@@ -4324,6 +4336,15 @@ details-disclosure > details {
 #cf-tshirt-preview-container [data-bd-inline-crop-apply="1"] {
   flex: 1 1 0;
   min-height: 44px;
+}
+
+#cf-tshirt-preview-container [data-bd-inline-front="1"].is-inactive,
+#cf-tshirt-preview-container [data-bd-inline-back="1"].is-inactive,
+#cf-tshirt-preview-container [data-bd-inline-front="1"]:disabled,
+#cf-tshirt-preview-container [data-bd-inline-back="1"]:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 #cf-tshirt-preview-container [data-bd-upload-info="1"] {

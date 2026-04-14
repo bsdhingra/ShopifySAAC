@@ -53,6 +53,7 @@ Improve the T-shirt preview/editor UX without breaking the existing working uplo
 - Front and back states must remain independent.
 - Front/back switching must update both the base mockup and the correct overlay state.
 - Variant-color sync must continue to update the preview base correctly.
+- Front-only products now use a gallery-native synthetic design preview slide for the large desktop preview; treat this as front-only behavior unless explicitly extended for front/back.
 - Crop works on the visible on-shirt design area.
 - The shirt should remain visible during crop.
 - Upload must remain disabled while crop mode is active.

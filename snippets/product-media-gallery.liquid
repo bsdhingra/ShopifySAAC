@@ -166,13 +166,53 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
   }
 
   /* ✅ Restore default selected-fill on load (scoped to this product section only) */
-#ProductInfo-{{ section.id }} .product-form__input--pill input[type="radio"]:not(.disabled):checked + label,
+  #ProductInfo-{{ section.id }} .product-form__input--pill input[type="radio"]:not(.disabled):checked + label,
 #ProductInfo-{{ section.id }} .product-form__input--swatch input[type="radio"]:not(.disabled):checked + label {
   background: rgb(var(--color-foreground)) !important;
   color: rgb(var(--color-background)) !important;
   border-color: rgb(var(--color-foreground)) !important;
   box-shadow: none !important;
 }
+
+  /* Synthetic gallery slide driven by the T-shirt editor state */
+  #MediaGallery-{{ section.id }} .bd-design-preview-slide[hidden] {
+    display: none !important;
+  }
+
+  #MediaGallery-{{ section.id }} .bd-design-preview-media {
+    position: relative;
+    width: 100%;
+    max-width: calc(100% - calc(var(--media-border-width) * 2));
+  }
+
+  #MediaGallery-{{ section.id }} .bd-design-preview-stage {
+    overflow: hidden;
+  }
+
+  #MediaGallery-{{ section.id }} .bd-design-preview-base,
+  #MediaGallery-{{ section.id }} .bd-design-preview-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    pointer-events: none;
+  }
+
+  #MediaGallery-{{ section.id }} .bd-design-preview-base {
+    object-fit: contain;
+    z-index: 0;
+  }
+
+  #MediaGallery-{{ section.id }} .bd-design-preview-overlay {
+    z-index: 1;
+    width: auto;
+    height: auto;
+    opacity: 0;
+  }
 
 </style>
 
@@ -203,6 +243,40 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
     >
       {%- assign featured_media = default_featured_media -%}
       {%- assign media_position = 0 -%}
+
+      {%- if product.tags contains 'cf-tshirt-preview' -%}
+        <li
+          id="Slide-{{ section.id }}-bd-design-preview"
+          class="product__media-item grid__item slider__slide bd-design-preview-slide{% if single_media_visible %} product__media-item--single{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+          data-media-id="{{ section.id }}-bd-design-preview"
+          data-bd-design-preview-slide="1"
+          hidden
+        >
+          <div
+            class="product-media-container media-type-image media-fit-{{ section.settings.media_fit }} global-media-settings gradient bd-design-preview-media{% if section.settings.constrain_to_viewport %} constrain-height{% endif %}"
+            style="--ratio: {{ featured_media.aspect_ratio | default: 1.0 }}; --preview-ratio: {{ featured_media.preview_image.aspect_ratio | default: featured_media.aspect_ratio | default: 1.0 }};"
+          >
+            <div class="product__media media media--transparent bd-design-preview-stage">
+              <img
+                data-bd-design-preview-base
+                class="bd-design-preview-base"
+                alt=""
+                width="1600"
+                height="1600"
+                loading="lazy"
+              >
+              <img
+                data-bd-design-preview-overlay
+                class="bd-design-preview-overlay"
+                alt=""
+                width="1"
+                height="1"
+                loading="lazy"
+              >
+            </div>
+          </div>
+        </li>
+      {%- endif -%}
 
       {%- if featured_media != null -%}
         {%- assign featured_filename = featured_media.src | split: '/' | last | split: '?' | first | downcase -%}
@@ -404,6 +478,10 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
   const thumbsList = gallery.querySelector('#Slider-Thumbnails-{{ section.id }}');
   const currentEl  = gallery.querySelector('.slider-counter--current');
   const totalEl    = gallery.querySelector('.slider-counter--total');
+  const originalSetActiveMedia =
+    typeof gallery.setActiveMedia === 'function' ? gallery.setActiveMedia.bind(gallery) : null;
+  let preservePreviewUntil = 0;
+  let manualNavigationUntil = 0;
 
   function rafTwice(fn) {
     requestAnimationFrame(() => requestAnimationFrame(fn));
@@ -429,7 +507,7 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
     if (!sliderList) return [];
     return Array.from(
       sliderList.querySelectorAll(':scope > li.product__media-item[data-media-id]:not(.product__media-item--variant)')
-    );
+    ).filter((li) => !li.hidden);
   }
 
  function updateCounter() {
@@ -501,6 +579,19 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
     updateCounter();
   }
 
+  function getDesignPreviewSlide() {
+    return sliderList?.querySelector(':scope > li[data-bd-design-preview-slide="1"]') || null;
+  }
+
+  function getDesignPreviewMediaId() {
+    return getDesignPreviewSlide()?.getAttribute('data-media-id') || '';
+  }
+
+  function hasVisibleDesignPreviewSlide() {
+    const slide = getDesignPreviewSlide();
+    return !!(slide && !slide.hidden);
+  }
+
   /* ✅ SAFE pill highlight fallback (ONLY after user interaction) */
   function applyPillHighlight() {
     if (!document.documentElement.classList.contains('variant-interacted')) return;
@@ -545,10 +636,54 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
     syncGallery();
   }
 
+  window.bdGalleryActivateMedia = function (targetMediaId) {
+    if (originalSetActiveMedia) {
+      originalSetActiveMedia(targetMediaId, false);
+      return;
+    }
+    forceActivateMedia(targetMediaId);
+  };
+
+  window.bdGalleryRestorePrimaryMedia = function () {
+    const activeRealSlide = sliderList?.querySelector(':scope > li.product__media-item.is-active[data-media-id]:not([data-bd-design-preview-slide="1"]):not([hidden])');
+    if (activeRealSlide) {
+      forceActivateMedia(activeRealSlide.getAttribute('data-media-id'));
+      return;
+    }
+
+    const firstRealSlide = sliderList?.querySelector(':scope > li.product__media-item[data-media-id]:not([data-bd-design-preview-slide="1"]):not([hidden])');
+    if (firstRealSlide) {
+      forceActivateMedia(firstRealSlide.getAttribute('data-media-id'));
+    }
+  };
+
+  if (originalSetActiveMedia) {
+    gallery.setActiveMedia = function (mediaId, prepend) {
+      const previewMediaId = getDesignPreviewMediaId();
+      if (prepend === true && previewMediaId && hasVisibleDesignPreviewSlide() && mediaId !== previewMediaId) {
+        return originalSetActiveMedia(previewMediaId, false);
+      }
+      return originalSetActiveMedia(mediaId, prepend);
+    };
+  }
+
+  function preserveDesignPreviewIfVisible() {
+    const previewMediaId = getDesignPreviewMediaId();
+    if (!previewMediaId || !hasVisibleDesignPreviewSlide()) return;
+    if (Date.now() < manualNavigationUntil) return;
+
+    forceActivateMedia(previewMediaId);
+    requestAnimationFrame(() => forceActivateMedia(previewMediaId));
+    setTimeout(() => forceActivateMedia(previewMediaId), 60);
+    setTimeout(() => forceActivateMedia(previewMediaId), 180);
+  }
+
   // ✅ Thumbnail click: let Dawn handle it; if not, fallback. Do not touch variants.
   gallery.addEventListener('click', (e) => {
     const btn = e.target.closest('button.thumbnail');
     if (!btn) return;
+    manualNavigationUntil = Date.now() + 1200;
+    preservePreviewUntil = 0;
 
     const li = btn.closest('li[data-target]');
     const targetMediaId = btn.getAttribute('data-target') || (li ? li.getAttribute('data-target') : null);
@@ -574,9 +709,20 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
       rafTwice(() => {
         document.documentElement.classList.add('variant-interacted');
         applyPillHighlightStabilized();
+        preservePreviewUntil = Date.now() + 1200;
+        preserveDesignPreviewIfVisible();
       });
     }
   }, true);
+
+  ['variant:change', 'variantChange', 'product:variant-change'].forEach((ev) => {
+    document.addEventListener(ev, () => {
+      preservePreviewUntil = Date.now() + 1200;
+      rafTwice(() => {
+        preserveDesignPreviewIfVisible();
+      });
+    });
+  });
 
 function getSliderViewport() {
   // Dawn slider element inside GalleryViewer
@@ -606,6 +752,16 @@ function getVisibleSlides() {
   if (window.MutationObserver && sliderList) {
     const mo = new MutationObserver(() => {
       syncGallery();
+      const previewMediaId = getDesignPreviewMediaId();
+      const activeMediaId = getActiveMediaId();
+      if (
+        Date.now() < preservePreviewUntil &&
+        previewMediaId &&
+        hasVisibleDesignPreviewSlide() &&
+        activeMediaId !== previewMediaId
+      ) {
+        preserveDesignPreviewIfVisible();
+      }
     });
     mo.observe(sliderList, { subtree: true, attributes: true, attributeFilter: ['class'] });
   }

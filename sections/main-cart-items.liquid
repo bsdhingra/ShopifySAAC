@@ -111,26 +111,70 @@
                       <a href="{{ item.url }}" class="cart-item__name h4 break">{{ item.product.title | escape }}</a>
                       {%- comment -%} BD: Show proof mockup saved in line item properties {%- endcomment -%}
                         
+                      {%- assign bd_front_proof_url = item.properties['_Front Proof Mockup URL'] -%}
+                      {%- assign bd_back_proof_url = item.properties['_Back Proof Mockup URL'] -%}
                       {%- assign bd_proof_url = item.properties['Proof Mockup URL'] -%}
+                      {%- if bd_front_proof_url == blank and bd_back_proof_url == blank and bd_proof_url == blank -%}
+                        {%- assign bd_proof_url = item.properties['_Proof Mockup URL'] -%}
+                      {%- endif -%}
 
-{%- if bd_proof_url != blank -%}
-  <div class="bd-proof" style="margin-top:8px;">
-    <a href="{{ bd_proof_url }}" target="_blank" rel="noopener"
-       style="color:#2c7be5;text-decoration:underline;font-weight:500;">
-      Preview your design
-    </a>
-                            {% # theme-check-disable RemoteAsset %}
-                            <img
-                              src="{{ bd_proof_url | escape }}"
-                              alt="Custom proof"
-                              width="160"
-                              height="160"
-                              loading="lazy"
-                              style="max-width: 160px; height: auto; border-radius: 8px; border: 1px solid rgba(0,0,0,.12);"
-                            >
+                      {%- if bd_front_proof_url != blank or bd_back_proof_url != blank or bd_proof_url != blank -%}
+                        <div class="bd-proof" style="margin-top:8px; display:flex; flex-wrap:wrap; gap:12px;">
+                          {%- if bd_front_proof_url != blank -%}
+                            <div>
+                              <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Preview your front design</div>
+                              <a href="{{ bd_front_proof_url }}" target="_blank" rel="noopener" style="color:#2c7be5;text-decoration:underline;font-weight:500;">
+                                Preview your front design
+                              </a>
+                              {% # theme-check-disable RemoteAsset %}
+                              <img
+                                src="{{ bd_front_proof_url | escape }}"
+                                alt="Front proof"
+                                width="160"
+                                height="160"
+                                loading="lazy"
+                                style="display:block; max-width: 160px; height: auto; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); margin-top:8px;"
+                              >
                               {% # theme-check-enable RemoteAsset %}
-                          </div>
-                        {%- endif -%}
+                            </div>
+                          {%- endif -%}
+                          {%- if bd_back_proof_url != blank -%}
+                            <div>
+                              <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Preview your back design</div>
+                              <a href="{{ bd_back_proof_url }}" target="_blank" rel="noopener" style="color:#2c7be5;text-decoration:underline;font-weight:500;">
+                                Preview your back design
+                              </a>
+                              {% # theme-check-disable RemoteAsset %}
+                              <img
+                                src="{{ bd_back_proof_url | escape }}"
+                                alt="Back proof"
+                                width="160"
+                                height="160"
+                                loading="lazy"
+                                style="display:block; max-width: 160px; height: auto; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); margin-top:8px;"
+                              >
+                              {% # theme-check-enable RemoteAsset %}
+                            </div>
+                          {%- endif -%}
+                          {%- if bd_front_proof_url == blank and bd_back_proof_url == blank and bd_proof_url != blank -%}
+                            <div>
+                              <a href="{{ bd_proof_url }}" target="_blank" rel="noopener" style="color:#2c7be5;text-decoration:underline;font-weight:500;">
+                                Preview your design
+                              </a>
+                              {% # theme-check-disable RemoteAsset %}
+                              <img
+                                src="{{ bd_proof_url | escape }}"
+                                alt="Custom proof"
+                                width="160"
+                                height="160"
+                                loading="lazy"
+                                style="display:block; max-width: 160px; height: auto; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); margin-top:8px;"
+                              >
+                              {% # theme-check-enable RemoteAsset %}
+                            </div>
+                          {%- endif -%}
+                        </div>
+                      {%- endif -%}
 
                       {%- if item.original_price != item.final_price -%}
                         <div class="cart-item__discounted-prices">
@@ -169,12 +213,8 @@
                           {%- comment -%} === Premium customization summary (hide noisy properties) === {%- endcomment -%}
 
                           {%- assign upload_url = item.properties['Design 1 URL'] -%}
+                          {%- assign upload_url_back = item.properties['Design 2 URL'] -%}
                           {%- assign customization_text = item.properties['Customization text'] -%}
-
-                          {%- assign proof_url = item.properties['Proof Mockup URL'] -%}
-                          {%- if proof_url == blank -%}
-                            {%- assign proof_url = item.properties['_Proof Mockup URL'] -%}
-                          {%- endif -%}
 
 {%- if upload_url != blank -%}
   <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
@@ -197,7 +237,27 @@
     </a>
 
   </div>
-{%- endif -%}                                                    
+{%- endif -%}
+{%- if upload_url_back != blank -%}
+  <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+    <span style="font-size:12px;opacity:.85;">
+      Back uploaded image:
+    </span>
+
+    <a href="{{ upload_url_back }}" target="_blank" rel="noopener">
+      {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+      <img
+        src="{{ upload_url_back }}"
+        alt="Back uploaded image"
+        loading="lazy"
+        width="56"
+        height="56"
+        style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid rgba(0,0,0,.12);"
+      >
+      {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+    </a>
+  </div>
+{%- endif -%}
                           {%- if customization_text != blank -%}
                             <div class="product-option" style="margin-top:8px;">
                               <dt>Customization:</dt>
