@@ -171,6 +171,8 @@
     return String(file.type || "").startsWith("image/");
   };
 
+  const BD_CROP_MIN_SIZE = 20;
+
   const bdCreateEditorSideState = () => ({
     originalFile: null,
     originalObjectUrl: "",
@@ -315,6 +317,7 @@
       <div class="bd-crop-stage" data-bd-crop-stage="1">
         <img class="bd-crop-stage__img" data-bd-crop-image="1" alt="Crop preview" hidden>
         <div class="bd-crop-box" data-bd-crop-box="1" hidden>
+          <div class="bd-crop-box__drag" data-bd-crop-drag="1" aria-hidden="true"></div>
           <button type="button" class="bd-crop-box__handle" data-bd-crop-handle="n" aria-label="Resize crop area from top"></button>
           <button type="button" class="bd-crop-box__handle" data-bd-crop-handle="s" aria-label="Resize crop area from bottom"></button>
           <button type="button" class="bd-crop-box__handle" data-bd-crop-handle="e" aria-label="Resize crop area from right"></button>
@@ -353,33 +356,31 @@
     const cropBox = root.querySelector('[data-bd-crop-box="1"]');
 
     if (cropBox) {
-      cropBox.addEventListener("pointerdown", (e) => {
+      let bdActiveTouchId = null;
+      let bdActivePointerId = null;
+
+      const bdStartCropInteraction = (clientX, clientY, handle, pointerId) => {
         if (!bdCropState.isOpen) return;
-        const handle = e.target && e.target.getAttribute && e.target.getAttribute("data-bd-crop-handle");
         bdCropState.pointerMode = handle ? "resize" : "drag-crop";
-        bdCropState.pointerId = e.pointerId;
+        bdCropState.pointerId = pointerId != null ? pointerId : null;
         bdCropState.pointerStart = {
-          x: e.clientX,
-          y: e.clientY,
+          x: clientX,
+          y: clientY,
           handle: handle || "",
           cropRect: { ...bdCropState.cropRect }
         };
-        cropBox.setPointerCapture(e.pointerId);
-        e.preventDefault();
-      });
-    }
+      };
 
-    if (stage) {
-      stage.addEventListener("pointermove", (e) => {
+      const bdUpdateCropInteraction = (clientX, clientY) => {
         if (!bdCropState.pointerMode || !bdCropState.pointerStart) return;
         const image = bdCropState.image;
         const cropRect = bdCropState.cropRect;
         if (!image.w || !image.h || !cropRect.w || !cropRect.h) return;
 
-        const dx = e.clientX - bdCropState.pointerStart.x;
-        const dy = e.clientY - bdCropState.pointerStart.y;
+        const dx = clientX - bdCropState.pointerStart.x;
+        const dy = clientY - bdCropState.pointerStart.y;
         const startRect = bdCropState.pointerStart.cropRect;
-        const minSize = 40;
+        const minSize = BD_CROP_MIN_SIZE;
         let nextRect = { ...startRect };
 
         if (bdCropState.pointerMode === "drag-crop") {
@@ -417,19 +418,102 @@
 
         bdCropState.cropRect = bdClampCropRectToImage(nextRect);
         bdSyncCropBoxUi();
-      });
+      };
 
-      stage.addEventListener("pointerup", () => {
+      const bdEndCropInteraction = () => {
         bdCropState.pointerMode = null;
         bdCropState.pointerId = null;
         bdCropState.pointerStart = null;
+      };
+
+      const bdDetachWindowPointerListeners = () => {
+        window.removeEventListener("pointermove", bdHandleWindowPointerMove);
+        window.removeEventListener("pointerup", bdHandleWindowPointerEnd);
+        window.removeEventListener("pointercancel", bdHandleWindowPointerEnd);
+      };
+
+      const bdDetachWindowTouchListeners = () => {
+        window.removeEventListener("touchmove", bdHandleWindowTouchMove);
+        window.removeEventListener("touchend", bdHandleWindowTouchEnd);
+        window.removeEventListener("touchcancel", bdHandleWindowTouchEnd);
+      };
+
+      const bdHandleWindowPointerMove = (e) => {
+        if (!bdCropState.isOpen || bdActivePointerId == null) return;
+        if (e.pointerId !== bdActivePointerId) return;
+        bdUpdateCropInteraction(e.clientX, e.clientY);
+        e.preventDefault();
+      };
+
+      const bdHandleWindowPointerEnd = (e) => {
+        if (bdActivePointerId == null) return;
+        if (e.pointerId !== bdActivePointerId) return;
+        bdActivePointerId = null;
+        bdEndCropInteraction();
+        bdDetachWindowPointerListeners();
+      };
+
+      const bdFindTouchById = (touchList, identifier) => {
+        if (!touchList || identifier == null) return null;
+        for (let i = 0; i < touchList.length; i += 1) {
+          if (touchList[i] && touchList[i].identifier === identifier) return touchList[i];
+        }
+        return null;
+      };
+
+      const bdHandleWindowTouchMove = (e) => {
+        if (!bdCropState.isOpen || bdActiveTouchId == null) return;
+        const touch = bdFindTouchById(e.touches, bdActiveTouchId);
+        if (!touch) return;
+        bdUpdateCropInteraction(touch.clientX, touch.clientY);
+        e.preventDefault();
+      };
+
+      const bdHandleWindowTouchEnd = (e) => {
+        if (bdActiveTouchId == null) return;
+        const activeTouch = bdFindTouchById(e.touches, bdActiveTouchId);
+        if (activeTouch) return;
+        bdActiveTouchId = null;
+        bdEndCropInteraction();
+        bdDetachWindowTouchListeners();
+      };
+
+      cropBox.addEventListener("pointerdown", (e) => {
+        const handleTarget = e.target && e.target.closest ? e.target.closest("[data-bd-crop-handle]") : null;
+        const handle = handleTarget && handleTarget.getAttribute ? handleTarget.getAttribute("data-bd-crop-handle") : "";
+        bdActivePointerId = e.pointerId;
+        bdStartCropInteraction(e.clientX, e.clientY, handle, e.pointerId);
+        bdDetachWindowPointerListeners();
+        window.addEventListener("pointermove", bdHandleWindowPointerMove, { passive: false });
+        window.addEventListener("pointerup", bdHandleWindowPointerEnd, { passive: false });
+        window.addEventListener("pointercancel", bdHandleWindowPointerEnd, { passive: false });
+        if (cropBox.setPointerCapture) {
+          cropBox.setPointerCapture(e.pointerId);
+        }
+        e.preventDefault();
       });
 
-      stage.addEventListener("pointercancel", () => {
-        bdCropState.pointerMode = null;
-        bdCropState.pointerId = null;
-        bdCropState.pointerStart = null;
-      });
+      cropBox.addEventListener(
+        "touchstart",
+        (e) => {
+          if (!bdCropState.isOpen) return;
+          const handleTarget = e.target && e.target.closest ? e.target.closest("[data-bd-crop-handle]") : null;
+          const touch = e.touches && e.touches[0];
+          if (!touch) return;
+          const handle = handleTarget && handleTarget.getAttribute ? handleTarget.getAttribute("data-bd-crop-handle") : "";
+          bdActiveTouchId = touch.identifier;
+          bdStartCropInteraction(touch.clientX, touch.clientY, handle, touch.identifier);
+          bdDetachWindowTouchListeners();
+          window.addEventListener("touchmove", bdHandleWindowTouchMove, { passive: false });
+          window.addEventListener("touchend", bdHandleWindowTouchEnd, { passive: false });
+          window.addEventListener("touchcancel", bdHandleWindowTouchEnd, { passive: false });
+          e.preventDefault();
+        },
+        { passive: false }
+      );
+    }
+
+    if (stage) {
 
       stage.addEventListener(
         "wheel",
@@ -458,10 +542,6 @@
     bdCropState.side = side === "back" ? "back" : "front";
     bdCropState.file = file || null;
 
-    if (file) {
-      bdCropState.originalBySide[bdCropState.side] = file;
-    }
-
     if (bdIsSvgFile(file)) {
       if (note) {
         note.hidden = false;
@@ -469,7 +549,7 @@
       }
     } else if (note) {
       note.hidden = false;
-      note.textContent = "Drag the crop area to reposition it. Use the edges or corners to resize, then apply crop.";
+      note.textContent = "Drag the crop area to reposition it. Use the corner brackets to resize, then apply crop.";
     }
 
     if (file && img) {
@@ -550,7 +630,7 @@
     const image = bdCropState.image;
     if (!image.w || !image.h) return { x: 0, y: 0, w: 0, h: 0 };
 
-    const minSize = 40;
+    const minSize = BD_CROP_MIN_SIZE;
     const maxW = Math.max(minSize, image.w);
     const maxH = Math.max(minSize, image.h);
     const nextW = clamp(Math.round(rect.w || 0), minSize, maxW);
@@ -587,22 +667,29 @@
     const editorSide = bdGetEditorSideState(bdCropState.side);
     const existingCrop = editorSide && editorSide.crop ? editorSide.crop : null;
 
-    let cropW = Math.max(40, Math.round(imageW * 0.72));
-    let cropH = Math.max(40, Math.round(imageH * 0.72));
+    let cropW = Math.max(BD_CROP_MIN_SIZE, Math.round(imageW * 0.72));
+    let cropH = Math.max(BD_CROP_MIN_SIZE, Math.round(imageH * 0.72));
     let cropX = Math.round(imageX + (imageW - cropW) / 2);
     let cropY = Math.round(imageY + (imageH - cropH) / 2);
+    const isExistingCropForCurrentImage =
+      !!(
+        existingCrop &&
+        existingCrop.w > 0 &&
+        existingCrop.h > 0 &&
+        existingCrop.naturalWidth === Math.round(bdCropState.naturalWidth || 0) &&
+        existingCrop.naturalHeight === Math.round(bdCropState.naturalHeight || 0)
+      );
 
-    if (
-      existingCrop &&
-      existingCrop.w > 0 &&
-      existingCrop.h > 0 &&
-      existingCrop.naturalWidth === Math.round(bdCropState.naturalWidth || 0) &&
-      existingCrop.naturalHeight === Math.round(bdCropState.naturalHeight || 0)
-    ) {
+    if (isExistingCropForCurrentImage) {
       cropX = Math.round(imageX + existingCrop.x * safeScale);
       cropY = Math.round(imageY + existingCrop.y * safeScale);
-      cropW = Math.max(40, Math.round(existingCrop.w * safeScale));
-      cropH = Math.max(40, Math.round(existingCrop.h * safeScale));
+      cropW = Math.max(BD_CROP_MIN_SIZE, Math.round(existingCrop.w * safeScale));
+      cropH = Math.max(BD_CROP_MIN_SIZE, Math.round(existingCrop.h * safeScale));
+    } else if (existingCrop) {
+      cropW = Math.max(BD_CROP_MIN_SIZE, Math.round(imageW * 0.88));
+      cropH = Math.max(BD_CROP_MIN_SIZE, Math.round(imageH * 0.88));
+      cropX = Math.round(imageX + (imageW - cropW) / 2);
+      cropY = Math.round(imageY + (imageH - cropH) / 2);
     }
 
     bdCropState.stage = { x: 0, y: 0, w: stageRect.width, h: stageRect.height };
@@ -631,6 +718,10 @@
     cropBox.style.top = `${bdCropState.cropRect.y}px`;
     cropBox.style.width = `${bdCropState.cropRect.w}px`;
     cropBox.style.height = `${bdCropState.cropRect.h}px`;
+    cropBox.classList.toggle(
+      "is-compact",
+      bdCropState.cropRect.w <= 84 || bdCropState.cropRect.h <= 84
+    );
 
     img.style.width = `${bdCropState.image.w}px`;
     img.style.height = `${bdCropState.image.h}px`;
@@ -748,8 +839,8 @@
     let nextW = Math.round(cropRect.w * step);
     let nextH = Math.round(cropRect.h * step);
 
-    nextW = clamp(nextW, 40, image.w);
-    nextH = clamp(nextH, 40, image.h);
+    nextW = clamp(nextW, BD_CROP_MIN_SIZE, image.w);
+    nextH = clamp(nextH, BD_CROP_MIN_SIZE, image.h);
 
     bdCropState.cropRect = bdClampCropRectToImage({
       x: Math.round(centerX - nextW / 2),
@@ -942,9 +1033,9 @@
 
     btnCrop.addEventListener("click", () => {
       const side = bdGetMirrorSide();
-      const originalFile = bdCropState.originalBySide[side];
-      if (!originalFile || !bdCanCropFile(originalFile)) return;
-      bdOpenCropModal({ file: originalFile, side });
+      const currentFile = bdGetCurrentFileForSide(side);
+      if (!currentFile || !bdCanCropFile(currentFile)) return;
+      bdOpenCropModal({ file: currentFile, side });
     });
 
     btnCropCancel.addEventListener("click", () => {
