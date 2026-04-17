@@ -1,0 +1,138 @@
+{
+  "tshirt-shared-basic": {
+    "colorMockupMap": {
+      "Black": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Black.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Black.png?v=1776135917"
+      },
+      "Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Pink.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Pink.png?v=1776137163"
+      },
+      "Royal Blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Royal_Blue.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Royal_Blue.png?v=1776135917"
+      },
+      "White": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_White.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_White.png?v=1776135917"
+      },
+      "Forest Green": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Forest_Green.png?v=1776137163",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Forest_Green.png?v=1776137147"
+      },
+      "Navy": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Navy.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Navy.png?v=1776135917"
+      },
+      "Orange": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Orange.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Orange.png?v=1776137163"
+      },
+      "Red": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Red.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Red.png?v=1776137163"
+      },
+      "Purple": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Purple.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Purple.png?v=1776135917"
+      },
+      "Daisy Yellow": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Daisy_Yellow.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Daisy_Yellow.png?v=1776135917"
+      },
+      "Sand": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Sand.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Sand.png?v=1776135917"
+      },
+      "Safety Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Safety_Pink.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Safety_Pink.png?v=1776135917"
+      },
+      "Violet": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Violet.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_violet.png?v=1776135917"
+      },
+      "Irish Green": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Irish_Green.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Irish_Green.png?v=1776135917"
+      },
+      "Sports Grey": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Sports_Grey.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Sports_Grey.png?v=1776135917"
+      },
+      "Light Blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Light_Blue.png?v=1776137085",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Light_Blue.png?v=1776137163"
+      }
+    }
+  },
+  "tshirt-front-only-shared": {
+    "colorMockupMap": {
+      "Black": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Black.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Black.png?v=1776135917"
+      },
+      "Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Pink.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Pink.png?v=1776137163"
+      },
+      "Royal Blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Royal_Blue.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Royal_Blue.png?v=1776135917"
+      },
+      "White": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_White.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_White.png?v=1776135917"
+      },
+      "Forest Green": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Forest_Green.png?v=1776137163",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Forest_Green.png?v=1776137147"
+      },
+      "Navy": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Navy.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Navy.png?v=1776135917"
+      },
+      "Orange": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Orange.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Orange.png?v=1776137163"
+      },
+      "Red": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Red.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Red.png?v=1776137163"
+      },
+      "Purple": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Purple.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Purple.png?v=1776135917"
+      },
+      "Daisy Yellow": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Daisy_Yellow.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Daisy_Yellow.png?v=1776135917"
+      },
+      "Sand": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Sand.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Sand.png?v=1776135917"
+      },
+      "Safety Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Safety_Pink.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Safety_Pink.png?v=1776135917"
+      },
+      "Violet": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Violet.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_violet.png?v=1776135917"
+      },
+      "Irish Green": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Irish_Green.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Irish_Green.png?v=1776135917"
+      },
+      "Sports Grey": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Sports_Grey.png?v=1776135917",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Sports_Grey.png?v=1776135917"
+      },
+      "Light Blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Light_Blue.png?v=1776137085",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_Light_Blue.png?v=1776137163"
+      }
+    }
+  }
+}

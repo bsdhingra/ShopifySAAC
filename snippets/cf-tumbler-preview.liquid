@@ -1,0 +1,76 @@
+{%- assign cf_tumbler_mockup_src = '' -%}
+{%- if product.handle == 'custom-print-20-oz-insulated-tumbler-dual-lids' -%}
+  {%- assign cf_tumbler_mockup_src = 'https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Tumbler_Preview.png?v=1776214299' -%}
+{%- endif -%}
+
+<div
+  id="cf-tumbler-preview-container"
+  class="cf-tumbler-preview-box"
+  data-cf-preview="tumbler"
+  data-cf-config="tumbler-wrap"
+  data-cf-tumbler
+  data-product-handle="{{ product.handle }}"
+  data-config-url="{{ 'cf-tumbler-config.json' | asset_url }}"
+>
+  <div class="cf-start-row">
+    <button type="button" class="button cf-start-btn" data-cf-start-btn>
+      Start Designing
+    </button>
+    <div class="cf-start-hint">
+      Click to open the tumbler designer, then upload your design.
+    </div>
+  </div>
+
+  <div class="cf-tumbler-designer-body" hidden>
+    <div class="cf-preview-title">Preview</div>
+
+    <div class="cf-tumbler-toolbar">
+      <button type="button" class="button button--secondary cf-tumbler-upload-btn" data-cf-tumbler-upload-btn>
+        Upload Design
+      </button>
+      <button type="button" class="button button--secondary cf-tumbler-reset-btn" data-cf-tumbler-reset-btn hidden>
+        Reset Placement
+      </button>
+      <div class="cf-tumbler-upload-hint">
+        Edit your wrap design below. The composite tumbler preview updates automatically.
+      </div>
+      <div class="cf-tumbler-status" data-cf-tumbler-status>
+        Upload one design to start the tumbler preview.
+      </div>
+      <div class="cf-tumbler-meta" data-cf-tumbler-meta></div>
+    </div>
+
+    <div class="cf-tumbler-editor-panel">
+      <div class="cf-preview-title cf-preview-title--small">Design Area</div>
+      <div class="cf-tumbler-editor-stage" data-cf-tumbler-stage>
+        <div class="cf-tumbler-editor-stage__grid" aria-hidden="true"></div>
+        <canvas class="cf-tumbler-editor-canvas" data-cf-tumbler-editor-canvas aria-hidden="true"></canvas>
+        <div class="cf-tumbler-editor-guides" data-cf-tumbler-guides aria-hidden="true">
+          <div class="cf-tumbler-editor-guide" data-cf-guide="left"><span>Left Side</span></div>
+          <div class="cf-tumbler-editor-guide cf-tumbler-editor-guide--center" data-cf-guide="center"><span>Front Center</span></div>
+          <div class="cf-tumbler-editor-guide" data-cf-guide="right"><span>Right Side</span></div>
+        </div>
+        <div class="cf-tumbler-design-wrap" data-cf-tumbler-design-wrap hidden>
+          <img
+            class="cf-tumbler-design-edit"
+            data-cf-tumbler-design-edit
+            alt="Editable design"
+            width="1200"
+            height="1200"
+            loading="lazy"
+          >
+          <button
+            type="button"
+            class="cf-tumbler-handle se"
+            data-cf-tumbler-handle="se"
+            aria-label="Resize design"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cf-tumbler-canvas" aria-label="Tumbler preview" role="group">
+      <canvas class="cf-tumbler-composite-canvas" data-cf-tumbler-composite-canvas aria-label="Composite tumbler preview"></canvas>
+    </div>
+  </div>
+</div>

@@ -47,6 +47,11 @@
   <script src="{{ 'cf-tshirt-preview-lite.js' | asset_url }}" defer></script>
 {% endif %}
 
+{% if product.tags contains 'cf-tumbler-preview' %}
+  {{ 'cf-tumbler-preview.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'cf-tumbler-preview.js' | asset_url }}" defer></script>
+{% endif %}
+
 {% if product.tags contains 'cf-tshirt-preview' %}
   <script>document.documentElement.classList.add('bd-tshirt-preview-required');</script>
 {% endif %}
@@ -512,6 +517,11 @@
   {%- assign bd_preview_config = 'front-back' -%}
 {%- endif -%}
 
+{%- assign bd_preview_config_id = product.metafields.custom.preview_config_id | default: '' -%}
+{%- if bd_preview_config_id == blank and product.tags contains 'cf-tshirt-preview' -%}
+  {%- assign bd_preview_config_id = 'tshirt-shared-basic' -%}
+{%- endif -%}
+
 {%- assign bd_first_variant_src = '' -%}
 {%- if product.selected_or_first_available_variant.featured_media and product.selected_or_first_available_variant.featured_media.media_type == 'image' -%}
   {%- assign bd_first_variant_src = product.selected_or_first_available_variant.featured_media | image_url: width: 900 -%}
@@ -523,6 +533,8 @@
      data-cf-preview="tshirt"
      data-first-variant-src="{{ bd_first_variant_src }}"
      data-cf-config="{{ bd_preview_config }}"
+     data-config-id="{{ bd_preview_config_id }}"
+     data-config-url="{{ 'cf-tshirt-config.json' | asset_url }}"
      data-cloud-name="dddoiamwn"
      data-upload-preset="guoeywbk"
      data-proof-folder="proofs"
@@ -600,6 +612,10 @@
     </div><!-- /.cf-designer-body -->
   </div><!-- /#cf-tshirt-preview-container -->
 
+{%- endif -%}
+
+{%- if product.tags contains 'cf-tumbler-preview' -%}
+  {% render 'cf-tumbler-preview', product: product %}
 {%- endif -%}
 
               {%- when 'popup' -%}

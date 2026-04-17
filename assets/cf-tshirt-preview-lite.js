@@ -17,6 +17,8 @@
   // Product config
   // --------------------------
   const bdPreviewConfig = String(box.dataset.cfConfig || "front-only").toLowerCase().trim();
+  const bdConfigId = String(box.dataset.configId || "").trim();
+  const bdConfigUrl = String(box.dataset.configUrl || "").trim();
   const bdIsFrontOnly = bdPreviewConfig === "front-only";
   const bdIsBackOnly = bdPreviewConfig === "back-only";
   const bdIsFrontBack = bdPreviewConfig === "front-back";
@@ -26,7 +28,10 @@
   // Helpers
   // --------------------------
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
+  const BD_EDITOR_MIN_DESIGN_PX = 24;
+  const BD_EDITOR_MIN_DESIGN_ZONE_RATIO = 0.05;
+  const bdGetMinDesignWidth = (boundsWidth) =>
+    Math.max(BD_EDITOR_MIN_DESIGN_PX, Math.round((boundsWidth || 0) * BD_EDITOR_MIN_DESIGN_ZONE_RATIO));
   const bdIsElementActuallyHidden = (el) => {
     if (!el) return true;
     if (el.hidden) return true;
@@ -42,6 +47,8 @@
       .trim()
       .replace(/\s+/g, "")
       .replace(/[-_]/g, "");
+
+  let bdLastKnownSelectedColor = "";
 
   // --------------------------
   // Side toggle state
@@ -1101,7 +1108,7 @@
       const previewImgTarget = currentPanel.querySelector("[data-bd-upload-preview-img='1']");
       const cropBtn = box.querySelector('[data-bd-inline-crop="1"]');
 
-      const helpText = "PNG/JPG/SVG up to 10MB";
+      const helpText = "PNG/JPG/SVG. Preferred file size is under 10MB. Files over 10MB may not upload.";
       const metaText = metaSource ? metaSource.textContent.trim() : "";
       const activeInput = side === "back" ? inputBack : inputFront;
       const activeFile = activeInput && activeInput.files && activeInput.files[0] ? activeInput.files[0] : null;
@@ -1434,6 +1441,15 @@ if (bdStartGateEnabled) {
     );
   };
 
+  const BD_UPLOAD_NOTICE_TEXT = "Your image is larger than 10MB, but no worries-you can still edit and preview your design. After placing your order, just email your image to info@sarvsartsandcrafts.com, and we'll handle the proof for you.";
+
+  const bdGetRealUploaderDesignUrl = (idx) => {
+    const uploader = document.querySelector("[data-cf-uploader]");
+    if (!uploader) return "";
+    const input = uploader.querySelector(`[data-url="${idx}"]`);
+    return input ? String(input.value || "").trim() : "";
+  };
+
   const bdEnsurePropertyInputs = (form) => {
     if (!form) return {};
 
@@ -1508,7 +1524,16 @@ if (bdStartGateEnabled) {
       form.appendChild(editBack);
     }
 
-    return { url, proofUrl, proofFront, proofBack, placementFront, placementBack, editFront, editBack };
+    let uploadNotice = form.querySelector('#bd_upload_notice, #cf_upload_notice, [name="properties[_Upload Notice]"]');
+    if (!uploadNotice) {
+      uploadNotice = document.createElement("input");
+      uploadNotice.type = "hidden";
+      uploadNotice.name = "properties[_Upload Notice]";
+      uploadNotice.id = "bd_upload_notice";
+      form.appendChild(uploadNotice);
+    }
+
+    return { url, proofUrl, proofFront, proofBack, placementFront, placementBack, editFront, editBack, uploadNotice };
   };
 
   window.bdSetDesignUploadUrl = function (cloudinaryUrl) {
@@ -1538,6 +1563,14 @@ if (bdStartGateEnabled) {
         proofUrl.value = frontValue || backValue || value;
       }
     }
+  };
+
+  window.bdSetUploadNotice = function (message) {
+    const form = bdFindCartForm();
+    if (!form) return;
+    const { uploadNotice } = bdEnsurePropertyInputs(form);
+    if (!uploadNotice) return;
+    uploadNotice.value = (message || "").trim();
   };
 
   // --------------------------
@@ -1636,24 +1669,77 @@ const bdNormColor = (s) =>
 const bdGetColorMockupMap = (() => {
   let parsed = false;
   let cache = null;
+  let sharedTried = false;
+  let sharedPromise = null;
 
-  return () => {
-    if (parsed) return cache;
-    parsed = true;
-
+  const parseInlineMap = () => {
     const node = document.getElementById("bd-color-mockup-map");
-    if (!node || !node.textContent) {
-      cache = null;
-      return cache;
-    }
+    if (!node || !node.textContent) return null;
 
     try {
       const raw = JSON.parse(node.textContent);
-      cache = raw && typeof raw === "object" ? raw : null;
+      return raw && typeof raw === "object" ? raw : null;
     } catch (e) {
-      cache = null;
+      return null;
+    }
+  };
+
+  const startSharedLoad = () => {
+    if (sharedPromise) return sharedPromise;
+    if (!bdConfigUrl || !bdConfigId || typeof fetch !== "function") {
+      sharedPromise = Promise.resolve(parseInlineMap());
+      return sharedPromise;
     }
 
+    sharedTried = true;
+    sharedPromise = fetch(bdConfigUrl)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        const shared = json && json[bdConfigId] && json[bdConfigId].colorMockupMap;
+        cache = shared && typeof shared === "object" ? shared : parseInlineMap();
+        parsed = true;
+        window.__bdTshirtSharedConfigCache = window.__bdTshirtSharedConfigCache || {};
+        if (cache && typeof cache === "object") {
+          window.__bdTshirtSharedConfigCache[bdConfigId] = cache;
+        }
+        try { bdResolvePreviewBaseSources(); } catch (e) {}
+        try { bdSwitchMainMockup(bdGetActiveSide()); } catch (e) {}
+        return cache;
+      })
+      .catch(() => {
+        cache = parseInlineMap();
+        parsed = true;
+        return cache;
+      });
+
+    return sharedPromise;
+  };
+
+  window.bdEnsureTshirtColorMockupMapLoaded = () => {
+    if (parsed) return Promise.resolve(cache);
+    if (bdConfigUrl && bdConfigId) return startSharedLoad();
+    parsed = true;
+    cache = parseInlineMap();
+    return Promise.resolve(cache);
+  };
+
+  return () => {
+    if (parsed) return cache;
+
+    if (!sharedTried && bdConfigUrl && bdConfigId && window.__bdTshirtSharedConfigCache && window.__bdTshirtSharedConfigCache[bdConfigId]) {
+      sharedTried = true;
+      cache = window.__bdTshirtSharedConfigCache[bdConfigId];
+      parsed = true;
+      return cache;
+    }
+
+    if (!sharedTried && bdConfigUrl && bdConfigId && typeof fetch === "function") {
+      startSharedLoad();
+      return cache;
+    }
+
+    parsed = true;
+    cache = parseInlineMap();
     return cache;
   };
 })();
@@ -1675,11 +1761,17 @@ const bdGetMappedMockupSrc = (side, colorValue) => {
 };
 
 const bdGetSelectedColorValue = () => {
+  const rememberColor = (value) => {
+    const next = String(value || "").trim();
+    if (next) bdLastKnownSelectedColor = next;
+    return next;
+  };
+
   // 1) checked radios (swatches/buttons)
   const radio =
     document.querySelector('variant-selects input[type="radio"]:checked') ||
     document.querySelector('.product-form__input input[type="radio"]:checked');
-  if (radio && radio.value) return radio.value;
+  if (radio && radio.value) return rememberColor(radio.value);
 
   // 2) selects inside variant-selects (dropdowns)
   const selects = Array.from(document.querySelectorAll("variant-selects select"));
@@ -1692,20 +1784,20 @@ const bdGetSelectedColorValue = () => {
       const ltxt = (lbl ? lbl.textContent : "").toLowerCase();
 
       if (ltxt.includes("color") || name.includes("color")) {
-        return sel.value || "";
+        return rememberColor(sel.value || "");
       }
     }
     // Fallback: first select value
-    return selects[0].value || "";
+    return rememberColor(selects[0].value || "");
   }
 
   // 3) last resort: try any input that looks like an option
   const any =
     document.querySelector('[name^="options["]:checked') ||
     document.querySelector('[name^="options["]');
-  if (any && any.value) return any.value;
+  if (any && any.value) return rememberColor(any.value);
 
-  return "";
+  return bdLastKnownSelectedColor;
 };
 
 const bdFindMockupSrc = (side, colorValue) => {
@@ -1767,30 +1859,50 @@ const bdResolvePreviewBaseSources = () => {
   let backSrc = "";
   const mappedFrontSrc = bdIsFrontBack ? bdGetMappedMockupSrc("front", colorValue) : "";
   const mappedBackSrc = bdIsFrontBack ? bdGetMappedMockupSrc("back", colorValue) : "";
+  const registryFrontSrc = bdFindMockupSrc("front", colorValue);
+  const registryBackSrc = bdFindMockupSrc("back", colorValue);
+  const variantFrontSrc = bdGetActiveGalleryImageSrc();
 
-  // If user has not manually changed color yet,
-  // use the first variant image for preview instead of gallery featured image.
-  if (mappedFrontSrc) {
-    frontSrc = mappedFrontSrc;
+  // Prefer the selected-color mockup sources first so both sides stay in sync
+  // with the active variant, even if the gallery image is stale.
+  if (mappedFrontSrc || registryFrontSrc) {
+    frontSrc = mappedFrontSrc || registryFrontSrc;
   } else if (!hasManualVariantInteraction && firstVariantSrc) {
     frontSrc = firstVariantSrc;
   } else {
-    const variantFrontSrc = bdGetActiveGalleryImageSrc();
-    frontSrc = variantFrontSrc || bdFindMockupSrc("front", colorValue);
+    frontSrc = variantFrontSrc || registryFrontSrc;
   }
 
   if (bdIsFrontOnly) {
     backSrc = frontSrc;
   } else if (bdIsBackOnly) {
-    backSrc = bdFindMockupSrc("back", colorValue) || frontSrc;
+    backSrc = registryBackSrc || frontSrc;
   } else {
-    backSrc = mappedBackSrc || bdFindMockupSrc("back", colorValue) || frontSrc;
+    backSrc = mappedBackSrc || registryBackSrc || frontSrc;
   }
 
   if (frontSrc) base.setAttribute("data-front-src", frontSrc);
   if (backSrc) base.setAttribute("data-back-src", backSrc);
 
   return { frontSrc, backSrc };
+};
+
+const bdGetFreshProofBaseSrcForSide = (side) => {
+  const s = side === "back" ? "back" : "front";
+  const colorValue = bdGetSelectedColorValue();
+  const mappedSrc = bdGetMappedMockupSrc(s, colorValue);
+  const registrySrc = bdFindMockupSrc(s, colorValue);
+  const fallbackFront = bdGetActiveGalleryImageSrc();
+  const base = canvas.querySelector(".cf-preview-base");
+  const cachedSrc = base
+    ? (base.getAttribute(s === "back" ? "data-back-src" : "data-front-src") || "")
+    : "";
+
+  if (mappedSrc) return mappedSrc;
+  if (registrySrc) return registrySrc;
+  if (s === "front" && fallbackFront) return fallbackFront;
+  if (s === "back" && fallbackFront) return fallbackFront;
+  return cachedSrc;
 };
 
 const bdSwitchMainMockup = (side) => {
@@ -1910,12 +2022,21 @@ requestAnimationFrame(() => {
   const bdSyncBaseByVariantColor = () => {
     if (!previewBaseImg) return;
 
-    const color = bdGetCurrentColorFromUI();
-    const pick = bdPickMockupsFromRegistry(color);
+    const prevFrontSrc = previewBaseImg.getAttribute("data-front-src") || "";
+    const prevBackSrc = previewBaseImg.getAttribute("data-back-src") || "";
+    const resolved = bdResolvePreviewBaseSources();
+    const nextFrontResolved = resolved && resolved.frontSrc ? resolved.frontSrc : "";
+    const nextBackResolved = resolved && resolved.backSrc ? resolved.backSrc : "";
 
-    // update data attrs (these are the source of truth)
-    if (pick.front) previewBaseImg.setAttribute("data-front-src", pick.front);
-    if (pick.back) previewBaseImg.setAttribute("data-back-src", pick.back);
+    const nextFrontSrc = previewBaseImg.getAttribute("data-front-src") || "";
+    const nextBackSrc = previewBaseImg.getAttribute("data-back-src") || "";
+    const baseChanged =
+      (!!nextFrontResolved && prevFrontSrc.split("?")[0] !== nextFrontSrc.split("?")[0]) ||
+      (!!nextBackResolved && prevBackSrc.split("?")[0] !== nextBackSrc.split("?")[0]);
+
+    if (baseChanged) {
+      try { bdInvalidateProofMockupsForBaseChange(); } catch (e) {}
+    }
 
     // ensure base image matches current side
     bdSwitchMainMockup(bdActiveSide);
@@ -2083,7 +2204,7 @@ const bdUseSideState = (side) => {
     const z = bdGetZone();
     if (!z.width || !z.height) return;
 
-    const minW = Math.max(60, Math.round(z.width * 0.12));
+    const minW = bdGetMinDesignWidth(z.width);
     const maxW = Math.max(minW, Math.round(z.width * 0.98));
 
     state.w = clamp(state.w, minW, maxW);
@@ -2227,11 +2348,6 @@ const bdUseSideState = (side) => {
     new Promise((resolve, reject) => {
       proofCanvas.toBlob(
         (blob) => {
-          console.log("[Proof Debug] toBlob result", {
-            hasBlob: !!blob,
-            blobSize: blob ? blob.size : 0,
-            blobType: blob ? blob.type : ""
-          });
           if (blob) resolve(blob);
           else reject(new Error("Proof blob export failed"));
         },
@@ -2245,13 +2361,6 @@ const bdUseSideState = (side) => {
     if (!cloud || !preset || !blob) {
       return Promise.reject(new Error("Missing proof Cloudinary configuration"));
     }
-
-    console.log("[Proof Debug] Before Cloudinary upload", {
-      cloud,
-      preset,
-      folder,
-      side
-    });
 
     const uploadUrl = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloud)}/image/upload`;
     const fd = new FormData();
@@ -2268,11 +2377,6 @@ const bdUseSideState = (side) => {
       }
       const json = await res.json();
       const proofUrl = json.secure_url || json.url || "";
-      console.log("[Proof Debug] After Cloudinary upload response", {
-        secure_url: json.secure_url || "",
-        url: json.url || "",
-        isEmpty: !proofUrl
-      });
       return proofUrl;
     });
   };
@@ -2298,6 +2402,10 @@ const bdUseSideState = (side) => {
     const designSrc = s === "back" ? objectUrlBack : objectUrlFront;
     if (!hasDesign || !designSrc) return null;
 
+    if (typeof window.bdEnsureTshirtColorMockupMapLoaded === "function") {
+      try { await window.bdEnsureTshirtColorMockupMapLoaded(); } catch (e) {}
+    }
+
     const activeSideBefore = bdGetActiveSide();
     if (activeSideBefore !== s && typeof window.bdSwitchPreviewSide === "function") {
       window.bdSwitchPreviewSide(s);
@@ -2307,16 +2415,26 @@ const bdUseSideState = (side) => {
 
     bdSetActiveSideUi(s);
     bdUseSideState(s);
+    if (typeof bdResolvePreviewBaseSources === "function") {
+      try { bdResolvePreviewBaseSources(); } catch (e) {}
+    }
+    if (typeof bdSwitchMainMockup === "function") {
+      try { bdSwitchMainMockup(s); } catch (e) {}
+    }
     bdWritePlacement();
 
     const placement = bdGetPlacementPayloadForSide(s);
-    const baseSrc = previewBaseImg ? (previewBaseImg.currentSrc || previewBaseImg.src || "") : "";
-    console.log("[Proof Debug] Proof sync starts", {
-      side: s,
-      hasDesign,
-      hasBaseSrc: !!baseSrc,
-      hasPlacement: !!placement
-    });
+    const freshBaseSrc = bdGetFreshProofBaseSrcForSide(s);
+    const baseSrc = freshBaseSrc || (
+      previewBaseImg
+        ? (
+            previewBaseImg.getAttribute(s === "back" ? "data-back-src" : "data-front-src") ||
+            previewBaseImg.currentSrc ||
+            previewBaseImg.src ||
+            ""
+          )
+        : ""
+    );
     if (!placement || !baseSrc) return null;
 
     let baseImg;
@@ -2358,15 +2476,6 @@ const bdUseSideState = (side) => {
     const drawX = xRel * outW - drawW / 2;
     const drawY = yRel * outH - drawH / 2;
 
-    console.log("[Proof Debug] After proof canvas render", {
-      canvasWidth: outW,
-      canvasHeight: outH,
-      drawX,
-      drawY,
-      drawW,
-      drawH
-    });
-
     ctx.drawImage(overlayImg, drawX, drawY, drawW, drawH);
 
     try {
@@ -2378,17 +2487,53 @@ const bdUseSideState = (side) => {
   };
 
   let bdProofSyncTimer = null;
+  let bdProofRefreshTimer = null;
+  let bdProofSubmitLock = false;
   let bdProofSyncSeq = 0;
   let bdProofLastUploadedKey = { front: "", back: "" };
   let bdProofLastUrl = { front: "", back: "" };
   let bdProofInFlightPromise = { front: null, back: null };
+
+  const bdInvalidateProofMockupsForBaseChange = () => {
+    clearTimeout(bdProofSyncTimer);
+    clearTimeout(bdProofRefreshTimer);
+    bdProofSyncTimer = null;
+    bdProofRefreshTimer = null;
+
+    bdProofLastUploadedKey = { front: "", back: "" };
+    bdProofLastUrl = { front: "", back: "" };
+    window.bdSetProofMockupUrl("", "front");
+    window.bdSetProofMockupUrl("", "back");
+    window.bdSetProofMockupUrl("");
+
+    if (!(hasFrontDesign || hasBackDesign)) return;
+    if (bdProofSubmitLock) return;
+
+    bdProofRefreshTimer = setTimeout(() => {
+      bdProofRefreshTimer = null;
+      if (bdProofSubmitLock) return;
+      if (typeof window.bdEnsureAllProofMockupUrls === "function") {
+        window.bdEnsureAllProofMockupUrls({ force: true }).catch(() => {});
+      }
+    }, 250);
+  };
 
   const bdGetProofStateKey = (side) => {
     const s = side === "back" ? "back" : "front";
     const designSrc = s === "back" ? objectUrlBack : objectUrlFront;
     const hasDesign = s === "back" ? hasBackDesign : hasFrontDesign;
     const placement = bdGetPlacementPayloadForSide(s);
-    const baseSrc = previewBaseImg ? (previewBaseImg.currentSrc || previewBaseImg.src || "") : "";
+    const freshBaseSrc = bdGetFreshProofBaseSrcForSide(s);
+    const baseSrc = freshBaseSrc || (
+      previewBaseImg
+        ? (
+            previewBaseImg.getAttribute(s === "back" ? "data-back-src" : "data-front-src") ||
+            previewBaseImg.currentSrc ||
+            previewBaseImg.src ||
+            ""
+          )
+        : ""
+    );
     if (!hasDesign || !designSrc || !placement || !baseSrc) return "";
     return JSON.stringify({
       side: s,
@@ -2399,8 +2544,10 @@ const bdUseSideState = (side) => {
   };
 
   const bdSyncProofMockupNow = async ({ side, force = false } = {}) => {
-    console.log("BD DEBUG: sync proof now", { side });
     const targetSide = side === "back" ? "back" : side === "front" ? "front" : bdGetActiveSide();
+    if (typeof window.bdEnsureTshirtColorMockupMapLoaded === "function") {
+      try { await window.bdEnsureTshirtColorMockupMapLoaded(); } catch (e) {}
+    }
     const proofKey = bdGetProofStateKey(targetSide);
     if (!proofKey) {
       window.bdSetProofMockupUrl("", targetSide);
@@ -2437,10 +2584,6 @@ const bdUseSideState = (side) => {
         const proofInput = form
           ? form.querySelector(targetSide === "back" ? "#bd_proof_mockup_url_back" : "#bd_proof_mockup_url_front")
           : null;
-        console.log("[Proof Debug] After setting Proof Mockup URL", {
-          inputExists: !!proofInput,
-          writtenValue: proofInput ? proofInput.value : ""
-        });
       } catch (err) {
         console.error("Proof URL assignment failed", err);
         throw err;
@@ -2457,15 +2600,21 @@ const bdUseSideState = (side) => {
   };
 
   const bdScheduleProofMockupSync = ({ delay = 650, side, force = false } = {}) => {
-    console.log("BD DEBUG: schedule proof sync", { side });
+    if (bdProofSubmitLock) return;
     clearTimeout(bdProofSyncTimer);
+    bdProofSyncTimer = null;
     bdProofSyncTimer = setTimeout(() => {
+      bdProofSyncTimer = null;
+      if (bdProofSubmitLock) return;
       bdSyncProofMockupNow({ side, force });
     }, Math.max(500, Math.min(800, delay)));
   };
 
   window.bdEnsureProofMockupUrl = async function ({ force = false } = {}) {
     clearTimeout(bdProofSyncTimer);
+    bdProofSyncTimer = null;
+    clearTimeout(bdProofRefreshTimer);
+    bdProofRefreshTimer = null;
     const side = bdGetActiveSide();
     if (bdProofInFlightPromise[side]) {
       try {
@@ -2477,6 +2626,9 @@ const bdUseSideState = (side) => {
 
   window.bdEnsureAllProofMockupUrls = async function ({ force = false } = {}) {
     clearTimeout(bdProofSyncTimer);
+    bdProofSyncTimer = null;
+    clearTimeout(bdProofRefreshTimer);
+    bdProofRefreshTimer = null;
     const tasks = [];
     if (hasFrontDesign) tasks.push("front");
     if (hasBackDesign) tasks.push("back");
@@ -2491,7 +2643,31 @@ const bdUseSideState = (side) => {
       await bdSyncProofMockupNow({ side, force });
     }
 
+    const form = bdFindCartForm();
     return bdProofLastUrl.front || bdProofLastUrl.back || "";
+  };
+
+  window.__bdTshirtPreviewState = {
+    isFrontBack: () => !!bdIsFrontBack,
+    hasFrontDesign: () => !!hasFrontDesign,
+    hasBackDesign: () => !!hasBackDesign,
+    getActiveSide: () => bdGetActiveSide(),
+    syncBaseByVariantColor: () => bdSyncBaseByVariantColor(),
+    invalidateProofMockupsForBaseChange: () => bdInvalidateProofMockupsForBaseChange(),
+    clearProofRefreshTimers: () => {
+      clearTimeout(bdProofSyncTimer);
+      clearTimeout(bdProofRefreshTimer);
+      bdProofSyncTimer = null;
+      bdProofRefreshTimer = null;
+    },
+    setProofSubmitLock: (value) => {
+      bdProofSubmitLock = !!value;
+    },
+    switchPreviewSide: (side) => {
+      if (typeof window.bdSwitchPreviewSide === "function") {
+        window.bdSwitchPreviewSide(side);
+      }
+    },
   };
 
   const apply = () => {
@@ -2966,8 +3142,9 @@ designImg.onerror = () => {
     }
 
     if (mode === "resize" && activeHandle) {
+      const z = bdGetZone();
       const r = canvasRect();
-      const minW = Math.max(60, Math.round(r.width * 0.12));
+      const minW = bdGetMinDesignWidth(z.width || r.width);
       const maxW = Math.round(r.width * 0.95);
 
       let newW = start.w;
@@ -3080,6 +3257,10 @@ const endPointer = () => {
    STEP 1 (DAWN-SAFE) Gate: message + block submit if no upload
 ---------------------------- */
 (function () {
+  function bdPreviewState() {
+    return window.__bdTshirtPreviewState || null;
+  }
+
   function bdIsPreviewRequired() {
     return document.documentElement.classList.contains("bd-tshirt-preview-required");
   }
@@ -3151,6 +3332,35 @@ const endPointer = () => {
     bdGetForms().forEach(bdSetUi);
   }
 
+  async function bdSyncSelectedColorBeforeSubmit(form) {
+    const previewState = bdPreviewState();
+    if (!previewState || !previewState.isFrontBack() || !(previewState.hasFrontDesign() || previewState.hasBackDesign())) return;
+
+    const statusBox = bdEnsureStatusBox(form);
+    const prevStatus = statusBox ? statusBox.textContent : "";
+    if (statusBox) statusBox.textContent = "Updating design...";
+
+    try {
+      try { previewState.syncBaseByVariantColor(); } catch (e) {}
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      const activeBefore = previewState.getActiveSide();
+      const sides = [];
+      if (previewState.hasFrontDesign()) sides.push("front");
+      if (previewState.hasBackDesign()) sides.push("back");
+
+      for (const side of sides) {
+        previewState.switchPreviewSide(side);
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+      }
+
+      previewState.switchPreviewSide(activeBefore);
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    } finally {
+      if (statusBox) statusBox.textContent = prevStatus || "Design selected. You can add to cart.";
+    }
+  }
+
   function bdAttach() {
     if (!bdIsPreviewRequired()) return;
 
@@ -3174,6 +3384,13 @@ const endPointer = () => {
         if (!(form instanceof HTMLFormElement)) return;
         if (!form.action || !form.action.includes("/cart/add")) return;
         if (!bdIsPreviewRequired()) return;
+        const skipColorSyncOnce = !!form.__bdSkipColorSyncOnce;
+        if (skipColorSyncOnce) form.__bdSkipColorSyncOnce = false;
+        if (form.__bdColorSyncSubmitting) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         if (form.__bdProofSubmitting) return;
 
         if (!bdHasLiteUploadSelected()) {
@@ -3185,16 +3402,52 @@ const endPointer = () => {
           return;
         }
 
+        const previewState = bdPreviewState();
+        const isTwoSided = !!(previewState && previewState.isFrontBack());
+        const hasAnyDesign = !!(previewState && (previewState.hasFrontDesign() || previewState.hasBackDesign()));
+
+        if (!skipColorSyncOnce && isTwoSided && hasAnyDesign) {
+          e.preventDefault();
+          e.stopPropagation();
+          form.__bdColorSyncSubmitting = true;
+          previewState.setProofSubmitLock(true);
+          try {
+            if (typeof window.bdEnsureTshirtColorMockupMapLoaded === "function") {
+              try { await window.bdEnsureTshirtColorMockupMapLoaded(); } catch (e) {}
+            }
+            await bdSyncSelectedColorBeforeSubmit(form);
+            previewState.clearProofRefreshTimers();
+            try { previewState.invalidateProofMockupsForBaseChange(); } catch (e) {}
+            if (typeof window.bdEnsureAllProofMockupUrls === "function") {
+              try {
+                await window.bdEnsureAllProofMockupUrls({ force: true });
+              } catch (err) {
+                console.error("Proof mockup refresh after color sync failed", err);
+              }
+            }
+            form.__bdSkipColorSyncOnce = true;
+            form.__bdColorSyncSubmitting = false;
+            form.requestSubmit();
+          } finally {
+            setTimeout(() => {
+              previewState.setProofSubmitLock(false);
+              form.__bdColorSyncSubmitting = false;
+            }, 0);
+          }
+          return;
+        }
+
+        const designUrlFront = bdGetRealUploaderDesignUrl(1);
+        const designUrlBack = bdGetRealUploaderDesignUrl(2);
+        const missingFrontUpload = !!(previewState && previewState.hasFrontDesign() && !designUrlFront);
+        const missingBackUpload = !!(previewState && previewState.hasBackDesign() && !designUrlBack);
+        window.bdSetUploadNotice(missingFrontUpload || missingBackUpload ? BD_UPLOAD_NOTICE_TEXT : "");
+
         const proofInputFront = form.querySelector("#bd_proof_mockup_url_front");
         const proofInputBack = form.querySelector("#bd_proof_mockup_url_back");
         const proofInput = form.querySelector("#bd_proof_mockup_url");
-        console.log("[Proof Debug] Add-to-cart fallback check", {
-          proofUrlBlankBeforeSubmit: !proofInput || !proofInput.value.trim(),
-          proofFrontBlankBeforeSubmit: !proofInputFront || !proofInputFront.value.trim(),
-          proofBackBlankBeforeSubmit: !proofInputBack || !proofInputBack.value.trim()
-        });
-        const missingFrontProof = hasFrontDesign && (!proofInputFront || !proofInputFront.value.trim());
-        const missingBackProof = hasBackDesign && (!proofInputBack || !proofInputBack.value.trim());
+        const missingFrontProof = !!(previewState && previewState.hasFrontDesign() && (!proofInputFront || !proofInputFront.value.trim()));
+        const missingBackProof = !!(previewState && previewState.hasBackDesign() && (!proofInputBack || !proofInputBack.value.trim()));
         const missingAnyProof =
           !proofInput ||
           !proofInput.value.trim() ||
@@ -3204,12 +3457,6 @@ const endPointer = () => {
         if (typeof window.bdEnsureAllProofMockupUrls === "function" && missingAnyProof) {
           e.preventDefault();
           e.stopPropagation();
-          console.log("[Proof Debug] Add-to-cart fallback proof generation runs", {
-            hasEnsureFn: typeof window.bdEnsureAllProofMockupUrls === "function",
-            missingFrontProof,
-            missingBackProof
-          });
-
           try {
             await window.bdEnsureAllProofMockupUrls({ force: true });
           } catch (err) {
@@ -3219,12 +3466,6 @@ const endPointer = () => {
           const proofInputAfter = form.querySelector("#bd_proof_mockup_url");
           const proofFrontAfter = form.querySelector("#bd_proof_mockup_url_front");
           const proofBackAfter = form.querySelector("#bd_proof_mockup_url_back");
-          console.log("[Proof Debug] Add-to-cart fallback result", {
-            proofUrlAfterFallback: proofInputAfter ? proofInputAfter.value : "",
-            proofFrontAfterFallback: proofFrontAfter ? proofFrontAfter.value : "",
-            proofBackAfterFallback: proofBackAfter ? proofBackAfter.value : ""
-          });
-
           form.__bdProofSubmitting = true;
           try {
             form.requestSubmit();

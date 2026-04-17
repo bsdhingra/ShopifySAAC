@@ -1,0 +1,96 @@
+{
+  "custom-print-20-oz-insulated-tumbler-dual-lids": {
+    "mockup": {
+      "src": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Tumbler_mockup_white.png?v=1776314698",
+      "width": 2700,
+      "height": 2700
+    },
+    "previewSpec": {
+      "mockup": {
+        "src": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Tumbler_mockup_white.png?v=1776314698",
+        "markingsSrc": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Tumbler_with_Markings.png?v=1776306980",
+        "nativeWidth": 2700,
+        "nativeHeight": 2700
+      },
+      "zones": {
+        "left": {
+          "xPct": 0.188148,
+          "yPct": 0.343704,
+          "widthPct": 0.188148,
+          "heightPct": 0.556296,
+          "centerXPct": 0.281852,
+          "topOffsetPct": 0.006667,
+          "bottomCurveDepthPct": 0.040741,
+          "visibleWidthRatio": 1.0,
+          "curvatureStrength": 0.18,
+          "verticalBias": -0.05,
+          "editorLabel": "Left Side"
+        },
+        "center": {
+          "xPct": 0.395926,
+          "yPct": 0.343704,
+          "widthPct": 0.188148,
+          "heightPct": 0.552593,
+          "centerXPct": 0.48963,
+          "topOffsetPct": 0.006667,
+          "bottomCurveDepthPct": 0.035185,
+          "visibleWidthRatio": 1.0,
+          "curvatureStrength": 0.10,
+          "verticalBias": -0.03,
+          "editorLabel": "Front Center"
+        },
+        "right": {
+          "xPct": 0.603704,
+          "yPct": 0.343704,
+          "widthPct": 0.188519,
+          "heightPct": 0.556296,
+          "centerXPct": 0.697407,
+          "topOffsetPct": 0.006667,
+          "bottomCurveDepthPct": 0.040741,
+          "visibleWidthRatio": 1.0,
+          "curvatureStrength": 0.18,
+          "verticalBias": -0.05,
+          "editorLabel": "Right Side"
+        }
+      },
+      "editor": {
+        "useSharedSpec": true,
+        "showZoneLabels": true,
+        "showCenterLines": true,
+        "showBottomCurveGuides": true,
+        "showVisiblePrintArea": true,
+        "showOverflowArea": true,
+        "keepAspectRatioOnResize": true,
+        "zoneGuideOpacity": 0.18,
+        "visibleAreaOpacity": 0.10
+      },
+      "preview": {
+        "useSharedSpec": true,
+        "useMockupAsOnlyBase": true,
+        "allowShellOverlay": false,
+        "allowTranslucentBodyOverlay": false,
+        "allowWhiteHighlightSweep": false,
+        "useCoverFit": true,
+        "sliceCountLeft": 36,
+        "sliceCountCenter": 28,
+        "sliceCountRight": 36,
+        "edgeDarkening": 0.08
+      }
+    },
+    "wrap": {
+      "widthInches": 9.3,
+      "heightInches": 8.2,
+      "aspectRatio": 1.1341463415,
+      "canvasWidth": 2400,
+      "canvasHeight": 2116,
+      "minResolution": 1200
+    },
+    "editor": {
+      "stageAspectRatio": 3,
+      "defaultFitWidth": 0.82,
+      "defaultFitHeight": 0.82,
+      "maxWidth": 1,
+      "maxHeight": 1
+    }
+  }
+}

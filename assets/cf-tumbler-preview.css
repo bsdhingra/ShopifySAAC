@@ -1,105 +1,262 @@
-/* --- Tumbler Mockup Preview (Wrap Effect) --- */
-
-.cf-tumbler-preview { margin-top: 16px; }
-
-/* Easy knobs (ONLY change these 6 when tuning) */
-.cf-tumbler-preview{
-  --stage-size: 320px;
-
-  /* bottle sizing */
-  --bottle-scale: 1.05;   /* keep bottle normal */
-  --bottle-y: 4%;
-
-  /* print area positioning */
-  --print-top: 22%;
-  --print-left: 50%;
-
-  /* print area size (THIS fixes your height issue) */
-  --print-w: 46%;
-  --print-h: 74%;         /* ↑ increase height (try 72–80%) */
-}
-
-.cf-tumbler-stage{
-  position: relative;
-  max-width: var(--stage-size);
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
+#cf-tumbler-preview-container {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   background: #fff;
-  border: 1px solid rgba(0,0,0,.08);
 }
 
-/* Base bottle image */
-.cf-tumbler-base{
+#cf-tumbler-preview-container.is-hidden .cf-tumbler-designer-body {
+  display: none;
+}
+
+#cf-tumbler-preview-container .cf-start-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#cf-tumbler-preview-container .cf-start-btn,
+#cf-tumbler-preview-container .cf-tumbler-upload-btn {
+  min-height: 44px;
+}
+
+#cf-tumbler-preview-container .cf-start-hint,
+#cf-tumbler-preview-container .cf-tumbler-upload-hint {
+  font-size: 1.3rem;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.68);
+}
+
+#cf-tumbler-preview-container .cf-tumbler-designer-body {
+  margin-top: 16px;
+}
+
+#cf-tumbler-preview-container .cf-preview-title {
+  margin-bottom: 12px;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+#cf-tumbler-preview-container .cf-preview-title--small {
+  margin-bottom: 8px;
+  font-size: 1.4rem;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-status {
+  width: 100%;
+  font-size: 1.3rem;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.66);
+}
+
+#cf-tumbler-preview-container .cf-tumbler-meta {
+  width: 100%;
+  font-size: 1.2rem;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.58);
+}
+
+#cf-tumbler-preview-container .cf-tumbler-canvas {
   position: relative;
-  z-index: 1;
   width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-  object-position: center;
-  transform-origin: center;
-  transform: scale(var(--bottle-scale)) translateY(var(--bottle-y));
-  pointer-events: none;
+  max-width: 720px;
+  margin: 0 auto;
+  overflow: visible;
+  border-radius: 10px;
+  aspect-ratio: 1 / 1;
+  background: transparent;
 }
 
-/* Wrap container positioned on bottle */
-.cf-wrap{
-  position: absolute;
-  z-index: 2;
-  left: var(--print-left);
-  top: var(--print-top);
-  width: var(--print-w);
-  height: var(--print-h);
-  transform: translateX(-50%);
-  pointer-events: none;
-
-  --design-url: none;
+#cf-tumbler-preview-container .cf-tumbler-editor-panel {
+  margin-bottom: 18px;
 }
 
-/* Real uploaded <img> (hidden; we render via ::before/::after) */
-.cf-wrap > .cf-tumbler-design{
+#cf-tumbler-preview-container .cf-tumbler-editor-stage {
+  position: relative;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  opacity: 0.98;
-  display: block;
-  visibility: hidden;
+  max-width: 100%;
+  margin: 0 auto;
+  aspect-ratio: 3 / 1;
+  min-height: clamp(180px, 34vw, 260px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(250, 250, 250, 0.98), rgba(244, 244, 244, 0.98));
+  overflow: hidden;
+  touch-action: none;
 }
 
-/* Two “printed halves” using the same image */
-.cf-wrap::before,
-.cf-wrap::after{
-  content: "";
+#cf-tumbler-preview-container .cf-tumbler-editor-stage__grid {
   position: absolute;
   inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 12.5% 100%, 100% 20%;
+  pointer-events: none;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-editor-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-editor-guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-editor-guide {
+  position: absolute;
+  pointer-events: none;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-editor-guide span {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  transform: translateX(-50%);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(57, 72, 48, 0.86);
+  white-space: nowrap;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+#cf-tumbler-preview-container .cf-tumbler-design-wrap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 140px;
+  height: 140px;
+  cursor: grab;
+  touch-action: none;
+  will-change: transform;
+  border: 1px solid rgba(50, 86, 58, 0.48);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+#cf-tumbler-preview-container .cf-tumbler-design-wrap.is-dragging {
+  cursor: grabbing;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-design-wrap.is-resizing {
+  cursor: nwse-resize;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-design-edit {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  opacity: 0;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-handle {
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(17, 24, 39, 0.25);
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-handle::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  background: transparent;
+}
+
+#cf-tumbler-preview-container .cf-tumbler-handle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: contain;  /* ✅ no crop */
-  background-image: var(--design-url);
-  opacity: 0.95;
-  filter: contrast(1.03) saturate(1.02);
+  background-size: contain;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg fill='none' stroke='%23111827' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6'%3E%3Cpath d='M5 11L1.75 14.25'/%3E%3Cpath d='M11 5L14.25 1.75'/%3E%3Cpath d='M10.1 1.75h4.15V5.9'/%3E%3Cpath d='M5.9 14.25H1.75V10.1'/%3E%3C/g%3E%3C/svg%3E");
+  transform: translate(-50%, -50%) rotate(90deg);
+  pointer-events: none;
 }
 
-/* Left half */
-.cf-wrap::before{
-  transform-origin: left center;
-  transform: perspective(900px) rotateY(-18deg) skewY(-1deg);
-  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
-  mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
+#cf-tumbler-preview-container .cf-tumbler-base {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
 }
 
-/* Right half */
-.cf-wrap::after{
-  transform-origin: right center;
-  transform: perspective(900px) rotateY(12deg) skewY(1deg);
-  -webkit-mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
-  mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
+#cf-tumbler-preview-container .cf-tumbler-composite-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
 }
 
-/* Optional debug */
-/*
-.cf-wrap { outline: 2px dashed red; }
-*/
+@media (max-width: 749px) {
+  #cf-tumbler-preview-container {
+    padding: 12px;
+  }
+
+  #cf-tumbler-preview-container .cf-start-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #cf-tumbler-preview-container .cf-start-btn,
+  #cf-tumbler-preview-container .cf-tumbler-upload-btn {
+    width: 100%;
+  }
+
+  #cf-tumbler-preview-container .cf-tumbler-editor-stage {
+    min-height: clamp(200px, 42vw, 280px);
+  }
+
+  #cf-tumbler-preview-container .cf-tumbler-handle {
+    width: 26px;
+    height: 26px;
+    right: -10px;
+    bottom: -10px;
+  }
+
+  #cf-tumbler-preview-container .cf-tumbler-handle::before {
+    inset: -16px;
+  }
+
+  #cf-tumbler-preview-container .cf-tumbler-handle::after {
+    width: 15px;
+    height: 15px;
+  }
+
+  #cf-tumbler-preview-container .cf-tumbler-editor-guide span {
+    font-size: 1rem;
+  }
+}

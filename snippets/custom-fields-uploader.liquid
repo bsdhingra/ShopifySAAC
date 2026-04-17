@@ -11,12 +11,16 @@
 {% assign has_u1 = false %}
 {% assign has_u2 = false %}
 {% assign is_tshirt_preview = false %}
+{% assign is_tumbler_preview = false %}
 {% assign is_front_only_tshirt = false %}
 {% assign is_back_only_tshirt = false %}
 {% assign is_front_back_tshirt = false %}
 
 {% if product.tags contains 'cf-tshirt-preview' %}
   {% assign is_tshirt_preview = true %}
+{% endif %}
+{% if product.tags contains 'cf-tumbler-preview' %}
+  {% assign is_tumbler_preview = true %}
 {% endif %}
 {% if product.tags contains 'cf-config-back-only' %}
   {% assign is_back_only_tshirt = true %}
@@ -39,6 +43,9 @@
 {% if is_front_only_tshirt or is_front_back_tshirt %}
   {% assign has_u1 = true %}
 {% endif %}
+{% if is_tumbler_preview %}
+  {% assign has_u1 = true %}
+{% endif %}
 {% if is_back_only_tshirt or is_front_back_tshirt %}
   {% assign has_u2 = true %}
 {% endif %}
@@ -49,6 +56,10 @@
 {% assign hide_tshirt_upload_blocks = false %}
 {% if is_tshirt_preview %}
   {% assign hide_tshirt_upload_blocks = true %}
+{% endif %}
+{% assign hide_tumbler_upload_blocks = false %}
+{% if is_tumbler_preview %}
+  {% assign hide_tumbler_upload_blocks = true %}
 {% endif %}
 
 {%- assign u1_mf = product.metafields.custom.cf_upload1_label | default: product.metafields.custom.custom_cf_upload1_label -%}
@@ -89,7 +100,7 @@
       <div
         class="cf-uploader__block"
         data-upload-block="1"
-        {% if hide_tshirt_upload_blocks %}
+        {% if hide_tshirt_upload_blocks or hide_tumbler_upload_blocks %}
         style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; opacity:0;"
         {% endif %}
       >
@@ -143,7 +154,7 @@
         <div
           class="cf-uploader__block"
           data-upload-block="2"
-          {% if hide_tshirt_upload_blocks %}
+          {% if hide_tshirt_upload_blocks or hide_tumbler_upload_blocks %}
           style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; opacity:0;"
           {% endif %}
         >
@@ -220,38 +231,6 @@
 
         </div>
         {% endif %}
-
-   
- {%- comment -%} --- TUMBLER MOCKUP PREVIEW (WRAP) --- {%- endcomment -%}
-{% if product.tags contains 'cf-tumbler-preview' %}
-  {{ 'cf-tumbler-preview.css' | asset_url | stylesheet_tag }}
-  <script src="{{ 'cf-tumbler-preview.js' | asset_url }}" defer></script>
-
-  <div class="cf-tumbler-preview" data-cf-tumbler hidden>
-    <div class="cf-tumbler-stage">
-      <img
-        src="{{ 'tumbler-20oz-mockup.png' | asset_url }}"
-        class="cf-tumbler-base"
-        alt="Tumbler preview"
-        loading="lazy"
-        width="800"
-        height="1000"
-      >
-
-      <div class="cf-wrap">
-        <img
-          class="cf-tumbler-design"
-          data-cf-design
-          alt="Design preview"
-          loading="lazy"
-          width="1200"
-          height="1200"
-        >
-      </div>
-    </div>
-  </div>
-{% endif %}
-
       <div class="cf-uploader__global-status" role="status" aria-live="polite" data-global-status></div>
 
     </div>
