@@ -1,0 +1,54 @@
+{
+  "polo-shared-basic": {
+    "colorMockupMap": {
+      "Royal Blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_royal_blue.png?v=1776541851",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_royal_blue.png?v=1776314978"
+      },
+      "Purple": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_purple.png?v=1776541902",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_purple.png?v=1776314978"
+      },
+      "Navy": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_navy.png?v=1776541920",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_navy.png?v=1776314978"
+      },
+      "Forest Green": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_forest_green.png?v=1776541796",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_forest_green.png?v=1776314978"
+      },
+      "Orange": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_orange.png?v=1776541877",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_orange.png?v=1776314978"
+      },
+      "Red": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_red.png?v=1776541821",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_red.png"
+      },
+      "Black": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_black.png?v=1776315616",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_black.png?v=1776314978"
+      },
+      "White": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_white.png?v=1776315616",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_white.png?v=1776314978"
+      },
+      "Yellow": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_yellow.png?v=1776315617",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_yellow.png?v=1776314978"
+      },
+      "Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_Pink.png?v=1776314978",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_pink.png?v=1776314978"
+      },
+      "Burgundy": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_burgandy.png?v=1776314978",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_burgandy.png?v=1776314978"
+      },
+      "Carbon": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_polo_carbon.png?v=1776314978",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_polo_Carbon.png?v=1776314978"
+      }
+    }
+  }
+}

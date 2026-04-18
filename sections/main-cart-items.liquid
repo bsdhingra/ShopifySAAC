@@ -119,6 +119,10 @@
                       {%- endif -%}
                       {%- assign bd_proof_notice = item.properties['_Proof Notice'] -%}
                       {%- assign bd_upload_notice = item.properties['_Upload Notice'] -%}
+                      {%- assign bd_front_upload_state = item.properties['_Front Upload State'] | default: 'none' -%}
+                      {%- assign bd_back_upload_state = item.properties['_Back Upload State'] | default: 'none' -%}
+                      {%- assign bd_front_upload_notice = item.properties['_Front Upload Notice'] -%}
+                      {%- assign bd_back_upload_notice = item.properties['_Back Upload Notice'] -%}
                       {%- assign bd_upload_fallback_notice = "Your image is larger than 10MB, but no worries-you can still edit and preview your design. After placing your order, just email your image to info@sarvsartsandcrafts.com, and we'll handle the proof for you." -%}
 
                       {%- if bd_front_proof_url != blank or bd_back_proof_url != blank or bd_proof_url != blank -%}
@@ -228,7 +232,7 @@
   <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
     
     <span style="font-size:12px;opacity:.85;">
-      Uploaded image:
+      Front uploaded image:
     </span>
 
     <a href="{{ upload_url }}" target="_blank" rel="noopener">
@@ -245,19 +249,12 @@
     </a>
 
   </div>
-{%- elsif bd_upload_notice != blank -%}
+{%- elsif bd_front_upload_state == 'fallback' and bd_front_upload_notice != blank -%}
   <div style="margin-top:8px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
     {%- if bd_back_proof_url != blank or upload_url_back != blank -%}
       <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Front uploaded image</div>
     {%- endif -%}
-    {{ bd_upload_notice }}
-  </div>
-{%- elsif bd_proof_url != blank or bd_front_proof_url != blank or bd_back_proof_url != blank or bd_proof_notice != blank -%}
-  <div style="margin-top:8px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
-    {%- if bd_back_proof_url != blank or upload_url_back != blank -%}
-      <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Front uploaded image</div>
-    {%- endif -%}
-    {{ bd_upload_fallback_notice }}
+    {{ bd_front_upload_notice }}
   </div>
 {%- endif -%}
 {%- if upload_url_back != blank -%}
@@ -279,10 +276,10 @@
       {% comment %} theme-check-enable RemoteAsset {% endcomment %}
     </a>
   </div>
-{%- elsif bd_back_proof_url != blank -%}
+{%- elsif bd_back_upload_state == 'fallback' and bd_back_upload_notice != blank -%}
   <div style="margin-top:8px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
     <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Back uploaded image</div>
-    {{ bd_upload_notice | default: bd_upload_fallback_notice }}
+    {{ bd_back_upload_notice }}
   </div>
 {%- endif -%}
                           {%- if customization_text != blank -%}

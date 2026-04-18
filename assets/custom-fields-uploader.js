@@ -61,6 +61,67 @@
     input.value = String(message || "").trim();
   }
 
+  function ensureSideUploadInput(form, side, kind) {
+    if (!form) return null;
+    const safeSide = side === "back" ? "back" : "front";
+    const safeKind = kind === "notice" ? "notice" : "state";
+    const id = `cf_upload_${safeKind}_${safeSide}`;
+    const propertyName =
+      safeKind === "notice"
+        ? `properties[_${safeSide === "front" ? "Front" : "Back"} Upload Notice]`
+        : `properties[_${safeSide === "front" ? "Front" : "Back"} Upload State]`;
+    let input = form.querySelector(`#${id}, [name="${propertyName}"]`);
+    if (!input) {
+      input = document.createElement("input");
+      input.type = "hidden";
+      input.name = propertyName;
+      input.id = id;
+      form.appendChild(input);
+    }
+    return input;
+  }
+
+  function setUploadAttemptedFlag(root, idx, value) {
+    root.dataset[`uploadAttempted${idx}`] = value ? "true" : "";
+  }
+
+  function hasUploadAttemptedFlag(root, idx) {
+    return root.dataset[`uploadAttempted${idx}`] === "true";
+  }
+
+  function getSideForIndex(idx) {
+    return String(idx) === "2" ? "back" : "front";
+  }
+
+  function getSideUploadState(root, idx) {
+    const attempted = hasUploadAttemptedFlag(root, idx);
+    const url = String(root.querySelector(`[data-url="${idx}"]`)?.value || "").trim();
+    const largeMissing = hasLargeUploadFlag(root, idx) && !url;
+    if (url) return "uploaded";
+    if (largeMissing) return "fallback";
+    if (attempted) return "attempted";
+    return "none";
+  }
+
+  function getSideUploadNotice(root, idx) {
+    const url = String(root.querySelector(`[data-url="${idx}"]`)?.value || "").trim();
+    if (hasLargeUploadFlag(root, idx) && !url) {
+      return "Your image is larger than 10MB, but no worries-you can still edit and preview your design. After placing your order, just email your image to info@sarvsartsandcrafts.com, and we'll handle the proof for you.";
+    }
+    return "";
+  }
+
+  function syncSideUploadStateInputs(root, form) {
+    if (!root || !form) return;
+    ["1", "2"].forEach((idx) => {
+      const side = getSideForIndex(idx);
+      const stateInput = ensureSideUploadInput(form, side, "state");
+      const noticeInput = ensureSideUploadInput(form, side, "notice");
+      if (stateInput) stateInput.value = getSideUploadState(root, idx);
+      if (noticeInput) noticeInput.value = getSideUploadNotice(root, idx);
+    });
+  }
+
   function setLargeUploadFlag(root, idx, value) {
     root.dataset[`uploadLarge${idx}`] = value ? "true" : "";
   }
@@ -149,6 +210,8 @@
 
     async function handleFile(idx, file) {
       if (!file) return;
+      setUploadAttemptedFlag(root, idx, true);
+      syncSideUploadStateInputs(root, form);
 
       const urlEl = root.querySelector(`[data-url="${idx}"]`);
       const pidEl = root.querySelector(`[data-publicid="${idx}"]`);
@@ -172,6 +235,7 @@
 
       if (!ALLOWED.includes(file.type)) {
         setStatus(root, idx, "Please upload PNG, JPG, SVG, or WEBP.", "error");
+        syncSideUploadStateInputs(root, form);
         return;
       }
 
@@ -215,6 +279,7 @@
 
           if (qualityMode === "block" && shouldBlock) {
             setStatus(root, idx, `${lowResMsg} Please upload a higher-resolution image.`, "error");
+            syncSideUploadStateInputs(root, form);
             return;
           }
 
@@ -225,6 +290,7 @@
 
         if (!cloud || !preset) {
           setStatus(root, idx, "Cloudinary not configured in theme settings.", "error");
+          syncSideUploadStateInputs(root, form);
           return;
         }
 
@@ -262,12 +328,15 @@
           setStatus(root, idx, exceedsSizeLimit ? `Upload failed. Please send your original image by email at info@sarvsartsandcrafts.com.` : "Upload failed. Please try again.", "error");
           if (urlEl) urlEl.value = "";
           if (pidEl) pidEl.value = "";
+        } finally {
+          syncSideUploadStateInputs(root, form);
         }
       };
 
       img.onerror = () => {
         setStatus(root, idx, "Could not read this image. Try another file.", "error");
         URL.revokeObjectURL(objectUrl);
+        syncSideUploadStateInputs(root, form);
       };
 
       img.src = objectUrl;
@@ -282,10 +351,12 @@
     });
 
     if (form) {
+      syncSideUploadStateInputs(root, form);
       form.addEventListener("submit", (e) => {
         const upload1Missing = hasLargeUploadFlag(root, 1) && !String(root.querySelector('[data-url="1"]')?.value || "").trim();
         const upload2Missing = hasLargeUploadFlag(root, 2) && !String(root.querySelector('[data-url="2"]')?.value || "").trim();
         setUploadNotice(form, upload1Missing || upload2Missing ? "Your image is larger than 10MB, but no worries-you can still edit and preview your design. After placing your order, just email your image to info@sarvsartsandcrafts.com, and we'll handle the proof for you." : "");
+        syncSideUploadStateInputs(root, form);
 
         const res = validateBeforeSubmit();
         if (!res.ok) {

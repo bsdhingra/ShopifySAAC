@@ -5,6 +5,7 @@
 
   /* ===== TEMP PRINT ZONE RESTRICTION TOGGLE ===== */
   const BD_DISABLE_ZONE = true; // true=free move, false=restrict
+  const BD_DEBUG_SUBMIT_PROOF = false;
 
   const canvas = box.querySelector(".cf-preview-canvas");
   const designImg = box.querySelector(".cf-preview-design");
@@ -28,6 +29,10 @@
   // Helpers
   // --------------------------
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  const bdDebugSubmitProof = (...args) => {
+    if (!BD_DEBUG_SUBMIT_PROOF || typeof console === "undefined" || !console.log) return;
+    console.log("[BD submit-proof]", ...args);
+  };
   const BD_EDITOR_MIN_DESIGN_PX = 24;
   const BD_EDITOR_MIN_DESIGN_ZONE_RATIO = 0.05;
   const bdGetMinDesignWidth = (boundsWidth) =>
@@ -1573,6 +1578,137 @@ if (bdStartGateEnabled) {
     uploadNotice.value = (message || "").trim();
   };
 
+  const bdGetSubmitSafeProofUrlForSide = (side, inputValue, fallbackUrl) => {
+    const targetSide = side === "back" ? "back" : "front";
+    const currentValue = String(inputValue || "").trim();
+    const fallbackValue = String(fallbackUrl || "").trim();
+    const currentKey = bdGetProofStateKey(targetSide);
+    const knownKey = bdProofLastUploadedKey[targetSide] || "";
+    const knownUrl = (bdProofLastUrl[targetSide] || "").trim();
+
+    if (currentValue && currentKey && knownKey && currentKey === knownKey && knownUrl && currentValue === knownUrl) {
+      return currentValue;
+    }
+
+    if (knownUrl && currentKey && knownKey && currentKey === knownKey) {
+      return knownUrl;
+    }
+
+    return fallbackValue;
+  };
+
+  const bdBuildSubmitSnapshot = (form, previewState) => {
+    if (!form) return null;
+
+    try {
+      if (previewState && typeof previewState.syncBaseByVariantColor === "function") {
+        previewState.syncBaseByVariantColor();
+      }
+    } catch (e) {}
+
+    try { bdWritePlacement(); } catch (e) {}
+
+    const { url, proofUrl, proofFront, proofBack, uploadNotice } = bdEnsurePropertyInputs(form);
+    const designUrlFront = bdGetRealUploaderDesignUrl(1);
+    const designUrlBack = bdGetRealUploaderDesignUrl(2);
+    const baseMockupFront = bdGetFreshProofBaseSrcForSide("front");
+    const baseMockupBack = bdGetFreshProofBaseSrcForSide("back");
+    const hasFront = !!(previewState && previewState.hasFrontDesign && previewState.hasFrontDesign());
+    const hasBack = !!(previewState && previewState.hasBackDesign && previewState.hasBackDesign());
+    const currentProofFront = proofFront ? String(proofFront.value || "").trim() : "";
+    const currentProofBack = proofBack ? String(proofBack.value || "").trim() : "";
+    const currentProofAny = proofUrl ? String(proofUrl.value || "").trim() : "";
+    const frontProofStateKey = bdGetProofStateKey("front");
+    const backProofStateKey = bdGetProofStateKey("back");
+    const frontKnownProofKey = bdProofLastUploadedKey.front || "";
+    const backKnownProofKey = bdProofLastUploadedKey.back || "";
+    const frontKnownProofUrl = (bdProofLastUrl.front || "").trim();
+    const backKnownProofUrl = (bdProofLastUrl.back || "").trim();
+
+    const frozenProofFront = hasFront
+      ? bdGetSubmitSafeProofUrlForSide("front", currentProofFront, designUrlFront)
+      : String(baseMockupFront || "").trim();
+    const frozenProofBack = hasBack
+      ? bdGetSubmitSafeProofUrlForSide("back", currentProofBack, designUrlBack)
+      : String(baseMockupBack || "").trim();
+    const frozenProofAny = frozenProofFront || frozenProofBack || "";
+    const missingFrontUpload = !!(hasFront && !designUrlFront);
+    const missingBackUpload = !!(hasBack && !designUrlBack);
+
+    bdDebugSubmitProof("build-snapshot", {
+      selectedColor: bdGetSelectedColorValue(),
+      activeSide: bdGetActiveSide(),
+      hasFrontDesign: hasFront,
+      hasBackDesign: hasBack,
+      hiddenProofInputs: {
+        front: currentProofFront,
+        back: currentProofBack,
+        any: currentProofAny
+      },
+      proofStateKeys: {
+        front: frontProofStateKey,
+        back: backProofStateKey
+      },
+      proofLastUploadedKey: {
+        front: frontKnownProofKey,
+        back: backKnownProofKey
+      },
+      proofLastUrl: {
+        front: frontKnownProofUrl,
+        back: backKnownProofUrl
+      },
+      uploadedDesignUrls: {
+        front: designUrlFront,
+        back: designUrlBack
+      },
+      proofValidation: {
+        front: {
+          inputMatchesKnownUrl: !!(currentProofFront && frontKnownProofUrl && currentProofFront === frontKnownProofUrl),
+          stateKeyMatchesKnownKey: !!(frontProofStateKey && frontKnownProofKey && frontProofStateKey === frontKnownProofKey),
+          chosenUrl: frozenProofFront
+        },
+        back: {
+          inputMatchesKnownUrl: !!(currentProofBack && backKnownProofUrl && currentProofBack === backKnownProofUrl),
+          stateKeyMatchesKnownKey: !!(backProofStateKey && backKnownProofKey && backProofStateKey === backKnownProofKey),
+          chosenUrl: frozenProofBack
+        }
+      }
+    });
+
+    return {
+      designUploadUrl: designUrlFront || designUrlBack || "",
+      proofFrontUrl: frozenProofFront,
+      proofBackUrl: frozenProofBack,
+      proofUrl: frozenProofAny,
+      uploadNotice: missingFrontUpload || missingBackUpload ? BD_UPLOAD_NOTICE_TEXT : "",
+    };
+  };
+
+  const bdApplySubmitSnapshot = (form, snapshot) => {
+    if (!form || !snapshot) return;
+    const { url, proofUrl, proofFront, proofBack, uploadNotice } = bdEnsurePropertyInputs(form);
+    if (url) url.value = String(snapshot.designUploadUrl || "").trim();
+    if (proofFront) proofFront.value = String(snapshot.proofFrontUrl || "").trim();
+    if (proofBack) proofBack.value = String(snapshot.proofBackUrl || "").trim();
+    if (proofUrl) proofUrl.value = String(snapshot.proofUrl || "").trim();
+    if (uploadNotice) uploadNotice.value = String(snapshot.uploadNotice || "").trim();
+    bdDebugSubmitProof("apply-snapshot", {
+      writtenProofInputs: {
+        front: proofFront ? String(proofFront.value || "").trim() : "",
+        back: proofBack ? String(proofBack.value || "").trim() : "",
+        any: proofUrl ? String(proofUrl.value || "").trim() : ""
+      },
+      writtenDesignUrls: {
+        design1: bdGetRealUploaderDesignUrl(1),
+        design2: bdGetRealUploaderDesignUrl(2),
+        designUpload: url ? String(url.value || "").trim() : ""
+      }
+    });
+  };
+
+  window.bdBuildSubmitSnapshot = bdBuildSubmitSnapshot;
+  window.bdApplySubmitSnapshot = bdApplySubmitSnapshot;
+
   // --------------------------
   // Preview base switching (front/back) + color sync
   // --------------------------
@@ -1671,6 +1807,7 @@ const bdGetColorMockupMap = (() => {
   let cache = null;
   let sharedTried = false;
   let sharedPromise = null;
+  const bdSharedCacheKey = [String(bdConfigUrl || "").trim(), String(bdConfigId || "").trim()].join("::");
 
   const parseInlineMap = () => {
     const node = document.getElementById("bd-color-mockup-map");
@@ -1700,7 +1837,7 @@ const bdGetColorMockupMap = (() => {
         parsed = true;
         window.__bdTshirtSharedConfigCache = window.__bdTshirtSharedConfigCache || {};
         if (cache && typeof cache === "object") {
-          window.__bdTshirtSharedConfigCache[bdConfigId] = cache;
+          window.__bdTshirtSharedConfigCache[bdSharedCacheKey] = cache;
         }
         try { bdResolvePreviewBaseSources(); } catch (e) {}
         try { bdSwitchMainMockup(bdGetActiveSide()); } catch (e) {}
@@ -1726,9 +1863,9 @@ const bdGetColorMockupMap = (() => {
   return () => {
     if (parsed) return cache;
 
-    if (!sharedTried && bdConfigUrl && bdConfigId && window.__bdTshirtSharedConfigCache && window.__bdTshirtSharedConfigCache[bdConfigId]) {
+    if (!sharedTried && bdConfigUrl && bdConfigId && window.__bdTshirtSharedConfigCache && window.__bdTshirtSharedConfigCache[bdSharedCacheKey]) {
       sharedTried = true;
-      cache = window.__bdTshirtSharedConfigCache[bdConfigId];
+      cache = window.__bdTshirtSharedConfigCache[bdSharedCacheKey];
       parsed = true;
       return cache;
     }
@@ -1857,8 +1994,8 @@ const bdResolvePreviewBaseSources = () => {
 
   let frontSrc = "";
   let backSrc = "";
-  const mappedFrontSrc = bdIsFrontBack ? bdGetMappedMockupSrc("front", colorValue) : "";
-  const mappedBackSrc = bdIsFrontBack ? bdGetMappedMockupSrc("back", colorValue) : "";
+  const mappedFrontSrc = !bdIsBackOnly ? bdGetMappedMockupSrc("front", colorValue) : "";
+  const mappedBackSrc = !bdIsFrontOnly ? bdGetMappedMockupSrc("back", colorValue) : "";
   const registryFrontSrc = bdFindMockupSrc("front", colorValue);
   const registryBackSrc = bdFindMockupSrc("back", colorValue);
   const variantFrontSrc = bdGetActiveGalleryImageSrc();
@@ -2037,6 +2174,26 @@ requestAnimationFrame(() => {
     if (baseChanged) {
       try { bdInvalidateProofMockupsForBaseChange(); } catch (e) {}
     }
+
+    try {
+      const form = bdFindCartForm();
+      bdDebugSubmitProof("base-change", {
+        selectedColor: bdGetSelectedColorValue(),
+        activeSide: bdGetActiveSide(),
+        baseSources: {
+          front: nextFrontSrc,
+          back: nextBackSrc
+        },
+        proofStateKeys: {
+          front: bdGetProofStateKey("front"),
+          back: bdGetProofStateKey("back")
+        },
+        hiddenProofInputs: {
+          front: form ? String((form.querySelector("#bd_proof_mockup_url_front")?.value || "").trim()) : "",
+          back: form ? String((form.querySelector("#bd_proof_mockup_url_back")?.value || "").trim()) : ""
+        }
+      });
+    } catch (e) {}
 
     // ensure base image matches current side
     bdSwitchMainMockup(bdActiveSide);
@@ -2396,7 +2553,7 @@ const bdUseSideState = (side) => {
     }
   };
 
-  const bdRenderProofBlobForSide = async (side) => {
+  const bdRenderProofBlobForSide = async (side, { silent = false } = {}) => {
     const s = side === "back" ? "back" : "front";
     const hasDesign = s === "back" ? hasBackDesign : hasFrontDesign;
     const designSrc = s === "back" ? objectUrlBack : objectUrlFront;
@@ -2407,21 +2564,23 @@ const bdUseSideState = (side) => {
     }
 
     const activeSideBefore = bdGetActiveSide();
-    if (activeSideBefore !== s && typeof window.bdSwitchPreviewSide === "function") {
+    if (!silent && activeSideBefore !== s && typeof window.bdSwitchPreviewSide === "function") {
       window.bdSwitchPreviewSide(s);
       await new Promise((resolve) => requestAnimationFrame(resolve));
       await new Promise((resolve) => requestAnimationFrame(resolve));
     }
 
-    bdSetActiveSideUi(s);
-    bdUseSideState(s);
-    if (typeof bdResolvePreviewBaseSources === "function") {
-      try { bdResolvePreviewBaseSources(); } catch (e) {}
+    if (!silent) {
+      bdSetActiveSideUi(s);
+      bdUseSideState(s);
+      if (typeof bdResolvePreviewBaseSources === "function") {
+        try { bdResolvePreviewBaseSources(); } catch (e) {}
+      }
+      if (typeof bdSwitchMainMockup === "function") {
+        try { bdSwitchMainMockup(s); } catch (e) {}
+      }
+      bdWritePlacement();
     }
-    if (typeof bdSwitchMainMockup === "function") {
-      try { bdSwitchMainMockup(s); } catch (e) {}
-    }
-    bdWritePlacement();
 
     const placement = bdGetPlacementPayloadForSide(s);
     const freshBaseSrc = bdGetFreshProofBaseSrcForSide(s);
@@ -2486,18 +2645,27 @@ const bdUseSideState = (side) => {
     }
   };
 
-  let bdProofSyncTimer = null;
+  let bdProofSyncTimer = { front: null, back: null };
   let bdProofRefreshTimer = null;
   let bdProofSubmitLock = false;
-  let bdProofSyncSeq = 0;
+  let bdProofSyncSeq = { front: 0, back: 0 };
   let bdProofLastUploadedKey = { front: "", back: "" };
   let bdProofLastUrl = { front: "", back: "" };
   let bdProofInFlightPromise = { front: null, back: null };
 
+  const bdGetDesignedProofSides = () => {
+    const sides = [];
+    if (hasFrontDesign) sides.push("front");
+    if (hasBackDesign) sides.push("back");
+    return sides;
+  };
+
   const bdInvalidateProofMockupsForBaseChange = () => {
-    clearTimeout(bdProofSyncTimer);
+    clearTimeout(bdProofSyncTimer.front);
+    clearTimeout(bdProofSyncTimer.back);
     clearTimeout(bdProofRefreshTimer);
-    bdProofSyncTimer = null;
+    bdProofSyncTimer.front = null;
+    bdProofSyncTimer.back = null;
     bdProofRefreshTimer = null;
 
     bdProofLastUploadedKey = { front: "", back: "" };
@@ -2512,6 +2680,14 @@ const bdUseSideState = (side) => {
     bdProofRefreshTimer = setTimeout(() => {
       bdProofRefreshTimer = null;
       if (bdProofSubmitLock) return;
+      bdDebugSubmitProof("proof-refresh-scheduled", {
+        selectedColor: bdGetSelectedColorValue(),
+        activeSide: bdGetActiveSide(),
+        scheduledSides: bdGetDesignedProofSides().map((side) => ({
+          side,
+          silent: side !== bdGetActiveSide()
+        }))
+      });
       if (typeof window.bdEnsureAllProofMockupUrls === "function") {
         window.bdEnsureAllProofMockupUrls({ force: true }).catch(() => {});
       }
@@ -2543,7 +2719,7 @@ const bdUseSideState = (side) => {
     });
   };
 
-  const bdSyncProofMockupNow = async ({ side, force = false } = {}) => {
+  const bdSyncProofMockupNow = async ({ side, force = false, silent = false } = {}) => {
     const targetSide = side === "back" ? "back" : side === "front" ? "front" : bdGetActiveSide();
     if (typeof window.bdEnsureTshirtColorMockupMapLoaded === "function") {
       try { await window.bdEnsureTshirtColorMockupMapLoaded(); } catch (e) {}
@@ -2562,9 +2738,15 @@ const bdUseSideState = (side) => {
       return bdProofLastUrl[targetSide];
     }
 
-    const seq = ++bdProofSyncSeq;
+    const seq = ++bdProofSyncSeq[targetSide];
     bdProofInFlightPromise[targetSide] = (async () => {
-      const blob = await bdRenderProofBlobForSide(targetSide);
+      bdDebugSubmitProof("proof-generation-start", {
+        side: targetSide,
+        selectedColor: bdGetSelectedColorValue(),
+        baseMockupSrc: bdGetFreshProofBaseSrcForSide(targetSide),
+        mode: silent ? "background" : "active"
+      });
+      const blob = await bdRenderProofBlobForSide(targetSide, { silent });
       if (!blob) return "";
 
       let url = "";
@@ -2574,7 +2756,7 @@ const bdUseSideState = (side) => {
         console.error("Proof Cloudinary upload failed", err);
         throw err;
       }
-      if (seq !== bdProofSyncSeq) return "";
+      if (seq !== bdProofSyncSeq[targetSide]) return "";
 
       bdProofLastUploadedKey[targetSide] = proofKey;
       bdProofLastUrl[targetSide] = (url || "").trim();
@@ -2584,6 +2766,18 @@ const bdUseSideState = (side) => {
         const proofInput = form
           ? form.querySelector(targetSide === "back" ? "#bd_proof_mockup_url_back" : "#bd_proof_mockup_url_front")
           : null;
+        bdDebugSubmitProof("proof-stored", {
+          side: targetSide,
+          selectedColor: bdGetSelectedColorValue(),
+          baseMockupSrc: bdGetFreshProofBaseSrcForSide(targetSide),
+          proofStateKey: proofKey,
+          uploadedProofUrl: bdProofLastUrl[targetSide],
+          writtenTo: {
+            proofLastUploadedKey: bdProofLastUploadedKey[targetSide],
+            proofLastUrl: bdProofLastUrl[targetSide],
+            hiddenInput: proofInput ? String(proofInput.value || "").trim() : ""
+          }
+        });
       } catch (err) {
         console.error("Proof URL assignment failed", err);
         throw err;
@@ -2599,34 +2793,41 @@ const bdUseSideState = (side) => {
     return bdProofInFlightPromise[targetSide];
   };
 
-  const bdScheduleProofMockupSync = ({ delay = 650, side, force = false } = {}) => {
+  const bdScheduleProofMockupSync = ({ delay = 650, side, force = false, silent = false } = {}) => {
     if (bdProofSubmitLock) return;
-    clearTimeout(bdProofSyncTimer);
-    bdProofSyncTimer = null;
-    bdProofSyncTimer = setTimeout(() => {
-      bdProofSyncTimer = null;
+    const targetSide = side === "back" ? "back" : side === "front" ? "front" : bdGetActiveSide();
+    clearTimeout(bdProofSyncTimer[targetSide]);
+    bdProofSyncTimer[targetSide] = setTimeout(() => {
+      bdProofSyncTimer[targetSide] = null;
       if (bdProofSubmitLock) return;
-      bdSyncProofMockupNow({ side, force });
+      bdDebugSubmitProof("proof-refresh-scheduled", {
+        selectedColor: bdGetSelectedColorValue(),
+        activeSide: bdGetActiveSide(),
+        scheduledSides: [{ side: targetSide, silent: !!silent }]
+      });
+      bdSyncProofMockupNow({ side: targetSide, force, silent });
     }, Math.max(500, Math.min(800, delay)));
   };
 
-  window.bdEnsureProofMockupUrl = async function ({ force = false } = {}) {
-    clearTimeout(bdProofSyncTimer);
-    bdProofSyncTimer = null;
+  window.bdEnsureProofMockupUrl = async function ({ force = false, silent = false } = {}) {
+    const side = bdGetActiveSide();
+    clearTimeout(bdProofSyncTimer[side]);
+    bdProofSyncTimer[side] = null;
     clearTimeout(bdProofRefreshTimer);
     bdProofRefreshTimer = null;
-    const side = bdGetActiveSide();
     if (bdProofInFlightPromise[side]) {
       try {
         await bdProofInFlightPromise[side];
       } catch (e) {}
     }
-    return bdSyncProofMockupNow({ side, force });
+    return bdSyncProofMockupNow({ side, force, silent });
   };
 
   window.bdEnsureAllProofMockupUrls = async function ({ force = false } = {}) {
-    clearTimeout(bdProofSyncTimer);
-    bdProofSyncTimer = null;
+    clearTimeout(bdProofSyncTimer.front);
+    clearTimeout(bdProofSyncTimer.back);
+    bdProofSyncTimer.front = null;
+    bdProofSyncTimer.back = null;
     clearTimeout(bdProofRefreshTimer);
     bdProofRefreshTimer = null;
     const tasks = [];
@@ -2640,7 +2841,7 @@ const bdUseSideState = (side) => {
           await bdProofInFlightPromise[side];
         } catch (e) {}
       }
-      await bdSyncProofMockupNow({ side, force });
+      await bdSyncProofMockupNow({ side, force, silent: side !== bdGetActiveSide() });
     }
 
     const form = bdFindCartForm();
@@ -2655,9 +2856,11 @@ const bdUseSideState = (side) => {
     syncBaseByVariantColor: () => bdSyncBaseByVariantColor(),
     invalidateProofMockupsForBaseChange: () => bdInvalidateProofMockupsForBaseChange(),
     clearProofRefreshTimers: () => {
-      clearTimeout(bdProofSyncTimer);
+      clearTimeout(bdProofSyncTimer.front);
+      clearTimeout(bdProofSyncTimer.back);
       clearTimeout(bdProofRefreshTimer);
-      bdProofSyncTimer = null;
+      bdProofSyncTimer.front = null;
+      bdProofSyncTimer.back = null;
       bdProofRefreshTimer = null;
     },
     setProofSubmitLock: (value) => {
@@ -2708,7 +2911,16 @@ const bdUseSideState = (side) => {
         document.dispatchEvent(new CustomEvent("bd:design-preview-refresh"));
       } catch (e) {}
       try {
-        if (hasFrontDesign || hasBackDesign) bdScheduleProofMockupSync({ side: bdGetActiveSide() });
+        const activeSide = bdGetActiveSide();
+        const designedSides = bdGetDesignedProofSides();
+        if (designedSides.length) {
+          designedSides.forEach((side) => {
+            bdScheduleProofMockupSync({
+              side,
+              silent: side !== activeSide
+            });
+          });
+        }
       } catch (e) {}
     });
   }
@@ -3384,14 +3596,6 @@ const endPointer = () => {
         if (!(form instanceof HTMLFormElement)) return;
         if (!form.action || !form.action.includes("/cart/add")) return;
         if (!bdIsPreviewRequired()) return;
-        const skipColorSyncOnce = !!form.__bdSkipColorSyncOnce;
-        if (skipColorSyncOnce) form.__bdSkipColorSyncOnce = false;
-        if (form.__bdColorSyncSubmitting) {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        if (form.__bdProofSubmitting) return;
 
         if (!bdHasLiteUploadSelected()) {
           e.preventDefault();
@@ -3403,76 +3607,14 @@ const endPointer = () => {
         }
 
         const previewState = bdPreviewState();
-        const isTwoSided = !!(previewState && previewState.isFrontBack());
         const hasAnyDesign = !!(previewState && (previewState.hasFrontDesign() || previewState.hasBackDesign()));
 
-        if (!skipColorSyncOnce && isTwoSided && hasAnyDesign) {
-          e.preventDefault();
-          e.stopPropagation();
-          form.__bdColorSyncSubmitting = true;
-          previewState.setProofSubmitLock(true);
-          try {
-            if (typeof window.bdEnsureTshirtColorMockupMapLoaded === "function") {
-              try { await window.bdEnsureTshirtColorMockupMapLoaded(); } catch (e) {}
-            }
-            await bdSyncSelectedColorBeforeSubmit(form);
-            previewState.clearProofRefreshTimers();
-            try { previewState.invalidateProofMockupsForBaseChange(); } catch (e) {}
-            if (typeof window.bdEnsureAllProofMockupUrls === "function") {
-              try {
-                await window.bdEnsureAllProofMockupUrls({ force: true });
-              } catch (err) {
-                console.error("Proof mockup refresh after color sync failed", err);
-              }
-            }
-            form.__bdSkipColorSyncOnce = true;
-            form.__bdColorSyncSubmitting = false;
-            form.requestSubmit();
-          } finally {
-            setTimeout(() => {
-              previewState.setProofSubmitLock(false);
-              form.__bdColorSyncSubmitting = false;
-            }, 0);
-          }
-          return;
-        }
-
-        const designUrlFront = bdGetRealUploaderDesignUrl(1);
-        const designUrlBack = bdGetRealUploaderDesignUrl(2);
-        const missingFrontUpload = !!(previewState && previewState.hasFrontDesign() && !designUrlFront);
-        const missingBackUpload = !!(previewState && previewState.hasBackDesign() && !designUrlBack);
-        window.bdSetUploadNotice(missingFrontUpload || missingBackUpload ? BD_UPLOAD_NOTICE_TEXT : "");
-
-        const proofInputFront = form.querySelector("#bd_proof_mockup_url_front");
-        const proofInputBack = form.querySelector("#bd_proof_mockup_url_back");
-        const proofInput = form.querySelector("#bd_proof_mockup_url");
-        const missingFrontProof = !!(previewState && previewState.hasFrontDesign() && (!proofInputFront || !proofInputFront.value.trim()));
-        const missingBackProof = !!(previewState && previewState.hasBackDesign() && (!proofInputBack || !proofInputBack.value.trim()));
-        const missingAnyProof =
-          !proofInput ||
-          !proofInput.value.trim() ||
-          missingFrontProof ||
-          missingBackProof;
-
-        if (typeof window.bdEnsureAllProofMockupUrls === "function" && missingAnyProof) {
-          e.preventDefault();
-          e.stopPropagation();
-          try {
-            await window.bdEnsureAllProofMockupUrls({ force: true });
-          } catch (err) {
-            console.error("Proof mockup fallback failed", err);
-          }
-
-          const proofInputAfter = form.querySelector("#bd_proof_mockup_url");
-          const proofFrontAfter = form.querySelector("#bd_proof_mockup_url_front");
-          const proofBackAfter = form.querySelector("#bd_proof_mockup_url_back");
-          form.__bdProofSubmitting = true;
-          try {
-            form.requestSubmit();
-          } finally {
-            setTimeout(() => {
-              form.__bdProofSubmitting = false;
-            }, 0);
+        if (hasAnyDesign) {
+          const snapshot = typeof window.bdBuildSubmitSnapshot === "function"
+            ? window.bdBuildSubmitSnapshot(form, previewState)
+            : null;
+          if (snapshot && typeof window.bdApplySubmitSnapshot === "function") {
+            window.bdApplySubmitSnapshot(form, snapshot);
           }
         }
       },
