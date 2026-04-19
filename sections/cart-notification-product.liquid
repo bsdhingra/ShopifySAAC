@@ -32,6 +32,11 @@
         {%- assign bd_back_upload_state = item.properties['_Back Upload State'] | default: 'none' -%}
         {%- assign bd_front_upload_notice = item.properties['_Front Upload Notice'] -%}
         {%- assign bd_back_upload_notice = item.properties['_Back Upload Notice'] -%}
+        {%- assign bd_preview_flow = item.properties['_Preview Flow'] | default: '' -%}
+        {%- assign bd_is_proof_gated = false -%}
+        {%- if bd_preview_flow == 'proof-gated' -%}
+          {%- assign bd_is_proof_gated = true -%}
+        {%- endif -%}
         {%- assign bd_upload_fallback_notice = "Your image is larger than 10MB, but no worries-you can still edit and preview your design. After placing your order, just email your image to info@sarvsartsandcrafts.com, and we'll handle the proof for you." -%}
         {%- assign customization_text = item.properties['Customization text'] -%}
 
@@ -52,10 +57,10 @@
           {%- endif -%}
         </dl>
 
-        {%- if bd_front_proof_url != blank or bd_back_proof_url != blank or bd_proof_url != blank -%}
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+        {%- if bd_front_proof_url != blank or bd_back_proof_url != blank or bd_proof_url != blank or bd_upload_url != blank or bd_upload_url_back != blank -%}
+          <div class="bd-cart-notification-media">
             {%- if bd_front_proof_url != blank -%}
-              <a href="{{ bd_front_proof_url }}" target="_blank" rel="noopener" style="display:block; width:88px; text-decoration:none; color:inherit;">
+              <a href="{{ bd_front_proof_url }}" target="_blank" rel="noopener" class="bd-cart-notification-media__item">
                 {% comment %} theme-check-disable RemoteAsset {% endcomment %}
                 <img
                   src="{{ bd_front_proof_url | escape }}"
@@ -63,14 +68,13 @@
                   width="88"
                   height="88"
                   loading="lazy"
-                  style="display:block; width:88px; height:auto; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
                 >
                 {% comment %} theme-check-enable RemoteAsset {% endcomment %}
-                <span style="display:block; margin-top:4px; font-size:12px; opacity:.85;">Front preview</span>
+                <span>Front preview</span>
               </a>
             {%- endif -%}
             {%- if bd_back_proof_url != blank -%}
-              <a href="{{ bd_back_proof_url }}" target="_blank" rel="noopener" style="display:block; width:88px; text-decoration:none; color:inherit;">
+              <a href="{{ bd_back_proof_url }}" target="_blank" rel="noopener" class="bd-cart-notification-media__item">
                 {% comment %} theme-check-disable RemoteAsset {% endcomment %}
                 <img
                   src="{{ bd_back_proof_url | escape }}"
@@ -78,14 +82,13 @@
                   width="88"
                   height="88"
                   loading="lazy"
-                  style="display:block; width:88px; height:auto; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
                 >
                 {% comment %} theme-check-enable RemoteAsset {% endcomment %}
-                <span style="display:block; margin-top:4px; font-size:12px; opacity:.85;">Back preview</span>
+                <span>Back preview</span>
               </a>
             {%- endif -%}
             {%- if bd_front_proof_url == blank and bd_back_proof_url == blank and bd_proof_url != blank -%}
-              <a href="{{ bd_proof_url }}" target="_blank" rel="noopener" style="display:block; width:88px; text-decoration:none; color:inherit;">
+              <a href="{{ bd_proof_url }}" target="_blank" rel="noopener" class="bd-cart-notification-media__item">
                 {% comment %} theme-check-disable RemoteAsset {% endcomment %}
                 <img
                   src="{{ bd_proof_url | escape }}"
@@ -93,64 +96,59 @@
                   width="88"
                   height="88"
                   loading="lazy"
-                  style="display:block; width:88px; height:auto; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
                 >
                 {% comment %} theme-check-enable RemoteAsset {% endcomment %}
-                <span style="display:block; margin-top:4px; font-size:12px; opacity:.85;">Design preview</span>
+                <span>Design preview</span>
+              </a>
+            {%- endif -%}
+            {%- if bd_upload_url != blank -%}
+              <a href="{{ bd_upload_url }}" target="_blank" rel="noopener" class="bd-cart-notification-media__item">
+                {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+                <img
+                  src="{{ bd_upload_url | escape }}"
+                  alt="Uploaded design"
+                  width="88"
+                  height="88"
+                  loading="lazy"
+                >
+                {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+                <span>Front uploaded image</span>
+              </a>
+            {%- endif -%}
+            {%- if bd_upload_url_back != blank -%}
+              <a href="{{ bd_upload_url_back }}" target="_blank" rel="noopener" class="bd-cart-notification-media__item">
+                {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+                <img
+                  src="{{ bd_upload_url_back | escape }}"
+                  alt="Back uploaded design"
+                  width="88"
+                  height="88"
+                  loading="lazy"
+                >
+                {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+                <span>Back uploaded image</span>
               </a>
             {%- endif -%}
           </div>
         {%- endif -%}
         {%- if bd_front_proof_url == blank and bd_back_proof_url == blank and bd_proof_url == blank and bd_proof_notice != blank -%}
-          <div style="margin-top:10px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
+          <div class="bd-cart-notification-note">
             {{ bd_proof_notice }}
           </div>
         {%- endif -%}
 
-        {%- if bd_upload_url != blank -%}
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
-            <a href="{{ bd_upload_url }}" target="_blank" rel="noopener" style="display:block; width:88px; text-decoration:none; color:inherit;">
-              {% comment %} theme-check-disable RemoteAsset {% endcomment %}
-              <img
-                src="{{ bd_upload_url | escape }}"
-                alt="Uploaded design"
-                width="88"
-                height="88"
-                loading="lazy"
-                style="display:block; width:88px; height:88px; object-fit:cover; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
-              >
-              {% comment %} theme-check-enable RemoteAsset {% endcomment %}
-              <span style="display:block; margin-top:4px; font-size:12px; opacity:.85;">Uploaded image</span>
-            </a>
-          </div>
-        {%- elsif bd_front_upload_state == 'fallback' and bd_front_upload_notice != blank -%}
-          <div style="margin-top:10px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
+        {%- if bd_front_upload_state == 'fallback' and bd_front_upload_notice != blank -%}
+          <div class="bd-cart-notification-note">
             {%- if bd_back_proof_url != blank or bd_upload_url_back != blank -%}
-              <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Front uploaded image</div>
+              <div class="bd-cart-notification-note__label">Front uploaded image</div>
             {%- endif -%}
             {{ bd_front_upload_notice }}
           </div>
         {%- endif -%}
 
-        {%- if bd_upload_url_back != blank -%}
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
-            <a href="{{ bd_upload_url_back }}" target="_blank" rel="noopener" style="display:block; width:88px; text-decoration:none; color:inherit;">
-              {% comment %} theme-check-disable RemoteAsset {% endcomment %}
-              <img
-                src="{{ bd_upload_url_back | escape }}"
-                alt="Back uploaded design"
-                width="88"
-                height="88"
-                loading="lazy"
-                style="display:block; width:88px; height:88px; object-fit:cover; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
-              >
-              {% comment %} theme-check-enable RemoteAsset {% endcomment %}
-              <span style="display:block; margin-top:4px; font-size:12px; opacity:.85;">Back uploaded image</span>
-            </a>
-          </div>
-        {%- elsif bd_back_upload_state == 'fallback' and bd_back_upload_notice != blank -%}
-          <div style="margin-top:10px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
-            <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Back uploaded image</div>
+        {%- if bd_back_upload_state == 'fallback' and bd_back_upload_notice != blank -%}
+          <div class="bd-cart-notification-note">
+            <div class="bd-cart-notification-note__label">Back uploaded image</div>
             {{ bd_back_upload_notice }}
           </div>
         {%- endif -%}

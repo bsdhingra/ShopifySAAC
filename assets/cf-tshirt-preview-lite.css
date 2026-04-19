@@ -46,3 +46,123 @@
 #cf-tshirt-preview-container .cf-design-wrap .cf-handle.sw {
   display: none !important;
 }
+
+#cf-tshirt-preview-container .bd-proof-review-status {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  min-height: 2.8em;
+}
+
+#cf-tshirt-preview-container .bd-proof-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  align-items: center;
+  min-height: 44px;
+}
+
+#cf-tshirt-preview-container .bd-proof-review-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+#cf-tshirt-preview-container .bd-proof-review-actions[hidden],
+#cf-tshirt-preview-container .bd-proof-review-wrap[hidden] {
+  display: none !important;
+}
+
+#cf-tshirt-preview-container .bd-proof-review__item {
+  display: block;
+  width: 88px;
+  text-decoration: none;
+  color: inherit;
+}
+
+#cf-tshirt-preview-container .bd-proof-review__item img {
+  display: block;
+  width: 88px;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+#cf-tshirt-preview-container .bd-proof-review__item span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.bd-preview-gated-buttons {
+  max-width: 100%;
+  width: 100%;
+}
+
+.bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit,
+.bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"],
+.bd-preview-gated-submit[data-bd-preview-disabled="1"] {
+  box-shadow: none !important;
+  opacity: 0.58 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  transform: none !important;
+  filter: grayscale(1) saturate(0.2) brightness(1.03) !important;
+}
+
+.bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit {
+  transition: none !important;
+}
+
+.bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit:hover,
+.bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit:focus,
+.bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit:active,
+.bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"]:hover,
+.bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"]:focus,
+.bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"]:active,
+.bd-preview-gated-submit[data-bd-preview-disabled="1"]:hover,
+.bd-preview-gated-submit[data-bd-preview-disabled="1"]:focus,
+.bd-preview-gated-submit[data-bd-preview-disabled="1"]:active {
+  box-shadow: none !important;
+  transform: none !important;
+  filter: grayscale(1) saturate(0.2) brightness(1.03) !important;
+}
+
+.bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit .loading__spinner,
+.bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit .svg-wrapper,
+.bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"] .loading__spinner,
+.bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"] .svg-wrapper,
+.bd-preview-gated-submit[data-bd-preview-disabled="1"] .loading__spinner,
+.bd-preview-gated-submit[data-bd-preview-disabled="1"] .svg-wrapper {
+  opacity: 0.45;
+}
+
+.bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit span,
+.bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"] span,
+.bd-preview-gated-submit[data-bd-preview-disabled="1"] span {
+  color: inherit !important;
+}
+
+#cf-tshirt-preview-container .bd-proof-review-actions .button[disabled],
+#cf-tshirt-preview-container .bd-proof-review-actions .button[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 749px) {
+  .bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit,
+  .bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"],
+  .bd-preview-gated-submit[data-bd-preview-disabled="1"] {
+    opacity: 0.56 !important;
+    filter: grayscale(1) saturate(0.18) brightness(1.04) !important;
+  }
+
+  .bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit span,
+  .bd-preview-gated-submit[disabled][data-bd-preview-disabled="1"] span,
+  .bd-preview-gated-submit[data-bd-preview-disabled="1"] span {
+    color: inherit !important;
+  }
+}

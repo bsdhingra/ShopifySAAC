@@ -22,12 +22,18 @@
       if block.settings.show_dynamic_checkout and gift_card_recipient_feature_active == false
         assign show_dynamic_checkout = true
       endif
+      if product.tags contains 'cf-tshirt-preview'
+        assign show_dynamic_checkout = false
+      endif
     -%}
 
     <product-form
       class="product-form"
       data-hide-errors="{{ gift_card_recipient_feature_active }}"
       data-section-id="{{ section.id }}"
+      {% if product.tags contains 'cf-tshirt-preview' %}
+        data-bd-preview-gated="1"
+      {% endif %}
     >
     
       <div class="product-form__error-message-wrapper" role="alert" hidden>
@@ -68,7 +74,7 @@
           {%- render 'gift-card-recipient-form', product: product, form: form, section: section -%}
         {%- endif -%}
 
-        <div class="product-form__buttons">
+        <div class="product-form__buttons{% if product.tags contains 'cf-tshirt-preview' %} bd-preview-gated-buttons{% endif %}">
           {%- liquid
             assign check_against_inventory = true
             if product.selected_or_first_available_variant.inventory_management != 'shopify' or product.selected_or_first_available_variant.inventory_policy == 'continue'
@@ -82,7 +88,11 @@
             id="ProductSubmitButton-{{ section_id }}"
             type="submit"
             name="add"
-            class="product-form__submit button button--full-width {% if show_dynamic_checkout %}button--secondary{% else %}button--primary{% endif %}"
+            class="product-form__submit button button--full-width {% if show_dynamic_checkout %}button--secondary{% else %}button--primary{% endif %}{% if product.tags contains 'cf-tshirt-preview' %} bd-preview-gated-submit{% endif %}"
+            data-bd-native-add="1"
+            data-bd-add-label="{{ 'products.product.add_to_cart' | t | escape }}"
+            data-bd-soldout-label="{{ 'products.product.sold_out' | t | escape }}"
+            data-bd-unavailable-label="{{ 'products.product.unavailable' | t | escape }}"
             {% if product.selected_or_first_available_variant.available == false
               or quantity_rule_soldout
               or product.selected_or_first_available_variant == null

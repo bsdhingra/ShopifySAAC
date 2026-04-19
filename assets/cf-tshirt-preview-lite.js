@@ -5,7 +5,6 @@
 
   /* ===== TEMP PRINT ZONE RESTRICTION TOGGLE ===== */
   const BD_DISABLE_ZONE = true; // true=free move, false=restrict
-  const BD_DEBUG_SUBMIT_PROOF = false;
 
   const canvas = box.querySelector(".cf-preview-canvas");
   const designImg = box.querySelector(".cf-preview-design");
@@ -29,10 +28,27 @@
   // Helpers
   // --------------------------
   const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-  const bdDebugSubmitProof = (...args) => {
-    if (!BD_DEBUG_SUBMIT_PROOF || typeof console === "undefined" || !console.log) return;
-    console.log("[BD submit-proof]", ...args);
+  window.BD_DEBUG_LOGS = window.BD_DEBUG_LOGS || [];
+  const BD_DEBUG_SUBMIT_PROOF = !!window.__BD_DEBUG_SUBMIT_PROOF;
+  function bdSubmitProofLog(label, payload) {
+    if (!BD_DEBUG_SUBMIT_PROOF) return;
+    try {
+      const entry = {
+        ts: Date.now(),
+        label,
+        payload: payload || {}
+      };
+      window.BD_DEBUG_LOGS.push(entry);
+    } catch (e) {}
+    try {
+      console.log("[BD submit-proof]", label, payload || {});
+    } catch (e) {}
+  }
+  window.bdSubmitProofLog = bdSubmitProofLog;
+  window.bdDumpSubmitProofLogs = function () {
+    return window.BD_DEBUG_LOGS || [];
   };
+  bdSubmitProofLog("init", { href: location.href });
   const BD_EDITOR_MIN_DESIGN_PX = 24;
   const BD_EDITOR_MIN_DESIGN_ZONE_RATIO = 0.05;
   const bdGetMinDesignWidth = (boundsWidth) =>
@@ -65,6 +81,7 @@
     const v = ((hidden && hidden.value) || "").toLowerCase();
     return v === "back" ? "back" : "front";
   };
+  window.bdGetActiveSide = bdGetActiveSide;
 
   const bdSetActiveSideUi = (side) => {
     const s = side === "back" ? "back" : "front";
@@ -255,6 +272,8 @@
     bdRevokeCropObjectUrl();
   };
 
+  const bdIsCropPending = () => !!bdCropState.isOpen;
+
   const bdSyncCropActionButtons = () => {
     const cropBtn = box.querySelector('[data-bd-inline-crop="1"]');
     const cancelBtn = box.querySelector('[data-bd-inline-crop-cancel="1"]');
@@ -315,6 +334,10 @@
     box.classList.remove("bd-crop-open");
     bdResetCropState();
     bdSyncCropActionButtons();
+    try {
+      if (typeof bdUpdateReviewUi === "function") bdUpdateReviewUi();
+      if (typeof bdRefreshFinalizeUi === "function") bdRefreshFinalizeUi();
+    } catch (e) {}
   };
 
   const bdEnsureCropModal = () => {
@@ -599,6 +622,10 @@
     root.hidden = false;
     box.classList.add("bd-crop-open");
     bdSyncCropActionButtons();
+    try {
+      if (typeof bdUpdateReviewUi === "function") bdUpdateReviewUi();
+      if (typeof bdRefreshFinalizeUi === "function") bdRefreshFinalizeUi();
+    } catch (e) {}
   };
 
   const bdPushFileIntoRealInput = ({ side, file }) => {
@@ -941,6 +968,22 @@
     btnBack.className = "button button--secondary";
     btnBack.style.flex = "1";
 
+    const btnFinalize = document.createElement("button");
+    btnFinalize.type = "button";
+    btnFinalize.textContent = "Finalize Design";
+    btnFinalize.setAttribute("data-bd-finalize-btn", "1");
+    btnFinalize.className = "button button--primary";
+    btnFinalize.style.flex = "1";
+    btnFinalize.hidden = true;
+
+    const btnEdit = document.createElement("button");
+    btnEdit.type = "button";
+    btnEdit.textContent = "Edit Design";
+    btnEdit.setAttribute("data-bd-edit-btn", "1");
+    btnEdit.className = "button button--secondary";
+    btnEdit.style.flex = "1";
+    btnEdit.hidden = true;
+
     const hint = document.createElement("div");
     hint.setAttribute("data-bd-inline-hint", "1");
     hint.style.display = "none";
@@ -998,6 +1041,24 @@
     panel.appendChild(meta);
     panel.appendChild(previewWrap);
 
+    const reviewStatus = document.createElement("div");
+    reviewStatus.setAttribute("data-bd-finalize-status", "1");
+    reviewStatus.className = "bd-proof-review-status";
+    panel.appendChild(reviewStatus);
+
+    const reviewActions = document.createElement("div");
+    reviewActions.setAttribute("data-bd-finalize-actions", "1");
+    reviewActions.className = "bd-proof-review-actions";
+    reviewActions.appendChild(btnFinalize);
+    reviewActions.appendChild(btnEdit);
+    panel.appendChild(reviewActions);
+
+    const reviewWrap = document.createElement("div");
+    reviewWrap.setAttribute("data-bd-proof-review-wrap", "1");
+    reviewWrap.className = "bd-proof-review-wrap";
+    reviewWrap.hidden = true;
+    panel.appendChild(reviewWrap);
+
     // Insert near the top of the designer UI (so it's visible immediately)
     if (designerBody && designerBody.firstChild) {
       designerBody.insertBefore(bar, designerBody.firstChild);
@@ -1015,6 +1076,7 @@
     // Click handlers: trigger the REAL inputs
     btnFront.addEventListener("click", () => {
       if (bdCropState.isOpen) return;
+      const inp = document.getElementById("cfUploadFront") || inputFront;
       try {
         if (typeof window.bdSwitchPreviewSide === "function") {
           window.bdSwitchPreviewSide("front");
@@ -1024,12 +1086,12 @@
           if (typeof bdSwitchMainMockup === "function") bdSwitchMainMockup("front");
         }
       } catch (e) {}
-      const inp = document.getElementById("cfUploadFront") || inputFront;
       if (inp) inp.click();
     });
 
     btnBack.addEventListener("click", () => {
       if (bdCropState.isOpen) return;
+      const inp = document.getElementById("cfUploadBack") || inputBack;
       try {
         if (typeof window.bdSwitchPreviewSide === "function") {
           window.bdSwitchPreviewSide("back");
@@ -1039,7 +1101,6 @@
           if (typeof bdSwitchMainMockup === "function") bdSwitchMainMockup("back");
         }
       } catch (e) {}
-      const inp = document.getElementById("cfUploadBack") || inputBack;
       if (inp) inp.click();
     });
 
@@ -1091,6 +1152,21 @@
       }
     });
 
+    btnFinalize.addEventListener("click", () => {
+      if (bdIsCropPending()) {
+        try {
+          if (typeof bdUpdateReviewUi === "function") bdUpdateReviewUi();
+          if (typeof bdRefreshFinalizeUi === "function") bdRefreshFinalizeUi();
+        } catch (e) {}
+        return;
+      }
+      bdFinalizeDesignProofs();
+    });
+
+    btnEdit.addEventListener("click", () => {
+      bdEnterEditDesignMode();
+    });
+
     const bdSyncInlineUploadInfo = () => {
       const currentPanel = box.querySelector("[data-bd-upload-info='1']");
       if (!currentPanel) return;
@@ -1113,7 +1189,9 @@
       const previewImgTarget = currentPanel.querySelector("[data-bd-upload-preview-img='1']");
       const cropBtn = box.querySelector('[data-bd-inline-crop="1"]');
 
-      const helpText = "PNG/JPG/SVG. Preferred file size is under 10MB. Files over 10MB may not upload.";
+      const helpText = "PNG/JPG/SVG. Preferred file size is under 10MB. Larger files can still be previewed, but the final production file must be emailed after ordering.";
+      const sourceStatusText = statusSource ? String(statusSource.textContent || "").trim() : "";
+      const sourceStatusType = statusSource ? String(statusSource.dataset.type || "").trim() : "";
       const metaText = metaSource ? metaSource.textContent.trim() : "";
       const activeInput = side === "back" ? inputBack : inputFront;
       const activeFile = activeInput && activeInput.files && activeInput.files[0] ? activeInput.files[0] : null;
@@ -1153,14 +1231,20 @@
       }
 
       if (statusTarget) {
-        const uploadStatusText = previewSrc ? "Image uploaded successfully" : "";
-        const nextStatusText = [uploadStatusText, qualityText].filter(Boolean).join(" | ");
+        const isLargeUploadMessage = /larger than\s*10mb/i.test(sourceStatusText) || /email/i.test(sourceStatusText);
+        const isLowResUploadMessage = /low resolution/i.test(sourceStatusText);
+        const uploadStatusText = sourceStatusText || (previewSrc ? "Image uploaded successfully" : "");
+        const nextStatusText = isLargeUploadMessage || isLowResUploadMessage
+          ? uploadStatusText
+          : [uploadStatusText, qualityText].filter(Boolean).join(" | ");
         statusTarget.textContent = isCancelNoop ? existingStatusText : (keepExistingPreview && !nextStatusText ? existingStatusText : nextStatusText);
         statusTarget.style.display = statusTarget.textContent ? "" : "none";
         statusTarget.style.color =
-          longSide > 0 && longSide < 2000
+          isLargeUploadMessage || sourceStatusType === "warn" || (longSide > 0 && longSide < 2000)
             ? "#8a6d00"
-            : "";
+            : sourceStatusType === "error"
+              ? "#b42318"
+              : "";
       }
 
       if (metaTarget) {
@@ -1226,6 +1310,11 @@
     });
 
     requestAnimationFrame(bdSyncInlineUploadInfo);
+    requestAnimationFrame(() => {
+      try {
+        if (typeof bdUpdateReviewUi === "function") bdUpdateReviewUi();
+      } catch (e) {}
+    });
   };
 
   // Create once (safe even if Start Gate is enabled; weÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ll show/hide naturally)
@@ -1423,7 +1512,8 @@ if (bdStartGateEnabled) {
 
   bdSetUploadBlocksVisible(false);
 
-  if (startBtn) {
+  if (startBtn && !startBtn.__bdStartBound) {
+    startBtn.__bdStartBound = true;
     startBtn.addEventListener("click", () => bdOpenDesignerUi());
   }
 }
@@ -1538,7 +1628,37 @@ if (bdStartGateEnabled) {
       form.appendChild(uploadNotice);
     }
 
-    return { url, proofUrl, proofFront, proofBack, placementFront, placementBack, editFront, editBack, uploadNotice };
+    let previewFlow = form.querySelector('#bd_preview_flow, [name="properties[_Preview Flow]"]');
+    if (!previewFlow) {
+      previewFlow = document.createElement("input");
+      previewFlow.type = "hidden";
+      previewFlow.name = "properties[_Preview Flow]";
+      previewFlow.id = "bd_preview_flow";
+      form.appendChild(previewFlow);
+    }
+
+    let proofStatus = form.querySelector('#bd_proof_status, [name="properties[_Proof Status]"]');
+    if (!proofStatus) {
+      proofStatus = document.createElement("input");
+      proofStatus.type = "hidden";
+      proofStatus.name = "properties[_Proof Status]";
+      proofStatus.id = "bd_proof_status";
+      form.appendChild(proofStatus);
+    }
+
+    return {
+      url,
+      proofUrl,
+      proofFront,
+      proofBack,
+      placementFront,
+      placementBack,
+      editFront,
+      editBack,
+      uploadNotice,
+      previewFlow,
+      proofStatus
+    };
   };
 
   window.bdSetDesignUploadUrl = function (cloudinaryUrl) {
@@ -1578,25 +1698,6 @@ if (bdStartGateEnabled) {
     uploadNotice.value = (message || "").trim();
   };
 
-  const bdGetSubmitSafeProofUrlForSide = (side, inputValue, fallbackUrl) => {
-    const targetSide = side === "back" ? "back" : "front";
-    const currentValue = String(inputValue || "").trim();
-    const fallbackValue = String(fallbackUrl || "").trim();
-    const currentKey = bdGetProofStateKey(targetSide);
-    const knownKey = bdProofLastUploadedKey[targetSide] || "";
-    const knownUrl = (bdProofLastUrl[targetSide] || "").trim();
-
-    if (currentValue && currentKey && knownKey && currentKey === knownKey && knownUrl && currentValue === knownUrl) {
-      return currentValue;
-    }
-
-    if (knownUrl && currentKey && knownKey && currentKey === knownKey) {
-      return knownUrl;
-    }
-
-    return fallbackValue;
-  };
-
   const bdBuildSubmitSnapshot = (form, previewState) => {
     if (!form) return null;
 
@@ -1608,102 +1709,35 @@ if (bdStartGateEnabled) {
 
     try { bdWritePlacement(); } catch (e) {}
 
-    const { url, proofUrl, proofFront, proofBack, uploadNotice } = bdEnsurePropertyInputs(form);
+    const approvedState = bdApprovedProofState;
+    const requiredSides = bdGetRequiredProofSides();
+    if (!approvedState || !bdCanApproveAddToCart() || !requiredSides.length) return null;
+
+    const { url, proofUrl, proofFront, proofBack, uploadNotice, previewFlow, proofStatus } = bdEnsurePropertyInputs(form);
     const designUrlFront = bdGetRealUploaderDesignUrl(1);
     const designUrlBack = bdGetRealUploaderDesignUrl(2);
-    const baseMockupFront = bdGetFreshProofBaseSrcForSide("front");
-    const baseMockupBack = bdGetFreshProofBaseSrcForSide("back");
-    const hasFront = !!(previewState && previewState.hasFrontDesign && previewState.hasFrontDesign());
-    const hasBack = !!(previewState && previewState.hasBackDesign && previewState.hasBackDesign());
-    const currentProofFront = proofFront ? String(proofFront.value || "").trim() : "";
-    const currentProofBack = proofBack ? String(proofBack.value || "").trim() : "";
-    const currentProofAny = proofUrl ? String(proofUrl.value || "").trim() : "";
-    const frontProofStateKey = bdGetProofStateKey("front");
-    const backProofStateKey = bdGetProofStateKey("back");
-    const frontKnownProofKey = bdProofLastUploadedKey.front || "";
-    const backKnownProofKey = bdProofLastUploadedKey.back || "";
-    const frontKnownProofUrl = (bdProofLastUrl.front || "").trim();
-    const backKnownProofUrl = (bdProofLastUrl.back || "").trim();
-
-    const frozenProofFront = hasFront
-      ? bdGetSubmitSafeProofUrlForSide("front", currentProofFront, designUrlFront)
-      : String(baseMockupFront || "").trim();
-    const frozenProofBack = hasBack
-      ? bdGetSubmitSafeProofUrlForSide("back", currentProofBack, designUrlBack)
-      : String(baseMockupBack || "").trim();
-    const frozenProofAny = frozenProofFront || frozenProofBack || "";
-    const missingFrontUpload = !!(hasFront && !designUrlFront);
-    const missingBackUpload = !!(hasBack && !designUrlBack);
-
-    bdDebugSubmitProof("build-snapshot", {
-      selectedColor: bdGetSelectedColorValue(),
-      activeSide: bdGetActiveSide(),
-      hasFrontDesign: hasFront,
-      hasBackDesign: hasBack,
-      hiddenProofInputs: {
-        front: currentProofFront,
-        back: currentProofBack,
-        any: currentProofAny
-      },
-      proofStateKeys: {
-        front: frontProofStateKey,
-        back: backProofStateKey
-      },
-      proofLastUploadedKey: {
-        front: frontKnownProofKey,
-        back: backKnownProofKey
-      },
-      proofLastUrl: {
-        front: frontKnownProofUrl,
-        back: backKnownProofUrl
-      },
-      uploadedDesignUrls: {
-        front: designUrlFront,
-        back: designUrlBack
-      },
-      proofValidation: {
-        front: {
-          inputMatchesKnownUrl: !!(currentProofFront && frontKnownProofUrl && currentProofFront === frontKnownProofUrl),
-          stateKeyMatchesKnownKey: !!(frontProofStateKey && frontKnownProofKey && frontProofStateKey === frontKnownProofKey),
-          chosenUrl: frozenProofFront
-        },
-        back: {
-          inputMatchesKnownUrl: !!(currentProofBack && backKnownProofUrl && currentProofBack === backKnownProofUrl),
-          stateKeyMatchesKnownKey: !!(backProofStateKey && backKnownProofKey && backProofStateKey === backKnownProofKey),
-          chosenUrl: frozenProofBack
-        }
-      }
-    });
 
     return {
       designUploadUrl: designUrlFront || designUrlBack || "",
-      proofFrontUrl: frozenProofFront,
-      proofBackUrl: frozenProofBack,
-      proofUrl: frozenProofAny,
-      uploadNotice: missingFrontUpload || missingBackUpload ? BD_UPLOAD_NOTICE_TEXT : "",
+      proofFrontUrl: String(approvedState.proofFrontUrl || "").trim(),
+      proofBackUrl: String(approvedState.proofBackUrl || "").trim(),
+      proofUrl: String(approvedState.proofUrl || "").trim(),
+      uploadNotice: "",
+      previewFlow: "proof-gated",
+      proofStatus: "ready"
     };
   };
 
   const bdApplySubmitSnapshot = (form, snapshot) => {
     if (!form || !snapshot) return;
-    const { url, proofUrl, proofFront, proofBack, uploadNotice } = bdEnsurePropertyInputs(form);
+    const { url, proofUrl, proofFront, proofBack, uploadNotice, previewFlow, proofStatus } = bdEnsurePropertyInputs(form);
     if (url) url.value = String(snapshot.designUploadUrl || "").trim();
     if (proofFront) proofFront.value = String(snapshot.proofFrontUrl || "").trim();
     if (proofBack) proofBack.value = String(snapshot.proofBackUrl || "").trim();
     if (proofUrl) proofUrl.value = String(snapshot.proofUrl || "").trim();
     if (uploadNotice) uploadNotice.value = String(snapshot.uploadNotice || "").trim();
-    bdDebugSubmitProof("apply-snapshot", {
-      writtenProofInputs: {
-        front: proofFront ? String(proofFront.value || "").trim() : "",
-        back: proofBack ? String(proofBack.value || "").trim() : "",
-        any: proofUrl ? String(proofUrl.value || "").trim() : ""
-      },
-      writtenDesignUrls: {
-        design1: bdGetRealUploaderDesignUrl(1),
-        design2: bdGetRealUploaderDesignUrl(2),
-        designUpload: url ? String(url.value || "").trim() : ""
-      }
-    });
+    if (previewFlow) previewFlow.value = String(snapshot.previewFlow || "").trim();
+    if (proofStatus) proofStatus.value = String(snapshot.proofStatus || "").trim();
   };
 
   window.bdBuildSubmitSnapshot = bdBuildSubmitSnapshot;
@@ -2069,8 +2103,7 @@ const bdSwitchMainMockup = (side) => {
 
 // Keep preview base in sync with variant/color changes (Dawn events vary)
 const bdOnVariantMaybeChanged = () => {
-  try { bdResolvePreviewBaseSources(); } catch (e) {}
-  try { bdSwitchMainMockup(bdGetActiveSide()); } catch (e) {}
+  try { bdSyncBaseByVariantColor(); } catch (e) {}
 };
 
 document.addEventListener("variant:change", bdOnVariantMaybeChanged);
@@ -2174,26 +2207,6 @@ requestAnimationFrame(() => {
     if (baseChanged) {
       try { bdInvalidateProofMockupsForBaseChange(); } catch (e) {}
     }
-
-    try {
-      const form = bdFindCartForm();
-      bdDebugSubmitProof("base-change", {
-        selectedColor: bdGetSelectedColorValue(),
-        activeSide: bdGetActiveSide(),
-        baseSources: {
-          front: nextFrontSrc,
-          back: nextBackSrc
-        },
-        proofStateKeys: {
-          front: bdGetProofStateKey("front"),
-          back: bdGetProofStateKey("back")
-        },
-        hiddenProofInputs: {
-          front: form ? String((form.querySelector("#bd_proof_mockup_url_front")?.value || "").trim()) : "",
-          back: form ? String((form.querySelector("#bd_proof_mockup_url_back")?.value || "").trim()) : ""
-        }
-      });
-    } catch (e) {}
 
     // ensure base image matches current side
     bdSwitchMainMockup(bdActiveSide);
@@ -2652,12 +2665,492 @@ const bdUseSideState = (side) => {
   let bdProofLastUploadedKey = { front: "", back: "" };
   let bdProofLastUrl = { front: "", back: "" };
   let bdProofInFlightPromise = { front: null, back: null };
+  let bdProofDirty = { front: false, back: false };
+  let bdDesignFinalized = false;
+  let bdFinalizeInProgress = false;
+  let bdFinalizePromise = null;
+  let bdFinalizeRunSeq = 0;
+  let bdApprovedProofState = null;
+  let bdLastInvalidationReason = "";
 
   const bdGetDesignedProofSides = () => {
     const sides = [];
     if (hasFrontDesign) sides.push("front");
     if (hasBackDesign) sides.push("back");
     return sides;
+  };
+
+  const bdHasDesignForSide = (side) => (side === "back" ? hasBackDesign : hasFrontDesign);
+
+  const bdGetRequiredProofSides = () => {
+    if (bdIsBackOnly) return hasBackDesign ? ["back"] : [];
+    if (bdIsFrontOnly) return hasFrontDesign ? ["front"] : [];
+    const sides = [];
+    if (hasFrontDesign) sides.push("front");
+    if (hasBackDesign) sides.push("back");
+    return sides;
+  };
+
+  const bdGetCurrentProofUrls = () => ({
+    front: (bdProofLastUrl.front || "").trim(),
+    back: (bdProofLastUrl.back || "").trim()
+  });
+
+  const bdGetReadyCopy = () => {
+    if (hasFrontDesign && hasBackDesign) {
+      return {
+        review: "Front and back designs ready",
+        cta: "<strong>Front and back designs ready</strong><br>Satisfied with your design?<br>Add it to your cart."
+      };
+    }
+    if (hasFrontDesign) {
+      return {
+        review: "Front design ready. Back side will be blank.",
+        cta: "<strong>Front design ready. Back will be blank.</strong><br>Satisfied with your design?<br>Add it to your cart."
+      };
+    }
+    if (hasBackDesign) {
+      return {
+        review: "Back design ready. Front side will be blank.",
+        cta: "<strong>Back design ready. Front will be blank.</strong><br>Satisfied with your design?<br>Add it to your cart."
+      };
+    }
+    return {
+      review: "Proof ready. Review your final design below.",
+      cta: "<strong>Satisfied with your design?</strong><br>Add it to your cart."
+    };
+  };
+
+  const bdGetCurrentCombinedProofUrl = () => {
+    const current = bdGetCurrentProofUrls();
+    return current.front || current.back || "";
+  };
+
+  const bdHasApprovedProofForSide = (side) => {
+    if (!bdApprovedProofState) return false;
+    const targetSide = side === "back" ? "back" : "front";
+    const approvedKey = (bdApprovedProofState.proofKeys && bdApprovedProofState.proofKeys[targetSide]) || "";
+    const approvedUrl = targetSide === "back"
+      ? (bdApprovedProofState.proofBackUrl || "")
+      : (bdApprovedProofState.proofFrontUrl || "");
+    return !!(
+      approvedKey &&
+      approvedUrl &&
+      bdProofLastUploadedKey[targetSide] === approvedKey &&
+      bdProofLastUrl[targetSide] === approvedUrl &&
+      bdIsProofValidForSide(targetSide)
+    );
+  };
+
+  const bdPruneApprovedProofState = (sides) => {
+    if (!bdApprovedProofState) return;
+    const blockedSides = Array.from(new Set((sides || []).map((side) => (side === "back" ? "back" : "front"))));
+    if (!blockedSides.length) return;
+
+    const remainingSides = (bdApprovedProofState.requiredSides || []).filter((side) => !blockedSides.includes(side));
+    if (!remainingSides.length) {
+      bdApprovedProofState = null;
+      return;
+    }
+
+    bdApprovedProofState = {
+      requiredSides: remainingSides.slice(),
+      proofFrontUrl: remainingSides.includes("front") ? (bdApprovedProofState.proofFrontUrl || "") : "",
+      proofBackUrl: remainingSides.includes("back") ? (bdApprovedProofState.proofBackUrl || "") : "",
+      proofUrl: remainingSides.includes("front")
+        ? (bdApprovedProofState.proofFrontUrl || "")
+        : (bdApprovedProofState.proofBackUrl || ""),
+      proofKeys: {
+        front: remainingSides.includes("front") ? ((bdApprovedProofState.proofKeys && bdApprovedProofState.proofKeys.front) || "") : "",
+        back: remainingSides.includes("back") ? ((bdApprovedProofState.proofKeys && bdApprovedProofState.proofKeys.back) || "") : ""
+      }
+    };
+  };
+
+  const bdGetPendingReviewCopy = ({ frontApproved, backApproved } = {}) => {
+    if (bdLastInvalidationReason === "base-change" && (hasFrontDesign || hasBackDesign)) {
+      return "Color changed. Please finalize your design again to generate updated proofs.";
+    }
+    if (hasFrontDesign && hasBackDesign) {
+      if (frontApproved && !backApproved) return "Front design ready. Finalize your back design to continue.";
+      if (backApproved && !frontApproved) return "Back design ready. Finalize your front design to continue.";
+    }
+    return "";
+  };
+
+  const bdSetReviewStatusContent = (node, line1, { ready = false } = {}) => {
+    if (!node) return;
+    if (!ready) {
+      node.textContent = line1 || "";
+      return;
+    }
+    node.innerHTML = "";
+    const primary = document.createElement("div");
+    primary.textContent = line1 || "";
+    const secondary = document.createElement("div");
+    secondary.textContent = "Add to cart below or edit your design.";
+    secondary.style.marginTop = "4px";
+    secondary.style.opacity = "0.85";
+    node.appendChild(primary);
+    node.appendChild(secondary);
+  };
+
+  const bdIsProofValidForSide = (side) => {
+    const targetSide = side === "back" ? "back" : "front";
+    const currentKey = bdGetProofStateKey(targetSide);
+    return !!(
+      currentKey &&
+      bdProofLastUploadedKey[targetSide] &&
+      bdProofLastUploadedKey[targetSide] === currentKey &&
+      bdProofLastUrl[targetSide]
+    );
+  };
+
+  const bdResetFinalizedState = ({ keepProofs = true, preserveApprovedProofState = false } = {}) => {
+    bdDesignFinalized = false;
+    bdFinalizeInProgress = false;
+    bdFinalizePromise = null;
+    if (!preserveApprovedProofState) {
+      bdApprovedProofState = null;
+    }
+    bdFinalizeRunSeq += 1;
+    if (!keepProofs) {
+      bdProofDirty = { front: false, back: false };
+    }
+  };
+
+  const bdForceDisableNativeAddToCart = () => {
+    try {
+      document.querySelectorAll('form[action^="/cart/add"]').forEach((form) => {
+        const addButton =
+          form.querySelector('[data-bd-native-add="1"]') ||
+          form.querySelector('.product-form__submit[name="add"]') ||
+          form.querySelector('button[type="submit"][name="add"]');
+        const buttonWrap = addButton ? addButton.closest(".product-form__buttons") : null;
+        if (!addButton) return;
+        addButton.setAttribute("disabled", "disabled");
+        addButton.setAttribute("aria-disabled", "true");
+        addButton.dataset.bdPreviewDisabled = "1";
+        if (buttonWrap) {
+          buttonWrap.dataset.bdPreviewDisabled = "1";
+          buttonWrap.classList.add("is-preview-blocked");
+        }
+      });
+    } catch (e) {}
+  };
+
+  const bdForceSyncNativeAddToCart = () => {
+    try {
+      document.querySelectorAll('form[action^="/cart/add"]').forEach((form) => {
+        const addButton =
+          form.querySelector('[data-bd-native-add="1"]') ||
+          form.querySelector('.product-form__submit[name="add"]') ||
+          form.querySelector('button[type="submit"][name="add"]');
+        const buttonWrap = addButton ? addButton.closest(".product-form__buttons") : null;
+        if (!addButton) return;
+
+        const shouldBlock = !bdCanApproveAddToCart() || bdIsCropPending();
+        if (shouldBlock) {
+          addButton.setAttribute("disabled", "disabled");
+          addButton.setAttribute("aria-disabled", "true");
+          addButton.dataset.bdPreviewDisabled = "1";
+          if (buttonWrap) {
+            buttonWrap.dataset.bdPreviewDisabled = "1";
+            buttonWrap.classList.add("is-preview-blocked");
+          }
+          return;
+        }
+
+        if (buttonWrap) {
+          delete buttonWrap.dataset.bdPreviewDisabled;
+          buttonWrap.classList.remove("is-preview-blocked");
+        }
+        delete addButton.dataset.bdPreviewDisabled;
+        const variantInput = form.querySelector(".product-variant-id");
+        const labelEl = addButton.querySelector("span");
+        const currentLabel = String((labelEl ? labelEl.textContent : addButton.textContent) || "").trim();
+        const soldOutLabel = String(addButton.dataset.bdSoldoutLabel || "").trim();
+        const unavailableLabel = String(addButton.dataset.bdUnavailableLabel || "").trim();
+        const nativeBlocked =
+          (variantInput && variantInput.disabled) ||
+          (soldOutLabel && currentLabel === soldOutLabel) ||
+          (unavailableLabel && currentLabel === unavailableLabel);
+
+        if (nativeBlocked) {
+          addButton.setAttribute("disabled", "disabled");
+          addButton.setAttribute("aria-disabled", "true");
+          return;
+        }
+
+        addButton.removeAttribute("disabled");
+        addButton.removeAttribute("aria-disabled");
+      });
+    } catch (e) {}
+  };
+
+  const bdRefreshFinalizeUi = () => {
+    try {
+      bdForceSyncNativeAddToCart();
+    } catch (e) {}
+    try {
+      if (typeof window.bdTshirtGateRefresh === "function") window.bdTshirtGateRefresh();
+    } catch (e) {}
+    requestAnimationFrame(() => {
+      try {
+        bdForceSyncNativeAddToCart();
+      } catch (e) {}
+      try {
+        if (typeof window.bdTshirtGateRefresh === "function") window.bdTshirtGateRefresh();
+      } catch (e) {}
+    });
+  };
+
+  const bdCaptureApprovedProofState = () => {
+    const requiredSides = bdGetRequiredProofSides();
+    if (!requiredSides.length) return null;
+    if (!requiredSides.every((side) => bdIsProofValidForSide(side))) return null;
+    const proofUrls = bdGetCurrentProofUrls();
+    return {
+      requiredSides: requiredSides.slice(),
+      proofFrontUrl: requiredSides.includes("front") ? proofUrls.front : "",
+      proofBackUrl: requiredSides.includes("back") ? proofUrls.back : "",
+      proofUrl: proofUrls.front || proofUrls.back || "",
+      proofKeys: {
+        front: requiredSides.includes("front") ? bdProofLastUploadedKey.front : "",
+        back: requiredSides.includes("back") ? bdProofLastUploadedKey.back : ""
+      }
+    };
+  };
+
+  const bdReevaluateFinalizeState = ({ source = "" } = {}) => {
+    const requiredSides = bdGetRequiredProofSides();
+    const approvedState = bdCaptureApprovedProofState();
+    const ready = !!(!bdIsCropPending() && requiredSides.length && approvedState);
+    const finalizeWasActive = !!(bdFinalizeInProgress || bdDesignFinalized);
+
+    if (ready && finalizeWasActive) {
+      bdApprovedProofState = approvedState;
+      bdDesignFinalized = true;
+      bdLastInvalidationReason = "";
+      if (bdFinalizeInProgress) {
+        bdFinalizeInProgress = false;
+        bdFinalizePromise = null;
+        bdSubmitProofLog("finalize-cleared", {
+          source,
+          requiredSides: requiredSides.slice()
+        });
+      }
+    }
+
+    bdSubmitProofLog("ready-state-evaluated", {
+      source,
+      requiredSides: requiredSides.slice(),
+      ready,
+      finalizeWasActive,
+      finalizeInProgress: !!bdFinalizeInProgress
+    });
+
+    return !!(ready && finalizeWasActive);
+  };
+
+  const bdCanApproveAddToCart = () => {
+    if (bdIsCropPending()) return false;
+    if (bdLastInvalidationReason === "base-change") return false;
+    if (!bdDesignFinalized || !bdApprovedProofState) return false;
+    const requiredSides = bdGetRequiredProofSides();
+    if (!requiredSides.length) return false;
+    return requiredSides.every((side) => {
+      const approvedKey = bdApprovedProofState.proofKeys[side] || "";
+      const approvedUrl = side === "back" ? bdApprovedProofState.proofBackUrl : bdApprovedProofState.proofFrontUrl;
+      return !!(
+        approvedKey &&
+        approvedUrl &&
+        bdProofLastUploadedKey[side] === approvedKey &&
+        bdProofLastUrl[side] === approvedUrl &&
+        bdIsProofValidForSide(side)
+      );
+    });
+  };
+
+  const bdUpdateReviewUi = () => {
+    const finalizeBtn = box.querySelector('[data-bd-finalize-btn="1"]');
+    const editBtn = box.querySelector('[data-bd-edit-btn="1"]');
+    const reviewStatus = box.querySelector('[data-bd-finalize-status="1"]');
+    const reviewActions = box.querySelector('[data-bd-finalize-actions="1"]');
+    const reviewWrap = box.querySelector('[data-bd-proof-review-wrap="1"]');
+    if (!finalizeBtn || !editBtn || !reviewStatus || !reviewActions || !reviewWrap) return;
+
+    const requiredSides = bdGetRequiredProofSides();
+    const hasAnyDesign = requiredSides.length > 0;
+    const isCropPending = bdIsCropPending();
+    const readyNow = bdReevaluateFinalizeState({ source: "review-ui" });
+    const currentProofs = bdGetCurrentProofUrls();
+    const frontValid = bdIsProofValidForSide("front");
+    const backValid = bdIsProofValidForSide("back");
+    const frontApproved = bdHasApprovedProofForSide("front");
+    const backApproved = bdHasApprovedProofForSide("back");
+    const pendingReviewCopy = bdGetPendingReviewCopy({ frontApproved, backApproved });
+
+    reviewWrap.innerHTML = "";
+    [
+      { side: "front", label: "Front proof", url: currentProofs.front, show: (readyNow && requiredSides.includes("front") && frontValid) || frontApproved },
+      { side: "back", label: "Back proof", url: currentProofs.back, show: (readyNow && requiredSides.includes("back") && backValid) || backApproved }
+    ].forEach((entry) => {
+      if (!entry.show || !entry.url) return;
+      const item = document.createElement("a");
+      item.href = entry.url;
+      item.target = "_blank";
+      item.rel = "noopener";
+      item.className = "bd-proof-review__item";
+      const img = document.createElement("img");
+      img.src = entry.url;
+      img.alt = entry.label;
+      img.loading = "lazy";
+      img.width = 88;
+      img.height = 88;
+      const caption = document.createElement("span");
+      caption.textContent = entry.label;
+      item.appendChild(img);
+      item.appendChild(caption);
+      reviewWrap.appendChild(item);
+    });
+    reviewWrap.hidden = isCropPending || reviewWrap.childElementCount === 0;
+
+    finalizeBtn.hidden = !hasAnyDesign || bdFinalizeInProgress || (bdDesignFinalized && !isCropPending);
+    finalizeBtn.disabled = !hasAnyDesign || bdFinalizeInProgress || isCropPending;
+    finalizeBtn.setAttribute("aria-disabled", finalizeBtn.disabled ? "true" : "false");
+    editBtn.hidden = !hasAnyDesign || bdFinalizeInProgress || !bdDesignFinalized || isCropPending;
+    editBtn.disabled = !bdDesignFinalized || isCropPending;
+    editBtn.setAttribute("aria-disabled", editBtn.disabled ? "true" : "false");
+    reviewActions.hidden = !hasAnyDesign;
+
+    if (!hasAnyDesign) {
+      bdSetReviewStatusContent(reviewStatus, "Please upload your design before finalizing.");
+    } else if (isCropPending) {
+      bdSetReviewStatusContent(reviewStatus, "Apply or cancel crop before finalizing your design.");
+    } else if (readyNow && bdDesignFinalized && bdCanApproveAddToCart()) {
+      bdSetReviewStatusContent(reviewStatus, bdGetReadyCopy().review, { ready: true });
+    } else if (pendingReviewCopy) {
+      bdSetReviewStatusContent(reviewStatus, pendingReviewCopy);
+    } else if (bdFinalizeInProgress) {
+      bdSetReviewStatusContent(reviewStatus, "Generating preview...");
+    } else if (requiredSides.some((side) => bdProofDirty[side])) {
+      bdSetReviewStatusContent(reviewStatus, "Design changed. Finalize again to regenerate the required proof.");
+    } else {
+      bdSetReviewStatusContent(reviewStatus, "Finalize your design to generate the required proof before adding to cart.");
+    }
+  };
+
+  const bdInvalidateProofState = (sides, { reason = "", markDirty = {} } = {}) => {
+    const uniqueSides = Array.from(new Set((sides || []).map((side) => (side === "back" ? "back" : "front"))));
+    if (!uniqueSides.length) return;
+
+    uniqueSides.forEach((side) => {
+      clearTimeout(bdProofSyncTimer[side]);
+      bdProofSyncTimer[side] = null;
+      bdProofSyncSeq[side] += 1;
+      bdProofLastUploadedKey[side] = "";
+      bdProofLastUrl[side] = "";
+      bdProofDirty[side] = !!markDirty[side];
+      window.bdSetProofMockupUrl("", side);
+    });
+    window.bdSetProofMockupUrl(bdGetCurrentCombinedProofUrl());
+    try {
+      const form = bdFindCartForm();
+      const inputs = bdEnsurePropertyInputs(form);
+      if (inputs.previewFlow) inputs.previewFlow.value = "";
+      if (inputs.proofStatus) inputs.proofStatus.value = "";
+    } catch (e) {}
+    bdLastInvalidationReason = reason || "";
+    if (reason === "base-change") {
+      bdResetFinalizedState();
+    } else {
+      bdPruneApprovedProofState(uniqueSides);
+      bdResetFinalizedState({ preserveApprovedProofState: true });
+    }
+    bdSubmitProofLog("proof-invalidated", {
+      reason,
+      sides: uniqueSides.slice(),
+      requiredSides: bdGetRequiredProofSides()
+    });
+    bdForceDisableNativeAddToCart();
+    bdUpdateReviewUi();
+    bdRefreshFinalizeUi();
+    requestAnimationFrame(() => {
+      bdForceDisableNativeAddToCart();
+      bdRefreshFinalizeUi();
+    });
+  };
+
+  const bdEnterEditDesignMode = () => {
+    bdResetFinalizedState({ keepProofs: true, preserveApprovedProofState: true });
+    bdSubmitProofLog("edit-design-click", {
+      requiredSides: bdGetRequiredProofSides()
+    });
+    bdUpdateReviewUi();
+    bdRefreshFinalizeUi();
+  };
+
+  const bdFinalizeDesignProofs = async () => {
+    const requiredSides = bdGetRequiredProofSides();
+    bdSubmitProofLog("finalize-click", {
+      requiredSides: requiredSides.slice()
+    });
+    if (!requiredSides.length) {
+      bdUpdateReviewUi();
+      bdRefreshFinalizeUi();
+      return false;
+    }
+    if (bdIsCropPending()) {
+      bdUpdateReviewUi();
+      bdRefreshFinalizeUi();
+      return false;
+    }
+    if (bdFinalizeInProgress && bdFinalizePromise) return bdFinalizePromise;
+
+    const runSeq = ++bdFinalizeRunSeq;
+    bdDesignFinalized = false;
+    bdApprovedProofState = null;
+    bdFinalizeInProgress = true;
+    bdSubmitProofLog("finalize-required-sides", {
+      requiredSides: requiredSides.slice()
+    });
+    bdUpdateReviewUi();
+    bdRefreshFinalizeUi();
+
+    bdFinalizePromise = (async () => {
+      for (const side of requiredSides) {
+        if (!bdHasDesignForSide(side)) continue;
+        if (!bdProofDirty[side] && bdIsProofValidForSide(side)) continue;
+        if (bdProofInFlightPromise[side]) {
+          try {
+            await bdProofInFlightPromise[side];
+          } catch (e) {}
+        }
+        await bdSyncProofMockupNow({ side, force: true, silent: side !== bdGetActiveSide() });
+      }
+
+      if (runSeq !== bdFinalizeRunSeq) return false;
+      const approvedState = bdCaptureApprovedProofState();
+      bdApprovedProofState = approvedState;
+      bdDesignFinalized = !!approvedState;
+      if (bdDesignFinalized) {
+        bdLastInvalidationReason = "";
+        bdSubmitProofLog("review-ready", {
+          requiredSides: approvedState.requiredSides.slice()
+        });
+      }
+      return bdDesignFinalized;
+    })().catch(() => false).finally(() => {
+      if (runSeq === bdFinalizeRunSeq) {
+        bdFinalizeInProgress = false;
+      }
+      bdFinalizePromise = null;
+      bdUpdateReviewUi();
+      bdRefreshFinalizeUi();
+    });
+
+    return bdFinalizePromise;
   };
 
   const bdInvalidateProofMockupsForBaseChange = () => {
@@ -2668,30 +3161,13 @@ const bdUseSideState = (side) => {
     bdProofSyncTimer.back = null;
     bdProofRefreshTimer = null;
 
-    bdProofLastUploadedKey = { front: "", back: "" };
-    bdProofLastUrl = { front: "", back: "" };
-    window.bdSetProofMockupUrl("", "front");
-    window.bdSetProofMockupUrl("", "back");
-    window.bdSetProofMockupUrl("");
-
-    if (!(hasFrontDesign || hasBackDesign)) return;
-    if (bdProofSubmitLock) return;
-
-    bdProofRefreshTimer = setTimeout(() => {
-      bdProofRefreshTimer = null;
-      if (bdProofSubmitLock) return;
-      bdDebugSubmitProof("proof-refresh-scheduled", {
-        selectedColor: bdGetSelectedColorValue(),
-        activeSide: bdGetActiveSide(),
-        scheduledSides: bdGetDesignedProofSides().map((side) => ({
-          side,
-          silent: side !== bdGetActiveSide()
-        }))
-      });
-      if (typeof window.bdEnsureAllProofMockupUrls === "function") {
-        window.bdEnsureAllProofMockupUrls({ force: true }).catch(() => {});
+    bdInvalidateProofState(["front", "back"], {
+      reason: "base-change",
+      markDirty: {
+        front: hasFrontDesign,
+        back: hasBackDesign
       }
-    }, 250);
+    });
   };
 
   const bdGetProofStateKey = (side) => {
@@ -2729,6 +3205,7 @@ const bdUseSideState = (side) => {
       window.bdSetProofMockupUrl("", targetSide);
       bdProofLastUploadedKey[targetSide] = "";
       bdProofLastUrl[targetSide] = "";
+      bdProofDirty[targetSide] = bdHasDesignForSide(targetSide);
       if (!hasFrontDesign && !hasBackDesign) window.bdSetProofMockupUrl("");
       return "";
     }
@@ -2740,7 +3217,7 @@ const bdUseSideState = (side) => {
 
     const seq = ++bdProofSyncSeq[targetSide];
     bdProofInFlightPromise[targetSide] = (async () => {
-      bdDebugSubmitProof("proof-generation-start", {
+      bdSubmitProofLog("proof-generation-start", {
         side: targetSide,
         selectedColor: bdGetSelectedColorValue(),
         baseMockupSrc: bdGetFreshProofBaseSrcForSide(targetSide),
@@ -2760,13 +3237,14 @@ const bdUseSideState = (side) => {
 
       bdProofLastUploadedKey[targetSide] = proofKey;
       bdProofLastUrl[targetSide] = (url || "").trim();
+      bdProofDirty[targetSide] = false;
       try {
         window.bdSetProofMockupUrl(bdProofLastUrl[targetSide], targetSide);
         const form = bdFindCartForm();
         const proofInput = form
           ? form.querySelector(targetSide === "back" ? "#bd_proof_mockup_url_back" : "#bd_proof_mockup_url_front")
           : null;
-        bdDebugSubmitProof("proof-stored", {
+        bdSubmitProofLog("proof-stored", {
           side: targetSide,
           selectedColor: bdGetSelectedColorValue(),
           baseMockupSrc: bdGetFreshProofBaseSrcForSide(targetSide),
@@ -2782,6 +3260,9 @@ const bdUseSideState = (side) => {
         console.error("Proof URL assignment failed", err);
         throw err;
       }
+      bdReevaluateFinalizeState({ source: "proof-stored" });
+      bdUpdateReviewUi();
+      bdRefreshFinalizeUi();
       return bdProofLastUrl[targetSide];
     })().catch((err) => {
       console.error("Proof mockup sync failed", err);
@@ -2800,11 +3281,6 @@ const bdUseSideState = (side) => {
     bdProofSyncTimer[targetSide] = setTimeout(() => {
       bdProofSyncTimer[targetSide] = null;
       if (bdProofSubmitLock) return;
-      bdDebugSubmitProof("proof-refresh-scheduled", {
-        selectedColor: bdGetSelectedColorValue(),
-        activeSide: bdGetActiveSide(),
-        scheduledSides: [{ side: targetSide, silent: !!silent }]
-      });
       bdSyncProofMockupNow({ side: targetSide, force, silent });
     }, Math.max(500, Math.min(800, delay)));
   };
@@ -2855,6 +3331,16 @@ const bdUseSideState = (side) => {
     getActiveSide: () => bdGetActiveSide(),
     syncBaseByVariantColor: () => bdSyncBaseByVariantColor(),
     invalidateProofMockupsForBaseChange: () => bdInvalidateProofMockupsForBaseChange(),
+    getRequiredProofSides: () => bdGetRequiredProofSides(),
+    isProofValidForSide: (side) => bdIsProofValidForSide(side),
+    isFinalizeInProgress: () => !!bdFinalizeInProgress,
+    isDesignFinalized: () => !!bdDesignFinalized,
+    canApproveAddToCart: () => bdCanApproveAddToCart(),
+    isCropPending: () => bdIsCropPending(),
+    finalizeDesignProofs: () => bdFinalizeDesignProofs(),
+    enterEditDesignMode: () => bdEnterEditDesignMode(),
+    getApprovedProofState: () => (bdApprovedProofState ? JSON.parse(JSON.stringify(bdApprovedProofState)) : null),
+    buildApprovedSubmitSnapshot: (form) => bdBuildSubmitSnapshot(form, window.__bdTshirtPreviewState),
     clearProofRefreshTimers: () => {
       clearTimeout(bdProofSyncTimer.front);
       clearTimeout(bdProofSyncTimer.back);
@@ -2871,6 +3357,18 @@ const bdUseSideState = (side) => {
         window.bdSwitchPreviewSide(side);
       }
     },
+    refreshFinalizeUi: () => {
+      bdUpdateReviewUi();
+    }
+  };
+
+  let bdPlacementRefreshFrame = 0;
+  const bdSchedulePlacementRefresh = () => {
+    if (bdPlacementRefreshFrame) return;
+    bdPlacementRefreshFrame = requestAnimationFrame(() => {
+      bdPlacementRefreshFrame = 0;
+      if (typeof window.bdHeroPreviewUpdate === "function") window.bdHeroPreviewUpdate();
+    });
   };
 
   const apply = () => {
@@ -2883,12 +3381,7 @@ const bdUseSideState = (side) => {
     dimLabel.hidden = false;
 
     bdWritePlacement();
-    if (typeof window.bdHeroPreviewUpdate === "function") window.bdHeroPreviewUpdate();
-
-    // also refresh design preview slide overlay
-    try {
-      document.dispatchEvent(new CustomEvent("bd:design-preview-refresh"));
-    } catch (e) {}
+    bdSchedulePlacementRefresh();
   };
 
   // safe hook for other scripts
@@ -2911,16 +3404,8 @@ const bdUseSideState = (side) => {
         document.dispatchEvent(new CustomEvent("bd:design-preview-refresh"));
       } catch (e) {}
       try {
-        const activeSide = bdGetActiveSide();
-        const designedSides = bdGetDesignedProofSides();
-        if (designedSides.length) {
-          designedSides.forEach((side) => {
-            bdScheduleProofMockupSync({
-              side,
-              silent: side !== activeSide
-            });
-          });
-        }
+        if (typeof bdUpdateReviewUi === "function") bdUpdateReviewUi();
+        if (typeof bdRefreshFinalizeUi === "function") bdRefreshFinalizeUi();
       } catch (e) {}
     });
   }
@@ -3024,11 +3509,25 @@ const bdUseSideState = (side) => {
     }
 
     if (!any) {
+      bdProofDirty = { front: false, back: false };
       bdProofLastUploadedKey = { front: "", back: "" };
       bdProofLastUrl = { front: "", back: "" };
       window.bdSetProofMockupUrl("");
+      try {
+        const inputs = bdEnsurePropertyInputs(form);
+        if (inputs.previewFlow) inputs.previewFlow.value = "";
+        if (inputs.proofStatus) inputs.proofStatus.value = "";
+      } catch (e) {}
+      bdResetFinalizedState({ keepProofs: false });
+      bdUpdateReviewUi();
+      bdRefreshFinalizeUi();
     } else {
-      window.bdSetProofMockupUrl("", sideToClear === "back" ? "back" : "front");
+      bdInvalidateProofState([sideToClear === "back" ? "back" : "front"], {
+        reason: "side-cleared",
+        markDirty: {
+          [sideToClear === "back" ? "back" : "front"]: false
+        }
+      });
       bdScheduleProofMockupSync({ side: bdGetActiveSide() });
     }
 
@@ -3148,6 +3647,13 @@ window.bdSwitchPreviewSide = function (side) {
       hidePreview(s);
       return;
     }
+
+    bdInvalidateProofState([s], {
+      reason: "side-edit",
+      markDirty: {
+        [s]: true
+      }
+    });
 
     // keep UI visible
     box.classList.remove("is-hidden");
@@ -3271,24 +3777,7 @@ designImg.onerror = () => {
 
       if (t.id === "cfUploadFront" || t.id === "cfUploadBack" || t.closest("#cf-tshirt-preview-container")) {
         bindFileInput(t);
-        if ((t.__bdCropBypassCount || 0) > 0) {
-          t.__bdCropBypassCount -= 1;
-          return;
-        }
-
-        const file = t.files && t.files[0];
-        const side = t.id === "cfUploadBack" ? "back" : "front";
-        if (!file) return;
-        try {
-          bdSetActiveSideUi(side);
-          bdUseSideState(side);
-          if (typeof bdSwitchMainMockup === "function") bdSwitchMainMockup(side);
-        } catch (e) {}
-        if (file) {
-          bdSetOriginalEditorFile(side, file);
-          bdWriteEditorMetaForSide(side);
-        }
-        setDesignFromFile(file, side);
+        return;
       }
     },
     true
@@ -3309,6 +3798,7 @@ designImg.onerror = () => {
   // --------------------------
   let mode = null;
   let activeHandle = null;
+  let bdInteractionChanged = false;
   const start = { x: 0, y: 0, cx: 0, cy: 0, w: 0, h: 0 };
 
   const isHandle = (el) => el && el.dataset && el.dataset.handle;
@@ -3327,6 +3817,7 @@ designImg.onerror = () => {
 
     box.classList.add("is-interacting");
     wrap.setPointerCapture(e.pointerId);
+    bdInteractionChanged = false;
 
     start.x = e.clientX;
     start.y = e.clientY;
@@ -3348,6 +3839,7 @@ designImg.onerror = () => {
     if (mode === "drag") {
       state.cx = start.cx + dx;
       state.cy = start.cy + dy;
+      bdInteractionChanged = true;
       bdClampSizeAndPosToZone();
       apply();
       return;
@@ -3377,6 +3869,7 @@ designImg.onerror = () => {
 
       state.w = newW;
       state.h = Math.round(state.w / state.ar);
+      bdInteractionChanged = true;
       bdClampSizeAndPosToZone();
       apply();
     }
@@ -3388,6 +3881,14 @@ const endPointer = () => {
   activeHandle = null;
   box.classList.remove("is-interacting");
   try { bdPersistActiveState(); } catch (e) {}
+  if (bdInteractionChanged) {
+    bdInvalidateProofState([bdGetActiveSide()], {
+      reason: "placement-edit",
+      markDirty: {
+        [bdGetActiveSide()]: true
+      }
+    });
+  }
   try { bdScheduleProofMockupSync({ side: bdGetActiveSide() }); } catch (e) {}
 };
 
@@ -3408,8 +3909,15 @@ const endPointer = () => {
 
       state.w = state.w + (delta > 0 ? -step : step);
       state.h = Math.round(state.w / state.ar);
+      bdInvalidateProofState([bdGetActiveSide()], {
+        reason: "placement-edit",
+        markDirty: {
+          [bdGetActiveSide()]: true
+        }
+      });
       bdClampSizeAndPosToZone();
       apply();
+      bdScheduleProofMockupSync({ side: bdGetActiveSide() });
     },
     { passive: false }
   );
@@ -3469,6 +3977,13 @@ const endPointer = () => {
    STEP 1 (DAWN-SAFE) Gate: message + block submit if no upload
 ---------------------------- */
 (function () {
+  const bdSubmitProofLog = window.bdSubmitProofLog || function () {};
+  const bdGetActiveSide = window.bdGetActiveSide || function () {
+    const hidden = document.querySelector("#bd_active_side");
+    const v = ((hidden && hidden.value) || "").toLowerCase();
+    return v === "back" ? "back" : "front";
+  };
+
   function bdPreviewState() {
     return window.__bdTshirtPreviewState || null;
   }
@@ -3508,35 +4023,146 @@ const endPointer = () => {
       box.style.borderRadius = "8px";
       box.style.fontSize = "14px";
       box.style.lineHeight = "1.35";
+    }
+    const buttonWrap = form.querySelector(".product-form__buttons");
+    if (buttonWrap) {
+      buttonWrap.insertAdjacentElement("beforebegin", box);
+    } else if (!box.parentNode) {
       form.appendChild(box);
     }
     return box;
+  }
+
+  function bdSetStatusBoxContent(box, text, mode = "plain") {
+    if (!box) return;
+    if (mode === "cta-ready") {
+      box.innerHTML = bdGetReadyCopy().cta;
+      return;
+    }
+    box.textContent = text || "";
+  }
+
+  function bdGetNativeAddControls(form) {
+    if (!form) return {};
+    const addButton =
+      form.querySelector('[data-bd-native-add="1"]') ||
+      form.querySelector('.product-form__submit[name="add"]') ||
+      form.querySelector('button[type="submit"][name="add"]');
+    const acceleratedCheckout =
+      form.querySelector('[data-bd-accelerated-checkout="1"]') ||
+      form.querySelector('.shopify-payment-button');
+    return { addButton, acceleratedCheckout };
+  }
+
+  function bdNativeButtonCanBeEnabled(form, addButton) {
+    if (!form || !addButton) return false;
+    const variantInput = form.querySelector(".product-variant-id");
+    if (variantInput && variantInput.disabled) return false;
+
+    const labelEl = addButton.querySelector("span");
+    const currentLabel = String((labelEl ? labelEl.textContent : addButton.textContent) || "").trim();
+    const soldOutLabel = String(addButton.dataset.bdSoldoutLabel || "").trim();
+    const unavailableLabel = String(addButton.dataset.bdUnavailableLabel || "").trim();
+
+    if (soldOutLabel && currentLabel === soldOutLabel) return false;
+    if (unavailableLabel && currentLabel === unavailableLabel) return false;
+    return true;
+  }
+
+  function bdSetPreviewGateState(form, addButton, blocked) {
+    if (!form || !addButton) return;
+    const buttonWrap = addButton.closest(".product-form__buttons");
+
+    if (blocked) {
+      addButton.setAttribute("disabled", "disabled");
+      addButton.setAttribute("aria-disabled", "true");
+      addButton.dataset.bdPreviewDisabled = "1";
+      if (buttonWrap) {
+        buttonWrap.dataset.bdPreviewDisabled = "1";
+        buttonWrap.classList.add("is-preview-blocked");
+      }
+      return;
+    }
+
+    if (buttonWrap) {
+      delete buttonWrap.dataset.bdPreviewDisabled;
+      buttonWrap.classList.remove("is-preview-blocked");
+    }
+    delete addButton.dataset.bdPreviewDisabled;
+
+    if (bdNativeButtonCanBeEnabled(form, addButton)) {
+      addButton.removeAttribute("disabled");
+      addButton.removeAttribute("aria-disabled");
+    } else {
+      addButton.setAttribute("disabled", "disabled");
+      addButton.setAttribute("aria-disabled", "true");
+    }
   }
 
   function bdSetUi(form) {
     if (!bdIsPreviewRequired()) return;
 
     const box = bdEnsureStatusBox(form);
+    const { addButton } = bdGetNativeAddControls(form);
     const f1 = document.getElementById("cfUploadFront");
     const f2 = document.getElementById("cfUploadBack");
     const hasFrontUpload = !!(f1 && f1.files && f1.files.length);
     const hasBackUpload = !!(f2 && f2.files && f2.files.length);
     const hasUpload = hasFrontUpload || hasBackUpload;
+    const previewState = bdPreviewState();
+    const requiredSides = previewState && previewState.getRequiredProofSides ? previewState.getRequiredProofSides() : [];
+    const isGenerating = !!(previewState && previewState.isFinalizeInProgress && previewState.isFinalizeInProgress());
+    const readyNow = bdReevaluateFinalizeState({ source: "gate-ui" });
+    const canApprove = !!(previewState && previewState.canApproveAddToCart && previewState.canApproveAddToCart());
+    const isFinalized = !!(previewState && previewState.isDesignFinalized && previewState.isDesignFinalized());
+    const isCropPending = !!(previewState && previewState.isCropPending && previewState.isCropPending());
+    const frontApproved = bdHasApprovedProofForSide("front");
+    const backApproved = bdHasApprovedProofForSide("back");
+    const pendingReviewCopy = bdGetPendingReviewCopy({ frontApproved, backApproved });
+    const hasDirtyRequiredSide = !!(
+      isFinalized &&
+      !canApprove &&
+      requiredSides.length
+    );
 
-    if (bdIsFrontBackStatusMode()) {
+    if (!hasUpload) {
+      bdSetStatusBoxContent(box, "Please upload your design before finalizing.");
+    } else if (isCropPending) {
+      bdSetStatusBoxContent(box, "Apply or cancel crop before finalizing your design.");
+    } else if (readyNow && canApprove) {
+      bdSetStatusBoxContent(box, "", "cta-ready");
+    } else if (pendingReviewCopy) {
+      bdSetStatusBoxContent(box, pendingReviewCopy);
+    } else if (isGenerating) {
+      bdSetStatusBoxContent(box, "Generating preview...");
+    } else if (hasDirtyRequiredSide) {
+      bdSetStatusBoxContent(box, "Design changed. Finalize again to regenerate the required proof before adding to cart.");
+    } else if (bdIsFrontBackStatusMode()) {
       if (hasFrontUpload && hasBackUpload) {
-        box.textContent = "Front and back designs uploaded. You can add to cart.";
+        bdSetStatusBoxContent(box, "Front and back designs uploaded. Finalize design to generate proofs.");
       } else if (hasFrontUpload) {
-        box.textContent = "Front design uploaded, back pending. You can add to cart.";
+        bdSetStatusBoxContent(box, "Front design uploaded. Finalize design to generate the required proof.");
       } else if (hasBackUpload) {
-        box.textContent = "Back design uploaded, front pending. You can add to cart.";
-      } else {
-        box.textContent = "Please upload your design before adding to cart.";
+        bdSetStatusBoxContent(box, "Back design uploaded. Finalize design to generate the required proof.");
       }
     } else {
-      box.textContent = hasUpload ? "Design selected. You can add to cart." : "Please upload your design before adding to cart.";
+      bdSetStatusBoxContent(box, "Design selected. Finalize design to generate the required proof.");
     }
     box.style.opacity = hasUpload ? "1" : "0.95";
+
+    if (addButton) {
+      const shouldBlock = !canApprove || isCropPending;
+      bdSetPreviewGateState(form, addButton, shouldBlock);
+      if (!shouldBlock) {
+        requestAnimationFrame(() => {
+          bdSetPreviewGateState(form, addButton, false);
+        });
+      }
+    }
+
+    if (previewState && previewState.refreshFinalizeUi) {
+      previewState.refreshFinalizeUi();
+    }
   }
 
   function bdRefreshAll() {
@@ -3582,13 +4208,16 @@ const endPointer = () => {
     const f1 = document.getElementById("cfUploadFront");
     const f2 = document.getElementById("cfUploadBack");
     [f1, f2].forEach((inp) => {
-      if (!inp) return;
+      if (!inp || inp.__bdFinalizeUiBound) return;
+      inp.__bdFinalizeUiBound = true;
       inp.addEventListener("change", () => {
         window.__bdTshirtHasFileSelected = bdHasLiteUploadSelected();
         bdRefreshAll();
       });
     });
 
+    if (document.__bdPreviewSubmitBound) return;
+    document.__bdPreviewSubmitBound = true;
     document.addEventListener(
       "submit",
       async function (e) {
@@ -3613,8 +4242,20 @@ const endPointer = () => {
           const snapshot = typeof window.bdBuildSubmitSnapshot === "function"
             ? window.bdBuildSubmitSnapshot(form, previewState)
             : null;
-          if (snapshot && typeof window.bdApplySubmitSnapshot === "function") {
+          if (!snapshot || !previewState || !previewState.canApproveAddToCart || !previewState.canApproveAddToCart()) {
+            bdSubmitProofLog("submit-blocked-not-finalized", {
+              requiredSides: previewState && previewState.getRequiredProofSides ? previewState.getRequiredProofSides() : []
+            });
+            e.preventDefault();
+            e.stopPropagation();
+            bdSetUi(form);
+            return;
+          }
+          if (typeof window.bdApplySubmitSnapshot === "function") {
             window.bdApplySubmitSnapshot(form, snapshot);
+            bdSubmitProofLog("submit-approved", {
+              requiredSides: previewState && previewState.getRequiredProofSides ? previewState.getRequiredProofSides() : []
+            });
           }
         }
       },
