@@ -24,3 +24,90 @@
 .cf-uploader__meta { margin-top: .35rem; opacity: .8; font-size: .9em; }
 .cf-uploader__global-status { margin-top: .25rem; font-size: .95em; }
 .cf-uploader__global-status[data-type="error"] { color: #b00020; }
+.cf-uploader__notice {
+  margin-top: -.25rem;
+  color: rgba(0, 0, 0, .72);
+  font-size: .96rem;
+  line-height: 1.45;
+}
+.cf-uploader__notice-text {
+  margin: 0;
+  display: inline;
+}
+.cf-uploader__notice-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: text-top;
+  margin-left: .3rem;
+}
+.cf-uploader__notice-trigger {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid rgba(0, 0, 0, .18);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: .75rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+.cf-uploader__notice-trigger:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, .35);
+  outline-offset: 2px;
+}
+.cf-uploader__notice-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + .45rem);
+  transform: translateX(-50%);
+  width: min(18rem, calc(100vw - 2rem));
+  padding: .65rem .75rem;
+  border-radius: .75rem;
+  background: rgba(17, 24, 39, .96);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+  font-size: .8rem;
+  line-height: 1.45;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .18s ease, visibility .18s ease;
+  z-index: 5;
+}
+.cf-uploader__notice-tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border-width: .35rem;
+  border-style: solid;
+  border-color: rgba(17, 24, 39, .96) transparent transparent;
+}
+.cf-uploader__notice-tooltip-wrap:hover .cf-uploader__notice-tooltip,
+.cf-uploader__notice-tooltip-wrap:focus-within .cf-uploader__notice-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+@media screen and (max-width: 749px) {
+  .cf-uploader__notice {
+    margin-top: -.15rem;
+    font-size: .92rem;
+  }
+  .cf-uploader__notice-tooltip {
+    left: 0;
+    right: auto;
+    transform: none;
+    width: min(16rem, calc(100vw - 2.5rem));
+  }
+  .cf-uploader__notice-tooltip::after {
+    left: .85rem;
+    transform: none;
+  }
+}

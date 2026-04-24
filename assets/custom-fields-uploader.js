@@ -10,6 +10,16 @@
     return Array.from(root.querySelectorAll(sel));
   }
 
+  function setSlotFieldValues(root, attr, idx, value) {
+    qsa(root, `[${attr}="${idx}"]`).forEach((el) => {
+      el.value = value;
+    });
+  }
+
+  function getSlotPrimaryField(root, attr, idx) {
+    return root.querySelector(`[${attr}="${idx}"]`);
+  }
+
   function setStatus(root, idx, msg, type) {
     const el = root.querySelector(`[data-status="${idx}"]`);
     if (!el) return;
@@ -91,6 +101,20 @@
 
   function getSideForIndex(idx) {
     return String(idx) === "2" ? "back" : "front";
+  }
+
+  function nextUploadSeq(root, idx) {
+    if (!root) return 0;
+    root.__cfUploadSeq = root.__cfUploadSeq || {};
+    const key = String(idx);
+    const next = Number(root.__cfUploadSeq[key] || 0) + 1;
+    root.__cfUploadSeq[key] = next;
+    return next;
+  }
+
+  function isLatestUploadSeq(root, idx, seq) {
+    if (!root || !root.__cfUploadSeq) return true;
+    return Number(root.__cfUploadSeq[String(idx)] || 0) === Number(seq || 0);
   }
 
   function getSideUploadState(root, idx) {
@@ -212,20 +236,16 @@
 
     async function handleFile(idx, file) {
       if (!file) return;
+      const uploadSeq = nextUploadSeq(root, idx);
       setUploadAttemptedFlag(root, idx, true);
       syncSideUploadStateInputs(root, form);
 
-      const urlEl = root.querySelector(`[data-url="${idx}"]`);
-      const pidEl = root.querySelector(`[data-publicid="${idx}"]`);
-      const wEl = root.querySelector(`[data-width="${idx}"]`);
-      const hEl = root.querySelector(`[data-height="${idx}"]`);
-      const fnEl = root.querySelector(`[data-filename="${idx}"]`);
-
-      if (urlEl) urlEl.value = "";
-      if (pidEl) pidEl.value = "";
-      if (wEl) wEl.value = "";
-      if (hEl) hEl.value = "";
-      if (fnEl) fnEl.value = file?.name || "";
+      const urlEl = getSlotPrimaryField(root, "data-url", idx);
+      setSlotFieldValues(root, "data-url", idx, "");
+      setSlotFieldValues(root, "data-publicid", idx, "");
+      setSlotFieldValues(root, "data-width", idx, "");
+      setSlotFieldValues(root, "data-height", idx, "");
+      setSlotFieldValues(root, "data-filename", idx, file?.name || "");
 
       const previewWrap = root.querySelector(`[data-preview-wrap="${idx}"]`);
       const previewImg = root.querySelector(`[data-preview-img="${idx}"]`);
@@ -254,8 +274,8 @@
         const w = img.naturalWidth;
         const h = img.naturalHeight;
 
-        if (wEl) wEl.value = String(w);
-        if (hEl) hEl.value = String(h);
+        setSlotFieldValues(root, "data-width", idx, String(w));
+        setSlotFieldValues(root, "data-height", idx, String(h));
 
         if (previewMode === "on" && previewWrap && previewImg) {
           previewImg.src = objectUrl;
@@ -304,12 +324,17 @@
             preset,
             folder,
             file,
-            onProgress: (pct) => setProgress(root, idx, pct)
+            onProgress: (pct) => {
+              if (!isLatestUploadSeq(root, idx, uploadSeq)) return;
+              setProgress(root, idx, pct);
+            }
           });
 
+          if (!isLatestUploadSeq(root, idx, uploadSeq)) return;
+
           const secureUrl = res.secure_url || res.url || "";
-          if (urlEl) urlEl.value = secureUrl;
-          if (pidEl) pidEl.value = res.public_id || "";
+          setSlotFieldValues(root, "data-url", idx, secureUrl);
+          setSlotFieldValues(root, "data-publicid", idx, res.public_id || "");
 
           if (lowResWarn) {
             setStatus(root, idx, lowResMsg, "warn");
@@ -328,6 +353,7 @@
               `${lowResWarn ? " - Low resolution" : ""}`;
           }
         } catch (err) {
+          if (!isLatestUploadSeq(root, idx, uploadSeq)) return;
           console.error(err);
           setStatus(
             root,
@@ -337,10 +363,12 @@
               : "Upload failed. Please try again.",
             exceedsSizeLimit ? "warn" : "error"
           );
-          if (urlEl) urlEl.value = "";
-          if (pidEl) pidEl.value = "";
+          setSlotFieldValues(root, "data-url", idx, "");
+          setSlotFieldValues(root, "data-publicid", idx, "");
         } finally {
-          syncSideUploadStateInputs(root, form);
+          if (isLatestUploadSeq(root, idx, uploadSeq)) {
+            syncSideUploadStateInputs(root, form);
+          }
         }
       };
 

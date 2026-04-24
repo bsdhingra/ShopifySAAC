@@ -1,0 +1,54 @@
+{
+  "hoodie-shared-basic": {
+    "colorMockupMap": {
+      "Black": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_black.png?v=1776994861",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_black.png?v=1776919345"
+      },
+      "Irish Green": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_irish_green.png?v=1776918918",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_irish_green.png?v=1776919157"
+      },
+      "Light Blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_Light_blue.png?v=1776918942",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_light_blue.png?v=1776918995"
+      },
+      "Royal Blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_royal_blue.png?v=1776918973",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_royal_blue.png?v=1776919194"
+      },
+      "Sand": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_sand.png?v=1776919011",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_sand.png?v=1776919176"
+      },
+      "Sports Grey": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_sports_gray.png?v=1776918884",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_sports_gray.png?v=1776994866"
+      },
+      "Red": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_red.png?v=1776919031",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_red.png?v=1776919134"
+      },
+      "Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_pink.png?v=1776919051",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_pink.png?v=1776919308"
+      },
+      "Purple": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_purple.png?v=1776919227",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_purple.png?v=1776919329"
+      },
+      "Navy": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_navy.png?v=1776919254",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_navy.png?v=1776919100"
+      },
+      "Forest Green": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_forest_green.png?v=1776919291",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_forest_green.png?v=1776919376"
+      },
+      "White": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_hoodie_white.png?v=1776919071",
+        "back": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Back_hoodie_white.png?v=1776919401"
+      }
+    }
+  }
+}

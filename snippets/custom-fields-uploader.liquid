@@ -73,6 +73,8 @@
 {%- assign u1_label = u1_label | strip -%}
 {%- assign u2_label = u2_label | strip -%}
 {%- assign text_label = text_label | strip -%}
+{%- assign upload_notice_text = 'Upload only images you have rights to use — no copyrighted or trademarked content.' -%}
+{%- assign upload_notice_tooltip = 'You must have the legal right to use any image you upload. Do not upload copyrighted or trademarked content without authorization' -%}
 
 
  {% if has_text or has_u1 or has_u2 %}
@@ -202,13 +204,44 @@
           </div>
 
           <!-- Saved to order as line item properties -->
+          <input type="hidden" name="properties[_Design 2 URL]" value="" data-url="2">
           <input type="hidden" name="properties[Design 2 URL]" value="" data-url="2">
+          <input type="hidden" name="properties[_Design 2 public_id]" value="" data-publicid="2">
+          <input type="hidden" name="properties[_Design 2 width]" value="" data-width="2">
+          <input type="hidden" name="properties[_Design 2 height]" value="" data-height="2">
+          <input type="hidden" name="properties[_Design 2 filename]" value="" data-filename="2">
           <input type="hidden" name="properties[Design 2 public_id]" value="" data-publicid="2">
           <input type="hidden" name="properties[Design 2 width]" value="" data-width="2">
           <input type="hidden" name="properties[Design 2 height]" value="" data-height="2">
           <input type="hidden" name="properties[Design 2 filename]" value="" data-filename="2">
         </div>
       {% endif %}
+
+      {% if has_u1 or has_u2 %}
+        <div class="cf-uploader__notice" data-cf-upload-notice>
+          <p class="cf-uploader__notice-text">
+            <span>{{ upload_notice_text }}</span>
+            <span class="cf-uploader__notice-tooltip-wrap">
+              <button
+                type="button"
+                class="cf-uploader__notice-trigger"
+                aria-label="About upload rights"
+                aria-describedby="CFUploadNoticeTooltip-{{ section.id | default: 'main' }}"
+              >
+                i
+              </button>
+              <span
+                id="CFUploadNoticeTooltip-{{ section.id | default: 'main' }}"
+                class="cf-uploader__notice-tooltip"
+                role="tooltip"
+              >
+                {{ upload_notice_tooltip }}
+              </span>
+            </span>
+          </p>
+        </div>
+      {% endif %}
+
       {% if has_text %}
         <div class="cf-uploader__block">
           <label class="cf-uploader__label" for="CFText-{{ section.id | default: 'main' }}">

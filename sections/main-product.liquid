@@ -520,6 +520,8 @@
 {%- assign bd_preview_config_id = product.metafields.custom.preview_config_id | default: '' -%}
 {%- if bd_preview_config_id == blank and product.tags contains 'cf-garment-polo' -%}
   {%- assign bd_preview_config_id = 'polo-shared-basic' -%}
+{%- elsif bd_preview_config_id == blank and product.tags contains 'cf-garment-hoodie' -%}
+  {%- assign bd_preview_config_id = 'hoodie-shared-basic' -%}
 {%- elsif bd_preview_config_id == blank and product.tags contains 'cf-tshirt-preview' -%}
   {%- assign bd_preview_config_id = 'tshirt-shared-basic' -%}
 {%- endif -%}
@@ -527,6 +529,8 @@
 {%- assign bd_preview_config_file = product.metafields.custom.preview_config_file | default: '' -%}
 {%- if bd_preview_config_file == blank and product.tags contains 'cf-garment-polo' -%}
   {%- assign bd_preview_config_file = 'cf-polo-config.json' -%}
+{%- elsif bd_preview_config_file == blank and product.tags contains 'cf-garment-hoodie' -%}
+  {%- assign bd_preview_config_file = 'cf-hoodie-config.json' -%}
 {%- elsif bd_preview_config_file == blank and product.tags contains 'cf-tshirt-preview' -%}
   {%- assign bd_preview_config_file = 'cf-tshirt-config.json' -%}
 {%- endif -%}

@@ -60,6 +60,121 @@
                   {%- else -%}
                     <p>{{ line_item.title | escape }}</p>
                   {%- endif -%}
+                  {%- assign bd_front_proof_url = line_item.properties['_Front Proof Mockup URL'] -%}
+                  {%- assign bd_back_proof_url = line_item.properties['_Back Proof Mockup URL'] -%}
+                  {%- assign bd_proof_url = line_item.properties['Proof Mockup URL'] -%}
+                  {%- if bd_front_proof_url == blank and bd_back_proof_url == blank and bd_proof_url == blank -%}
+                    {%- assign bd_proof_url = line_item.properties['_Proof Mockup URL'] -%}
+                  {%- endif -%}
+                  {%- assign bd_proof_notice = line_item.properties['_Proof Notice'] -%}
+                  {%- assign bd_upload_url = line_item.properties['Design 1 URL'] -%}
+                  {%- assign bd_upload_url_back = line_item.properties['Design 2 URL'] -%}
+                  {%- if bd_upload_url_back == blank -%}
+                    {%- assign bd_upload_url_back = line_item.properties['_Design 2 URL'] -%}
+                  {%- endif -%}
+                  {%- assign bd_front_upload_state = line_item.properties['_Front Upload State'] | default: 'none' -%}
+                  {%- assign bd_back_upload_state = line_item.properties['_Back Upload State'] | default: 'none' -%}
+                  {%- assign bd_front_upload_notice = line_item.properties['_Front Upload Notice'] -%}
+                  {%- assign bd_back_upload_notice = line_item.properties['_Back Upload Notice'] -%}
+                  {%- assign bd_customization_text = line_item.properties['Customization text'] -%}
+                  {%- if bd_front_proof_url != blank or bd_back_proof_url != blank or bd_proof_url != blank or bd_upload_url != blank or bd_upload_url_back != blank -%}
+                    <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 12px;">
+                      {%- if bd_front_proof_url != blank -%}
+                        <a href="{{ bd_front_proof_url }}" target="_blank" rel="noopener" style="display:block; max-width: 120px; color: inherit; text-decoration: none;">
+                          {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+                          <img
+                            src="{{ bd_front_proof_url | escape }}"
+                            alt="Front proof"
+                            width="120"
+                            height="120"
+                            loading="lazy"
+                            style="display:block; width:120px; height:auto; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
+                          >
+                          {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+                          <span style="display:block; margin-top:6px; font-size:12px; opacity:.85;">Front preview</span>
+                        </a>
+                      {%- endif -%}
+                      {%- if bd_back_proof_url != blank -%}
+                        <a href="{{ bd_back_proof_url }}" target="_blank" rel="noopener" style="display:block; max-width: 120px; color: inherit; text-decoration: none;">
+                          {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+                          <img
+                            src="{{ bd_back_proof_url | escape }}"
+                            alt="Back proof"
+                            width="120"
+                            height="120"
+                            loading="lazy"
+                            style="display:block; width:120px; height:auto; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
+                          >
+                          {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+                          <span style="display:block; margin-top:6px; font-size:12px; opacity:.85;">Back preview</span>
+                        </a>
+                      {%- endif -%}
+                      {%- if bd_front_proof_url == blank and bd_back_proof_url == blank and bd_proof_url != blank -%}
+                        <a href="{{ bd_proof_url }}" target="_blank" rel="noopener" style="display:block; max-width: 120px; color: inherit; text-decoration: none;">
+                          {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+                          <img
+                            src="{{ bd_proof_url | escape }}"
+                            alt="Design proof"
+                            width="120"
+                            height="120"
+                            loading="lazy"
+                            style="display:block; width:120px; height:auto; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
+                          >
+                          {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+                          <span style="display:block; margin-top:6px; font-size:12px; opacity:.85;">Design preview</span>
+                        </a>
+                      {%- endif -%}
+                      {%- if bd_upload_url != blank -%}
+                        <a href="{{ bd_upload_url }}" target="_blank" rel="noopener" style="display:block; max-width: 120px; color: inherit; text-decoration: none;">
+                          {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+                          <img
+                            src="{{ bd_upload_url | escape }}"
+                            alt="Uploaded design"
+                            width="120"
+                            height="120"
+                            loading="lazy"
+                            style="display:block; width:120px; height:120px; object-fit:cover; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
+                          >
+                          {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+                          <span style="display:block; margin-top:6px; font-size:12px; opacity:.85;">Front uploaded image</span>
+                        </a>
+                      {%- endif -%}
+                      {%- if bd_upload_url_back != blank -%}
+                        <a href="{{ bd_upload_url_back }}" target="_blank" rel="noopener" style="display:block; max-width: 120px; color: inherit; text-decoration: none;">
+                          {% comment %} theme-check-disable RemoteAsset {% endcomment %}
+                          <img
+                            src="{{ bd_upload_url_back | escape }}"
+                            alt="Back uploaded design"
+                            width="120"
+                            height="120"
+                            loading="lazy"
+                            style="display:block; width:120px; height:120px; object-fit:cover; border-radius:8px; border:1px solid rgba(0,0,0,.12);"
+                          >
+                          {% comment %} theme-check-enable RemoteAsset {% endcomment %}
+                          <span style="display:block; margin-top:6px; font-size:12px; opacity:.85;">Back uploaded image</span>
+                        </a>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                  {%- if bd_front_proof_url == blank and bd_back_proof_url == blank and bd_proof_url == blank and bd_proof_notice != blank -%}
+                    <div style="margin-top:12px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
+                      {{ bd_proof_notice }}
+                    </div>
+                  {%- endif -%}
+                  {%- if bd_front_upload_state == 'fallback' and bd_front_upload_notice != blank -%}
+                    <div style="margin-top:12px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
+                      {%- if bd_back_proof_url != blank or bd_upload_url_back != blank -%}
+                        <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Front uploaded image</div>
+                      {%- endif -%}
+                      {{ bd_front_upload_notice }}
+                    </div>
+                  {%- endif -%}
+                  {%- if bd_back_upload_state == 'fallback' and bd_back_upload_notice != blank -%}
+                    <div style="margin-top:12px; font-size:12px; line-height:1.45; color:rgba(0,0,0,.78);">
+                      <div style="font-size:12px; opacity:.85; margin-bottom:6px;">Back uploaded image</div>
+                      {{ bd_back_upload_notice }}
+                    </div>
+                  {%- endif -%}
                   {%- assign property_size = line_item.properties | size -%}
                   {%- unless line_item.selling_plan_allocation == null and property_size == 0 -%}
                     <div class="properties">
@@ -73,10 +188,36 @@
                           {{ line_item.selling_plan_allocation.selling_plan.name }}
                         </span>
                       {%- endunless -%}
+                      {%- if bd_customization_text != blank -%}
+                        <span>Customization:</span>
+                        <span>{{ bd_customization_text }}</span>
+                      {%- endif -%}
                       {%- if property_size != 0 -%}
                         {%- for property in line_item.properties -%}
                           {% assign property_first_char = property.first | slice: 0 %}
-                          {%- if property.last != blank and property_first_char != '_' -%}
+                          {%- assign property_name = property.first | strip -%}
+                          {%- assign skip_property = false -%}
+                          {%- if property_name == 'Design 1 URL'
+                            or property_name == 'Design 2 URL'
+                            or property_name == 'Design 1 public_id'
+                            or property_name == 'Design 1 width'
+                            or property_name == 'Design 1 height'
+                            or property_name == 'Design 1 filename'
+                            or property_name == 'Proof Mockup URL'
+                            or property_name == 'Customization text'
+                            or property_name == 'Design 2 public_id'
+                            or property_name == 'Design 2 width'
+                            or property_name == 'Design 2 height'
+                            or property_name == 'Design 2 filename'
+                            or property.last == bd_front_proof_url
+                            or property.last == bd_back_proof_url
+                            or property.last == bd_proof_url
+                            or property.last == bd_upload_url
+                            or property.last == bd_upload_url_back
+                          -%}
+                            {%- assign skip_property = true -%}
+                          {%- endif -%}
+                          {%- if property.last != blank and property_first_char != '_' and skip_property == false -%}
                             <span>{{ property.first }}:</span>
                             <span>
                               {%- if property.last contains '/uploads/' -%}

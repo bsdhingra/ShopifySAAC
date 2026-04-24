@@ -164,6 +164,9 @@
                           {%- assign bd_upload_notice = item.properties['_Upload Notice'] -%}
                           {%- assign bd_upload_url = item.properties['Design 1 URL'] -%}
                           {%- assign bd_upload_url_back = item.properties['Design 2 URL'] -%}
+                          {%- if bd_upload_url_back == blank -%}
+                            {%- assign bd_upload_url_back = item.properties['_Design 2 URL'] -%}
+                          {%- endif -%}
                           {%- assign bd_front_upload_state = item.properties['_Front Upload State'] | default: 'none' -%}
                           {%- assign bd_back_upload_state = item.properties['_Back Upload State'] | default: 'none' -%}
                           {%- assign bd_front_upload_notice = item.properties['_Front Upload Notice'] -%}
@@ -325,7 +328,7 @@
                                 {%- assign property_first_char = property.first | slice: 0 -%}
                                 {%- assign property_name = property.first | strip -%}
                                 {%- assign skip_property = false -%}
-                                {%- if property_name == 'Design 1 URL' or property_name == 'Design 2 URL' or property_name == 'Proof Mockup URL' -%}
+                                {%- if property_name == 'Design 1 URL' or property_name == 'Design 2 URL' or property_name == 'Proof Mockup URL' or property_name == 'Design 2 public_id' or property_name == 'Design 2 width' or property_name == 'Design 2 height' or property_name == 'Design 2 filename' -%}
                                   {%- assign skip_property = true -%}
                                 {%- endif -%}
                                 {%- if property.last != blank and property_first_char != '_' and skip_property == false -%}

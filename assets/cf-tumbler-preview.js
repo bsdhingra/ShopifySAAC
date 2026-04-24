@@ -64,6 +64,21 @@
   const PROOF_NOTICE_TEXT = "Proof size is greater than 10MB. Our team will send you the proof before printing.";
   const UPLOAD_NOTICE_TEXT = "Your image is larger than 10MB, but no worries-you can still edit and preview your design. After placing your order, just email your image to info@sarvsartsandcrafts.com, and we'll handle the proof for you.";
   const BOTH_NOTICE_TEXT = "Uploaded file size and proof size are greater than 10MB. Please send your image by email at info@sarvsartsandcrafts.com, and our team will send you the proof before printing.";
+  const getScopedProductRoot = () =>
+    root.closest("product-info") ||
+    root.closest(".shopify-section") ||
+    document;
+
+  const mountSharedUploadNotice = () => {
+    const notice = getScopedProductRoot().querySelector("[data-cf-upload-notice]");
+    if (!notice || !uploadBtn || !uploadBtn.parentNode) return;
+
+    notice.style.marginTop = "0";
+    notice.style.marginBottom = "0";
+    if (notice.parentNode !== uploadBtn.parentNode || notice.nextElementSibling !== uploadBtn) {
+      uploadBtn.insertAdjacentElement("beforebegin", notice);
+    }
+  };
 
   const resumeProductSubmit = () => {
     if (!productForm) return;
@@ -1002,6 +1017,7 @@
   if (startBtn && body) {
     startBtn.addEventListener("click", () => {
       body.hidden = false;
+      mountSharedUploadNotice();
       loadConfig().then(() => loadMockup()).then(() => {
         applyStageSpec();
         scheduleRender();
@@ -1161,6 +1177,7 @@
     ensureProofInput();
     ensureProofNoticeInput();
     ensureUploadNoticeInput();
+    mountSharedUploadNotice();
     scheduleRender();
     syncFromUploader();
   });

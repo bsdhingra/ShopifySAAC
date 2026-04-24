@@ -231,6 +231,9 @@
 
                           {%- assign upload_url = item.properties['Design 1 URL'] -%}
                           {%- assign upload_url_back = item.properties['Design 2 URL'] -%}
+                          {%- if upload_url_back == blank -%}
+                            {%- assign upload_url_back = item.properties['_Design 2 URL'] -%}
+                          {%- endif -%}
                           {%- assign customization_text = item.properties['Customization text'] -%}
 
 {%- if bd_front_upload_state == 'fallback' and bd_front_upload_notice != blank -%}
