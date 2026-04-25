@@ -631,7 +631,13 @@
       }
     }
 
+    #bd-carousel-{{ section.id }}.bd-carousel--syncing .bd-carousel__content > * {
+      transition-duration: 1ms !important;
+      animation-duration: 1ms !important;
+    }
+
     @media (prefers-reduced-motion: reduce) {
+      #bd-carousel-{{ section.id }}.bd-carousel--syncing .bd-carousel__content > *,
       #bd-carousel-{{ section.id }} .bd-carousel__track,
       #bd-carousel-{{ section.id }} .bd-carousel__content > * ,
       #bd-carousel-{{ section.id }} .bd-carousel__button,
@@ -894,6 +900,7 @@
       var touchActive = false;
       var swipeThreshold = 42;
       var transitionLock = false;
+      var syncUiResetFrame = null;
 
       function getWrappedIndex(index) {
         if (realSlideCount === 0) return 0;
@@ -953,6 +960,24 @@
         }
       }
 
+      function setSyncingUiState(isSyncing) {
+        if (syncUiResetFrame) {
+          window.cancelAnimationFrame(syncUiResetFrame);
+          syncUiResetFrame = null;
+        }
+
+        root.classList.toggle('bd-carousel--syncing', isSyncing);
+
+        if (isSyncing) {
+          syncUiResetFrame = window.requestAnimationFrame(function() {
+            syncUiResetFrame = window.requestAnimationFrame(function() {
+              root.classList.remove('bd-carousel--syncing');
+              syncUiResetFrame = null;
+            });
+          });
+        }
+      }
+
       function stopAutoplay() {
         if (!autoplayTimer) return;
         window.clearTimeout(autoplayTimer);
@@ -972,14 +997,18 @@
       }
 
       function syncInfinitePosition() {
+        var didSync = false;
         if (!infiniteLoop) return;
         if (activeIndex === 0) {
           activeIndex = realSlideCount;
           setTransform(activeIndex, false);
+          didSync = true;
         } else if (activeIndex === slides.length - 1) {
           activeIndex = 1;
           setTransform(activeIndex, false);
+          didSync = true;
         }
+        return didSync;
       }
 
       function goToRealIndex(nextRealIndex, options) {
@@ -1011,7 +1040,7 @@
         startAutoplay();
 
         if (reducedMotion.matches) {
-          syncInfinitePosition();
+          setSyncingUiState(syncInfinitePosition());
           updateUi();
           transitionLock = false;
         }
@@ -1081,7 +1110,7 @@
       viewport.addEventListener('touchcancel', onTouchEnd);
       track.addEventListener('transitionend', function(event) {
         if (event.target !== track) return;
-        syncInfinitePosition();
+        setSyncingUiState(syncInfinitePosition());
         updateUi();
         transitionLock = false;
       });
