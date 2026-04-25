@@ -1,0 +1,1465 @@
+{%- liquid
+  assign bd_carousel_section_label = section.settings.accessibility_label | strip
+  if bd_carousel_section_label == blank
+    assign bd_carousel_section_label = 'Premium carousel'
+  endif
+
+  assign bd_carousel_desktop_height = section.settings.desktop_height | default: 'large'
+  assign bd_carousel_mobile_height = section.settings.mobile_height | default: 'medium'
+  assign bd_carousel_image_fit = section.settings.image_fit | default: 'cover'
+  assign bd_carousel_section_width = section.settings.section_max_width | default: 'full'
+  assign bd_carousel_content_width = section.settings.text_container_width | default: 'medium'
+  assign bd_carousel_overlay_style = section.settings.overlay_style | default: 'gradient'
+  assign bd_carousel_global_overlay_opacity = section.settings.global_overlay_opacity | default: 45
+
+  assign bd_carousel_desktop_hidden = false
+  assign bd_carousel_mobile_hidden = false
+  if section.settings.hide_on_desktop
+    assign bd_carousel_desktop_hidden = true
+  endif
+  if section.settings.hide_on_mobile
+    assign bd_carousel_mobile_hidden = true
+  endif
+
+  assign bd_carousel_motion_ms = 500
+  if section.settings.enable_subtle_animation == false
+    assign bd_carousel_motion_ms = 420
+  endif
+
+  assign bd_carousel_autoplay_speed = section.settings.autoplay_speed | default: 5
+  if bd_carousel_autoplay_speed < 2
+    assign bd_carousel_autoplay_speed = 2
+  endif
+-%}
+
+<section
+  id="bd-carousel-{{ section.id }}"
+  class="bd-carousel bd-carousel--desktop-{{ bd_carousel_desktop_height }} bd-carousel--mobile-{{ bd_carousel_mobile_height }}{% if bd_carousel_desktop_hidden %} bd-carousel--hide-desktop{% endif %}{% if bd_carousel_mobile_hidden %} bd-carousel--hide-mobile{% endif %}"
+  data-bd-carousel-section
+  data-section-id="{{ section.id }}"
+  data-autoplay="{{ section.settings.enable_autoplay }}"
+  data-autoplay-speed="{{ bd_carousel_autoplay_speed | times: 1000 }}"
+  data-show-arrows="{{ section.settings.enable_arrows }}"
+  data-show-dots="{{ section.settings.enable_dots }}"
+  data-motion-ms="{{ bd_carousel_motion_ms }}"
+  data-subtle-animation="{{ section.settings.enable_subtle_animation }}"
+  role="region"
+  aria-roledescription="carousel"
+  aria-label="{{ bd_carousel_section_label | escape }}"
+  style="
+    --bd-carousel-padding-top: {{ section.settings.padding_top }}px;
+    --bd-carousel-padding-bottom: {{ section.settings.padding_bottom }}px;
+    --bd-carousel-motion-ms: {{ bd_carousel_motion_ms }}ms;
+    --bd-carousel-content-max-width: {{ section.settings.content_max_width }}px;
+    --bd-carousel-global-overlay-opacity: {{ bd_carousel_global_overlay_opacity | divided_by: 100.0 }};
+  "
+>
+  <style>
+    #bd-carousel-{{ section.id }} {
+      position: relative;
+      padding-top: var(--bd-carousel-padding-top);
+      padding-bottom: var(--bd-carousel-padding-bottom);
+      color: rgb(var(--color-foreground));
+    }
+
+    #bd-carousel-{{ section.id }}.bd-carousel--hide-desktop {
+      display: block;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__shell {
+      position: relative;
+      {% if bd_carousel_section_width == 'page' %}
+        max-width: var(--page-width);
+        margin: 0 auto;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      {% else %}
+        width: 100%;
+      {% endif %}
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__frame {
+      position: relative;
+      overflow: clip;
+      border-radius: 2rem;
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 38%),
+        linear-gradient(135deg, rgba(16, 24, 40, 0.95), rgba(29, 41, 57, 0.88));
+      box-shadow: 0 28px 60px rgba(15, 23, 42, 0.16);
+      isolation: isolate;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__viewport {
+      overflow: hidden;
+      position: relative;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__track {
+      display: flex;
+      will-change: transform;
+      transition: transform var(--bd-carousel-motion-ms) cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translateX(0%);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__slide {
+      position: relative;
+      flex: 0 0 100%;
+      min-width: 100%;
+      min-height: clamp(24rem, 70vh, 56rem);
+      display: flex;
+      align-items: stretch;
+      background: linear-gradient(135deg, #e5e7eb, #f8fafc);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__media-wrap {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__media {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: {{ bd_carousel_image_fit }};
+      object-position: center;
+      display: block;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__media--mobile {
+      display: none;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__placeholder {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.78), transparent 0 24%),
+        linear-gradient(130deg, #dbeafe, #ede9fe 46%, #f8fafc);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__placeholder::before,
+    #bd-carousel-{{ section.id }} .bd-carousel__placeholder::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(4px);
+      opacity: 0.7;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__placeholder::before {
+      width: 22rem;
+      height: 22rem;
+      right: -5rem;
+      top: -4rem;
+      background: rgba(191, 219, 254, 0.8);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__placeholder::after {
+      width: 16rem;
+      height: 16rem;
+      left: -2rem;
+      bottom: -3rem;
+      background: rgba(216, 180, 254, 0.42);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: var(--bd-carousel-slide-overlay-opacity, var(--bd-carousel-global-overlay-opacity));
+      background: transparent;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__overlay--solid {
+      background: rgba(17, 24, 39, 1);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__overlay--gradient {
+      background:
+        linear-gradient(120deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.42) 44%, rgba(15, 23, 42, 0.14) 100%);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      min-height: inherit;
+      display: grid;
+      padding: clamp(1.5rem, 3vw, 2.75rem);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--top {
+      align-items: start;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--middle {
+      align-items: center;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--bottom {
+      align-items: end;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--left {
+      justify-items: start;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--center {
+      justify-items: center;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--right {
+      justify-items: end;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content {
+      width: min(100%, var(--bd-carousel-content-max-width));
+      max-width: 100%;
+      display: grid;
+      gap: 0.9rem;
+      text-wrap: balance;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content--narrow {
+      max-width: min(38rem, var(--bd-carousel-content-max-width));
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content--medium {
+      max-width: min(48rem, var(--bd-carousel-content-max-width));
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content--wide {
+      max-width: min(62rem, var(--bd-carousel-content-max-width));
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content[data-align="left"] {
+      text-align: left;
+      justify-items: start;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content[data-align="center"] {
+      text-align: center;
+      justify-items: center;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content[data-align="right"] {
+      text-align: right;
+      justify-items: end;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__eyebrow {
+      margin: 0;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      opacity: 0.92;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__heading {
+      margin: 0;
+      line-height: 0.96;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__heading--small {
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__heading--medium {
+      font-size: clamp(2.5rem, 5.1vw, 4.35rem);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__heading--large {
+      font-size: clamp(3rem, 6vw, 5.5rem);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__heading--xlarge {
+      font-size: clamp(3.4rem, 7vw, 6.6rem);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__body {
+      margin: 0;
+      max-width: 58ch;
+      font-size: clamp(1rem, 1.25vw, 1.16rem);
+      line-height: 1.65;
+      opacity: 0.94;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0.85rem 1.4rem;
+      border-radius: 999px;
+      border: 1px solid var(--bd-carousel-button-border, transparent);
+      background: var(--bd-carousel-button-bg, #111827);
+      color: var(--bd-carousel-button-text, #ffffff);
+      font-size: 0.96rem;
+      font-weight: 600;
+      line-height: 1;
+      text-decoration: none;
+      transition:
+        transform 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        box-shadow 180ms ease;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__button:hover,
+    #bd-carousel-{{ section.id }} .bd-carousel__button:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__button:focus-visible,
+    #bd-carousel-{{ section.id }} .bd-carousel__nav-button:focus-visible,
+    #bd-carousel-{{ section.id }} .bd-carousel__dot:focus-visible,
+    #bd-carousel-{{ section.id }} .bd-carousel__slide-link:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.95);
+      outline-offset: 2px;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__button--secondary {
+      background: color-mix(in srgb, var(--bd-carousel-button-bg, #ffffff) 18%, transparent);
+      backdrop-filter: blur(10px);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__button--outline {
+      background: transparent;
+      backdrop-filter: blur(8px);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__controls {
+      position: absolute;
+      inset-inline: clamp(1rem, 2vw, 1.5rem);
+      bottom: clamp(1rem, 2vw, 1.5rem);
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      pointer-events: none;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__arrows,
+    #bd-carousel-{{ section.id }} .bd-carousel__dots {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      pointer-events: auto;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__nav-button {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      backdrop-filter: blur(12px);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__nav-button:hover,
+    #bd-carousel-{{ section.id }} .bd-carousel__nav-button:focus-visible {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__nav-button svg {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__nav-button--prev svg {
+      transform: rotate(180deg);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__dot {
+      width: 0.72rem;
+      height: 0.72rem;
+      border-radius: 999px;
+      border: 0;
+      padding: 0;
+      background: rgba(255, 255, 255, 0.34);
+      cursor: pointer;
+      transition: transform 180ms ease, background-color 180ms ease, width 180ms ease;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__dot[aria-current="true"] {
+      width: 2rem;
+      background: rgba(255, 255, 255, 0.92);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__dot:hover,
+    #bd-carousel-{{ section.id }} .bd-carousel__dot:focus-visible {
+      background: rgba(255, 255, 255, 0.82);
+      transform: scale(1.05);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__status {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__slide-link {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__slide[aria-hidden="true"] .bd-carousel__slide-link {
+      pointer-events: none;
+    }
+
+    {% if section.settings.enable_subtle_animation %}
+      #bd-carousel-{{ section.id }} .bd-carousel__content > * {
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity calc(var(--bd-carousel-motion-ms) + 120ms) ease,
+          transform calc(var(--bd-carousel-motion-ms) + 120ms) ease;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__slide.is-active .bd-carousel__content > * {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__slide.is-active .bd-carousel__content > *:nth-child(2) {
+        transition-delay: 60ms;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__slide.is-active .bd-carousel__content > *:nth-child(3) {
+        transition-delay: 110ms;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__slide.is-active .bd-carousel__content > *:nth-child(4) {
+        transition-delay: 160ms;
+      }
+    {% endif %}
+
+    #bd-carousel-{{ section.id }}.bd-carousel--desktop-small .bd-carousel__slide {
+      min-height: clamp(22rem, 50vh, 34rem);
+    }
+
+    #bd-carousel-{{ section.id }}.bd-carousel--desktop-medium .bd-carousel__slide {
+      min-height: clamp(28rem, 64vh, 42rem);
+    }
+
+    #bd-carousel-{{ section.id }}.bd-carousel--desktop-large .bd-carousel__slide {
+      min-height: clamp(34rem, 80vh, 52rem);
+    }
+
+    #bd-carousel-{{ section.id }}.bd-carousel--desktop-full .bd-carousel__slide {
+      min-height: min(92vh, 58rem);
+    }
+
+    @media screen and (max-width: 989px) {
+      #bd-carousel-{{ section.id }} .bd-carousel__frame {
+        border-radius: 1.5rem;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__controls {
+        inset-inline: 1rem;
+      }
+    }
+
+    @media screen and (max-width: 749px) {
+      #bd-carousel-{{ section.id }} .bd-carousel__shell {
+        {% if bd_carousel_section_width == 'page' %}
+          padding-left: 1rem;
+          padding-right: 1rem;
+        {% endif %}
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__media--desktop.has-mobile {
+        display: none;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__media--mobile {
+        display: block;
+      }
+
+      #bd-carousel-{{ section.id }}.bd-carousel--mobile-small .bd-carousel__slide {
+        min-height: 24rem;
+      }
+
+      #bd-carousel-{{ section.id }}.bd-carousel--mobile-medium .bd-carousel__slide {
+        min-height: 31rem;
+      }
+
+      #bd-carousel-{{ section.id }}.bd-carousel--mobile-large .bd-carousel__slide {
+        min-height: 38rem;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__content-wrap {
+        padding: 1.2rem 1.2rem 5rem;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__content {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__content[data-align="right"] {
+        justify-items: start;
+        text-align: left;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__heading--small {
+        font-size: clamp(1.85rem, 9vw, 2.4rem);
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__heading--medium {
+        font-size: clamp(2.2rem, 10vw, 3rem);
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__heading--large {
+        font-size: clamp(2.55rem, 11vw, 3.55rem);
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__heading--xlarge {
+        font-size: clamp(2.7rem, 12vw, 4rem);
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__body {
+        max-width: 100%;
+        font-size: 0.98rem;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__controls {
+        align-items: end;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__arrows {
+        gap: 0.55rem;
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__nav-button {
+        width: 2.7rem;
+        height: 2.7rem;
+      }
+
+      #bd-carousel-{{ section.id }}.bd-carousel--hide-mobile {
+        display: none;
+      }
+    }
+
+    @media screen and (min-width: 750px) {
+      #bd-carousel-{{ section.id }}.bd-carousel--hide-desktop {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #bd-carousel-{{ section.id }} .bd-carousel__track,
+      #bd-carousel-{{ section.id }} .bd-carousel__content > * ,
+      #bd-carousel-{{ section.id }} .bd-carousel__button,
+      #bd-carousel-{{ section.id }} .bd-carousel__nav-button,
+      #bd-carousel-{{ section.id }} .bd-carousel__dot {
+        transition-duration: 1ms !important;
+        animation-duration: 1ms !important;
+      }
+    }
+  </style>
+
+  <div class="bd-carousel__shell">
+    <div class="bd-carousel__frame">
+      <div class="bd-carousel__viewport" data-bd-carousel-viewport>
+        <div class="bd-carousel__track" data-bd-carousel-track>
+          {%- for block in section.blocks -%}
+            {%- liquid
+              assign bd_carousel_mobile_image = block.settings.mobile_image
+              if bd_carousel_mobile_image == blank
+                assign bd_carousel_mobile_image = block.settings.desktop_image
+              endif
+
+              assign bd_carousel_slide_overlay_opacity = bd_carousel_global_overlay_opacity
+              if block.settings.use_overlay_opacity_override
+                assign bd_carousel_slide_overlay_opacity = block.settings.overlay_opacity_override
+              endif
+
+              assign bd_carousel_button_style = block.settings.button_style | default: 'primary'
+              assign bd_carousel_has_primary_button = false
+              assign bd_carousel_has_secondary_button = false
+              if block.settings.button_1_label != blank
+                assign bd_carousel_has_primary_button = true
+              endif
+              if block.settings.button_2_label != blank
+                assign bd_carousel_has_secondary_button = true
+              endif
+
+              assign bd_carousel_allow_full_slide_link = false
+              if block.settings.slide_link != blank and bd_carousel_has_primary_button == false and bd_carousel_has_secondary_button == false
+                assign bd_carousel_allow_full_slide_link = true
+              endif
+
+              assign bd_carousel_image_alt = block.settings.image_alt | strip
+              if bd_carousel_image_alt == blank and block.settings.desktop_image != blank and block.settings.desktop_image.alt != blank
+                assign bd_carousel_image_alt = block.settings.desktop_image.alt
+              endif
+
+              assign bd_carousel_media_loading = 'lazy'
+              assign bd_carousel_media_fetch = 'auto'
+              assign bd_carousel_desktop_media_class = 'bd-carousel__media bd-carousel__media--desktop'
+              if block.settings.mobile_image != blank
+                assign bd_carousel_desktop_media_class = bd_carousel_desktop_media_class | append: ' has-mobile'
+              endif
+              if forloop.first
+                assign bd_carousel_media_loading = 'eager'
+                assign bd_carousel_media_fetch = 'high'
+              endif
+            -%}
+            <article
+              class="bd-carousel__slide{% if forloop.first %} is-active{% endif %}"
+              id="bd-carousel-slide-{{ section.id }}-{{ forloop.index }}"
+              data-bd-carousel-slide
+              data-slide-index="{{ forloop.index0 }}"
+              aria-roledescription="slide"
+              aria-label="Slide {{ forloop.index }} of {{ section.blocks.size }}"
+              aria-hidden="{% if forloop.first %}false{% else %}true{% endif %}"
+              {{ block.shopify_attributes }}
+              style="--bd-carousel-slide-overlay-opacity: {{ bd_carousel_slide_overlay_opacity | divided_by: 100.0 }};"
+            >
+              <div class="bd-carousel__media-wrap">
+                {%- if block.settings.desktop_image != blank -%}
+                  {{
+                    block.settings.desktop_image
+                    | image_url: width: 3840
+                    | image_tag:
+                      class: bd_carousel_desktop_media_class,
+                      widths: '750, 1100, 1500, 2000, 3000, 3840',
+                      sizes: '100vw',
+                      loading: bd_carousel_media_loading,
+                      fetchpriority: bd_carousel_media_fetch,
+                      alt: bd_carousel_image_alt
+                  }}
+                {%- else -%}
+                  <div class="bd-carousel__placeholder" aria-hidden="true"></div>
+                {%- endif -%}
+
+                {%- if bd_carousel_mobile_image != blank -%}
+                  {{
+                    bd_carousel_mobile_image
+                    | image_url: width: 1600
+                    | image_tag:
+                      class: 'bd-carousel__media bd-carousel__media--mobile',
+                      widths: '375, 550, 750, 1100, 1500, 1600',
+                      sizes: '100vw',
+                      loading: bd_carousel_media_loading,
+                      alt: bd_carousel_image_alt
+                  }}
+                {%- endif -%}
+                <div
+                  class="bd-carousel__overlay{% if bd_carousel_overlay_style != 'none' %} bd-carousel__overlay--{{ bd_carousel_overlay_style }}{% endif %}"
+                  aria-hidden="true"
+                ></div>
+              </div>
+
+              {%- if bd_carousel_allow_full_slide_link -%}
+                <a
+                  class="bd-carousel__slide-link"
+                  href="{{ block.settings.slide_link }}"
+                  aria-label="{{ block.settings.heading | default: block.settings.eyebrow | default: 'Open slide link' | escape }}"
+                ></a>
+              {%- endif -%}
+
+              <div
+                class="bd-carousel__content-wrap bd-carousel__content-wrap--{{ block.settings.vertical_position }} bd-carousel__content-wrap--{{ block.settings.horizontal_position }}"
+              >
+                <div
+                  class="bd-carousel__content bd-carousel__content--{{ bd_carousel_content_width }}"
+                  data-align="{{ block.settings.text_alignment }}"
+                  style="
+                    color: {{ block.settings.text_color }};
+                    --bd-carousel-button-text: {{ block.settings.button_text_color }};
+                    --bd-carousel-button-bg: {{ block.settings.button_background_color }};
+                    --bd-carousel-button-border: {{ block.settings.button_border_color }};
+                  "
+                >
+                  {%- if block.settings.eyebrow != blank -%}
+                    <p class="bd-carousel__eyebrow">{{ block.settings.eyebrow | escape }}</p>
+                  {%- endif -%}
+
+                  {%- if block.settings.heading != blank -%}
+                    <h2 class="bd-carousel__heading bd-carousel__heading--{{ block.settings.heading_size }}">
+                      {{ block.settings.heading }}
+                    </h2>
+                  {%- endif -%}
+
+                  {%- if block.settings.body != blank -%}
+                    <div class="bd-carousel__body rte">
+                      {{ block.settings.body }}
+                    </div>
+                  {%- endif -%}
+
+                  {%- if bd_carousel_has_primary_button or bd_carousel_has_secondary_button -%}
+                    <div class="bd-carousel__actions">
+                      {%- if bd_carousel_has_primary_button -%}
+                        <a
+                          class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}"
+                          {% if block.settings.button_1_link != blank %}
+                            href="{{ block.settings.button_1_link }}"
+                          {% else %}
+                            role="link"
+                            aria-disabled="true"
+                          {% endif %}
+                        >
+                          {{ block.settings.button_1_label | escape }}
+                        </a>
+                      {%- endif -%}
+
+                      {%- if bd_carousel_has_secondary_button -%}
+                        <a
+                          class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}"
+                          {% if block.settings.button_2_link != blank %}
+                            href="{{ block.settings.button_2_link }}"
+                          {% else %}
+                            role="link"
+                            aria-disabled="true"
+                          {% endif %}
+                        >
+                          {{ block.settings.button_2_label | escape }}
+                        </a>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+              </div>
+            </article>
+          {%- endfor -%}
+        </div>
+      </div>
+
+      {%- if section.blocks.size > 1 -%}
+        <div class="bd-carousel__controls">
+          {%- if section.settings.enable_arrows -%}
+            <div class="bd-carousel__arrows">
+              <button
+                type="button"
+                class="bd-carousel__nav-button bd-carousel__nav-button--prev"
+                data-bd-carousel-prev
+                aria-label="Previous slide"
+              >
+                <svg viewBox="0 0 10 10" aria-hidden="true" focusable="false">
+                  <path d="M2 5h6M5 2l3 3-3 3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"></path>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="bd-carousel__nav-button bd-carousel__nav-button--next"
+                data-bd-carousel-next
+                aria-label="Next slide"
+              >
+                <svg viewBox="0 0 10 10" aria-hidden="true" focusable="false">
+                  <path d="M2 5h6M5 2l3 3-3 3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"></path>
+                </svg>
+              </button>
+            </div>
+          {%- endif -%}
+
+          {%- if section.settings.enable_dots -%}
+            <div class="bd-carousel__dots" data-bd-carousel-dots>
+              {%- for block in section.blocks -%}
+                <button
+                  type="button"
+                  class="bd-carousel__dot"
+                  data-bd-carousel-dot
+                  data-slide-index="{{ forloop.index0 }}"
+                  aria-label="Go to slide {{ forloop.index }}"
+                  aria-controls="bd-carousel-slide-{{ section.id }}-{{ forloop.index }}"
+                  aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+                ></button>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      <p class="bd-carousel__status" aria-live="polite" aria-atomic="true" data-bd-carousel-status>
+        Slide 1 of {{ section.blocks.size }}
+      </p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var root = document.getElementById('bd-carousel-{{ section.id }}');
+      if (!root || root.dataset.bdCarouselReady === 'true') return;
+      root.dataset.bdCarouselReady = 'true';
+
+      var viewport = root.querySelector('[data-bd-carousel-viewport]');
+      var track = root.querySelector('[data-bd-carousel-track]');
+      var realSlides = Array.prototype.slice.call(root.querySelectorAll('[data-bd-carousel-slide]'));
+      if (!viewport || !track || realSlides.length === 0) return;
+
+      var prevButton = root.querySelector('[data-bd-carousel-prev]');
+      var nextButton = root.querySelector('[data-bd-carousel-next]');
+      var dots = Array.prototype.slice.call(root.querySelectorAll('[data-bd-carousel-dot]'));
+      var status = root.querySelector('[data-bd-carousel-status]');
+      var hoverMedia = window.matchMedia('(hover: hover)');
+      var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var realSlideCount = realSlides.length;
+      var infiniteLoop = realSlideCount > 1;
+      var autoplayEnabled = root.dataset.autoplay === 'true' && realSlideCount > 1 && !reducedMotion.matches;
+      var autoplaySpeed = parseInt(root.dataset.autoplaySpeed || '5000', 10);
+      var slides = realSlides.slice();
+      var activeIndex = infiniteLoop ? 1 : 0;
+      var activeRealIndex = 0;
+      var autoplayTimer = null;
+      var pausedByHover = false;
+      var pausedByFocus = false;
+      var touchStartX = 0;
+      var touchCurrentX = 0;
+      var touchActive = false;
+      var swipeThreshold = 42;
+      var transitionLock = false;
+
+      function getWrappedIndex(index) {
+        if (realSlideCount === 0) return 0;
+        if (index < 0) return realSlideCount - 1;
+        if (index >= realSlideCount) return 0;
+        return index;
+      }
+
+      function cloneBoundarySlides() {
+        if (!infiniteLoop) return;
+
+        var firstClone = realSlides[0].cloneNode(true);
+        var lastClone = realSlides[realSlides.length - 1].cloneNode(true);
+
+        firstClone.dataset.bdCarouselClone = 'true';
+        lastClone.dataset.bdCarouselClone = 'true';
+        firstClone.id = 'bd-carousel-slide-{{ section.id }}-clone-first';
+        lastClone.id = 'bd-carousel-slide-{{ section.id }}-clone-last';
+        firstClone.setAttribute('aria-hidden', 'true');
+        lastClone.setAttribute('aria-hidden', 'true');
+        firstClone.classList.remove('is-active');
+        lastClone.classList.remove('is-active');
+
+        track.insertBefore(lastClone, track.firstChild);
+        track.appendChild(firstClone);
+        slides = Array.prototype.slice.call(root.querySelectorAll('[data-bd-carousel-slide]'));
+      }
+
+      function setTransform(index, animate) {
+        if (typeof animate === 'undefined') animate = true;
+        if (!animate) {
+          track.style.transition = 'none';
+        } else {
+          track.style.transition = '';
+        }
+        track.style.transform = 'translateX(' + (-index * 100) + '%)';
+        if (!animate) {
+          track.offsetHeight;
+          track.style.transition = '';
+        }
+      }
+
+      function updateUi() {
+        slides.forEach(function(slide, index) {
+          var isActive = index === activeIndex;
+          slide.classList.toggle('is-active', isActive);
+          slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        });
+
+        dots.forEach(function(dot, index) {
+          var isActive = index === activeRealIndex;
+          dot.setAttribute('aria-current', isActive ? 'true' : 'false');
+        });
+
+        if (status) {
+          status.textContent = 'Slide ' + (activeRealIndex + 1) + ' of ' + realSlideCount;
+        }
+      }
+
+      function stopAutoplay() {
+        if (!autoplayTimer) return;
+        window.clearTimeout(autoplayTimer);
+        autoplayTimer = null;
+      }
+
+      function shouldPauseAutoplay() {
+        return pausedByHover || pausedByFocus;
+      }
+
+      function startAutoplay() {
+        stopAutoplay();
+        if (!autoplayEnabled || shouldPauseAutoplay()) return;
+        autoplayTimer = window.setTimeout(function() {
+          stepTo(1, { userInitiated: false });
+        }, autoplaySpeed);
+      }
+
+      function syncInfinitePosition() {
+        if (!infiniteLoop) return;
+        if (activeIndex === 0) {
+          activeIndex = realSlideCount;
+          setTransform(activeIndex, false);
+        } else if (activeIndex === slides.length - 1) {
+          activeIndex = 1;
+          setTransform(activeIndex, false);
+        }
+      }
+
+      function goToRealIndex(nextRealIndex, options) {
+        options = options || {};
+        if (realSlideCount < 2 || transitionLock) return;
+        activeRealIndex = getWrappedIndex(nextRealIndex);
+        transitionLock = !reducedMotion.matches;
+        activeIndex = infiniteLoop ? activeRealIndex + 1 : activeRealIndex;
+        setTransform(activeIndex, !reducedMotion.matches);
+        updateUi();
+        if (options.userInitiated !== false) {
+          startAutoplay();
+        } else {
+          startAutoplay();
+        }
+        if (reducedMotion.matches) {
+          transitionLock = false;
+        }
+      }
+
+      function stepTo(direction, options) {
+        options = options || {};
+        if (realSlideCount < 2 || transitionLock) return;
+        transitionLock = !reducedMotion.matches;
+        activeIndex += direction;
+        activeRealIndex = getWrappedIndex(activeRealIndex + direction);
+        setTransform(activeIndex, !reducedMotion.matches);
+        updateUi();
+        startAutoplay();
+
+        if (reducedMotion.matches) {
+          syncInfinitePosition();
+          updateUi();
+          transitionLock = false;
+        }
+      }
+
+      function onPrevClick() {
+        stepTo(-1, { userInitiated: true });
+      }
+
+      function onNextClick() {
+        stepTo(1, { userInitiated: true });
+      }
+
+      function onKeydown(event) {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          onPrevClick();
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          onNextClick();
+        }
+      }
+
+      function onTouchStart(event) {
+        if (!event.touches || event.touches.length !== 1) return;
+        touchActive = true;
+        touchStartX = event.touches[0].clientX;
+        touchCurrentX = touchStartX;
+        stopAutoplay();
+      }
+
+      function onTouchMove(event) {
+        if (!touchActive || !event.touches || event.touches.length !== 1) return;
+        touchCurrentX = event.touches[0].clientX;
+      }
+
+      function onTouchEnd() {
+        if (!touchActive) return;
+        var deltaX = touchCurrentX - touchStartX;
+        touchActive = false;
+
+        if (Math.abs(deltaX) >= swipeThreshold) {
+          if (deltaX > 0) {
+            onPrevClick();
+          } else {
+            onNextClick();
+          }
+        } else {
+          startAutoplay();
+        }
+      }
+
+      if (prevButton) prevButton.addEventListener('click', onPrevClick);
+      if (nextButton) nextButton.addEventListener('click', onNextClick);
+
+      dots.forEach(function(dot) {
+        dot.addEventListener('click', function() {
+          var nextIndex = parseInt(dot.getAttribute('data-slide-index') || '0', 10);
+          goToRealIndex(nextIndex, { userInitiated: true });
+        });
+      });
+
+      root.addEventListener('keydown', onKeydown);
+      viewport.addEventListener('touchstart', onTouchStart, { passive: true });
+      viewport.addEventListener('touchmove', onTouchMove, { passive: true });
+      viewport.addEventListener('touchend', onTouchEnd);
+      viewport.addEventListener('touchcancel', onTouchEnd);
+      track.addEventListener('transitionend', function(event) {
+        if (event.target !== track) return;
+        syncInfinitePosition();
+        updateUi();
+        transitionLock = false;
+      });
+
+      root.addEventListener('focusin', function() {
+        pausedByFocus = true;
+        stopAutoplay();
+      });
+
+      root.addEventListener('focusout', function() {
+        window.setTimeout(function() {
+          pausedByFocus = root.contains(document.activeElement);
+          if (!pausedByFocus) startAutoplay();
+        }, 0);
+      });
+
+      if (hoverMedia.matches) {
+        root.addEventListener('mouseenter', function() {
+          pausedByHover = true;
+          stopAutoplay();
+        });
+
+        root.addEventListener('mouseleave', function() {
+          pausedByHover = false;
+          startAutoplay();
+        });
+      }
+
+      if (typeof reducedMotion.addEventListener === 'function') {
+        reducedMotion.addEventListener('change', function(event) {
+          autoplayEnabled = root.dataset.autoplay === 'true' && slides.length > 1 && !event.matches;
+          if (event.matches) {
+            stopAutoplay();
+          } else {
+            startAutoplay();
+          }
+        });
+      }
+
+      document.addEventListener('shopify:block:select', function(event) {
+        var target = event.target;
+        if (!target || !root.contains(target)) return;
+        var block = target.closest('[data-bd-carousel-slide]');
+        if (!block) return;
+        var nextIndex = parseInt(block.getAttribute('data-slide-index') || '0', 10);
+        goToRealIndex(nextIndex, { userInitiated: true });
+      });
+
+      window.addEventListener('resize', function() {
+        setTransform(activeIndex, false);
+      });
+
+      cloneBoundarySlides();
+      updateUi();
+      setTransform(activeIndex, false);
+      startAutoplay();
+    })();
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Custom Premium Carousel",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "max_blocks": 8,
+  "settings": [
+    {
+      "type": "text",
+      "id": "accessibility_label",
+      "label": "Accessibility label",
+      "default": "Homepage premium carousel"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_autoplay",
+      "label": "Enable autoplay",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Autoplay speed",
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_arrows",
+      "label": "Enable arrows",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_dots",
+      "label": "Enable dots",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "desktop_height",
+      "label": "Desktop height",
+      "default": "large",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" },
+        { "value": "full", "label": "Full screen" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "mobile_height",
+      "label": "Mobile height",
+      "default": "medium",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Image fit",
+      "default": "cover",
+      "options": [
+        { "value": "cover", "label": "Cover" },
+        { "value": "contain", "label": "Contain" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_container_width",
+      "label": "Text container width",
+      "default": "medium",
+      "options": [
+        { "value": "narrow", "label": "Narrow" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "wide", "label": "Wide" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "min": 320,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "label": "Content max width",
+      "default": 720
+    },
+    {
+      "type": "select",
+      "id": "section_max_width",
+      "label": "Section max width",
+      "default": "full",
+      "options": [
+        { "value": "full", "label": "Full width" },
+        { "value": "page", "label": "Page width" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_subtle_animation",
+      "label": "Enable subtle animation",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "overlay_style",
+      "label": "Overlay style",
+      "default": "gradient",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "solid", "label": "Solid" },
+        { "value": "gradient", "label": "Gradient" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "global_overlay_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Global overlay opacity",
+      "default": 45
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Section padding top",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Section padding bottom",
+      "default": 32
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_on_desktop",
+      "label": "Hide on desktop",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_on_mobile",
+      "label": "Hide on mobile",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "limit": 8,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "desktop_image",
+          "label": "Desktop image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mobile_image",
+          "label": "Mobile image"
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Image alt text"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Eyebrow text",
+          "default": "Featured collection"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Move your homepage with a real carousel."
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "Heading size",
+          "default": "large",
+          "options": [
+            { "value": "small", "label": "Small" },
+            { "value": "medium", "label": "Medium" },
+            { "value": "large", "label": "Large" },
+            { "value": "xlarge", "label": "Extra large" }
+          ]
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Subheading/body text",
+          "default": "<p>Create polished hero stories, feature launches, and homepage campaigns with smooth horizontal movement.</p>"
+        },
+        {
+          "type": "text",
+          "id": "button_1_label",
+          "label": "Button 1 label",
+          "default": "Shop now"
+        },
+        {
+          "type": "url",
+          "id": "button_1_link",
+          "label": "Button 1 link"
+        },
+        {
+          "type": "text",
+          "id": "button_2_label",
+          "label": "Button 2 label",
+          "default": "Learn more"
+        },
+        {
+          "type": "url",
+          "id": "button_2_link",
+          "label": "Button 2 link"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button style",
+          "default": "primary",
+          "options": [
+            { "value": "primary", "label": "Primary" },
+            { "value": "secondary", "label": "Secondary" },
+            { "value": "outline", "label": "Outline" }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "text_alignment",
+          "label": "Text alignment",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "vertical_position",
+          "label": "Text vertical position",
+          "default": "middle",
+          "options": [
+            { "value": "top", "label": "Top" },
+            { "value": "middle", "label": "Middle" },
+            { "value": "bottom", "label": "Bottom" }
+          ]
+        },
+        {
+          "type": "select",
+          "id": "horizontal_position",
+          "label": "Text horizontal position",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ]
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "button_text_color",
+          "label": "Button text color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "button_background_color",
+          "label": "Button background color",
+          "default": "#111827"
+        },
+        {
+          "type": "color",
+          "id": "button_border_color",
+          "label": "Button border color",
+          "default": "#111827"
+        },
+        {
+          "type": "checkbox",
+          "id": "use_overlay_opacity_override",
+          "label": "Use overlay opacity override",
+          "default": false
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity_override",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "unit": "%",
+          "label": "Overlay opacity override for this slide",
+          "default": 55
+        },
+        {
+          "type": "url",
+          "id": "slide_link",
+          "label": "Optional whole-slide link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Premium Carousel",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "New season",
+            "heading": "Premium homepage storytelling that actually slides.",
+            "body": "<p>Replace static hero banners with a smoother, richer first impression that feels purpose-built.</p>",
+            "button_1_label": "Explore collection",
+            "button_2_label": "Our story"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "Built for campaigns",
+            "heading": "Show launches, promotions, and editorial moments in sequence.",
+            "body": "<p>Use separate desktop and mobile imagery, modern overlays, and subtle content motion for a more premium brand feel.</p>",
+            "button_1_label": "Shop featured",
+            "button_2_label": "View details"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "Fully customizable",
+            "heading": "Add, remove, and reorder slides directly in Theme Customizer.",
+            "body": "<p>Keep the layout flexible for merchandising while preserving smooth performance and accessibility.</p>",
+            "button_1_label": "Start editing",
+            "button_2_label": "See more"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
