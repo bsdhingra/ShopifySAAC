@@ -8,6 +8,10 @@
   assign bd_carousel_mobile_height = section.settings.mobile_height | default: 'medium'
   assign bd_carousel_image_fit = section.settings.image_fit | default: 'cover'
   assign bd_carousel_section_width = section.settings.section_max_width | default: 'full'
+  assign bd_carousel_use_page_width = false
+  if bd_carousel_section_width == 'page'
+    assign bd_carousel_use_page_width = true
+  endif
   assign bd_carousel_content_width = section.settings.text_container_width | default: 'medium'
   assign bd_carousel_overlay_style = section.settings.overlay_style | default: 'gradient'
   assign bd_carousel_global_overlay_opacity = section.settings.global_overlay_opacity | default: 45
@@ -52,6 +56,8 @@
     --bd-carousel-motion-ms: {{ bd_carousel_motion_ms }}ms;
     --bd-carousel-content-max-width: {{ section.settings.content_max_width }}px;
     --bd-carousel-global-overlay-opacity: {{ bd_carousel_global_overlay_opacity | divided_by: 100.0 }};
+    --bd-carousel-mobile-gutter: {{ section.settings.mobile_side_padding }}px;
+    --bd-carousel-desktop-gutter: {{ section.settings.desktop_side_padding }}px;
   "
 >
   <style>
@@ -68,14 +74,14 @@
 
     #bd-carousel-{{ section.id }} .bd-carousel__shell {
       position: relative;
-      {% if bd_carousel_section_width == 'page' %}
-        max-width: var(--page-width);
-        margin: 0 auto;
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-      {% else %}
-        width: 100%;
-      {% endif %}
+      width: 100%;
+      box-sizing: border-box;
+      padding-left: var(--bd-carousel-mobile-gutter);
+      padding-right: var(--bd-carousel-mobile-gutter);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__shell.page-width {
+      max-width: var(--page-width);
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__frame {
@@ -494,13 +500,6 @@
     }
 
     @media screen and (max-width: 749px) {
-      #bd-carousel-{{ section.id }} .bd-carousel__shell {
-        {% if bd_carousel_section_width == 'page' %}
-          padding-left: 1rem;
-          padding-right: 1rem;
-        {% endif %}
-      }
-
       #bd-carousel-{{ section.id }} .bd-carousel__media--desktop.has-mobile {
         display: none;
       }
@@ -575,6 +574,11 @@
     }
 
     @media screen and (min-width: 750px) {
+      #bd-carousel-{{ section.id }} .bd-carousel__shell {
+        padding-left: var(--bd-carousel-desktop-gutter);
+        padding-right: var(--bd-carousel-desktop-gutter);
+      }
+
       #bd-carousel-{{ section.id }}.bd-carousel--hide-desktop {
         display: none;
       }
@@ -592,7 +596,7 @@
     }
   </style>
 
-  <div class="bd-carousel__shell">
+  <div class="bd-carousel__shell{% if bd_carousel_use_page_width %} page-width{% endif %}">
     <div class="bd-carousel__frame">
       <div class="bd-carousel__viewport" data-bd-carousel-viewport>
         <div class="bd-carousel__track" data-bd-carousel-track>
@@ -1198,6 +1202,26 @@
         { "value": "full", "label": "Full width" },
         { "value": "page", "label": "Page width" }
       ]
+    },
+    {
+      "type": "range",
+      "id": "desktop_side_padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Desktop side padding",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "mobile_side_padding",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile side padding",
+      "default": 24
     },
     {
       "type": "checkbox",
