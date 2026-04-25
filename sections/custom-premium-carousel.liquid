@@ -76,12 +76,16 @@
       position: relative;
       width: 100%;
       box-sizing: border-box;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__shell--full {
       padding-left: var(--bd-carousel-mobile-gutter);
       padding-right: var(--bd-carousel-mobile-gutter);
     }
 
-    #bd-carousel-{{ section.id }} .bd-carousel__shell.page-width {
-      max-width: var(--page-width);
+    #bd-carousel-{{ section.id }} .bd-carousel__shell--page {
+      padding-left: 0;
+      padding-right: 0;
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__frame {
@@ -574,7 +578,7 @@
     }
 
     @media screen and (min-width: 750px) {
-      #bd-carousel-{{ section.id }} .bd-carousel__shell {
+      #bd-carousel-{{ section.id }} .bd-carousel__shell--full {
         padding-left: var(--bd-carousel-desktop-gutter);
         padding-right: var(--bd-carousel-desktop-gutter);
       }
@@ -596,7 +600,7 @@
     }
   </style>
 
-  <div class="bd-carousel__shell{% if bd_carousel_use_page_width %} page-width{% endif %}">
+  <div class="bd-carousel__shell {% if bd_carousel_use_page_width %}bd-carousel__shell--page page-width{% else %}bd-carousel__shell--full{% endif %}">
     <div class="bd-carousel__frame">
       <div class="bd-carousel__viewport" data-bd-carousel-viewport>
         <div class="bd-carousel__track" data-bd-carousel-track>
