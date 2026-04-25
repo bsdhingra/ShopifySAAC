@@ -99,18 +99,21 @@
 
     #bd-carousel-{{ section.id }} .bd-carousel__frame {
       position: relative;
-      overflow: clip;
+      overflow: hidden;
       border-radius: 2rem;
       background:
         radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 38%),
         linear-gradient(135deg, rgba(16, 24, 40, 0.95), rgba(29, 41, 57, 0.88));
       box-shadow: 0 28px 60px rgba(15, 23, 42, 0.16);
       isolation: isolate;
+      transform: translateZ(0);
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__viewport {
       overflow: hidden;
       position: relative;
+      background: inherit;
+      backface-visibility: hidden;
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__track {
@@ -118,6 +121,8 @@
       will-change: transform;
       transition: transform var(--bd-carousel-motion-ms) cubic-bezier(0.22, 1, 0.36, 1);
       transform: translateX(0%);
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__slide {
@@ -128,6 +133,8 @@
       display: flex;
       align-items: stretch;
       background: linear-gradient(135deg, #e5e7eb, #f8fafc);
+      backface-visibility: hidden;
+      transform: translateZ(0);
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__media-wrap {
