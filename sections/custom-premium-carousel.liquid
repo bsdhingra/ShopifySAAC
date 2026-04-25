@@ -79,6 +79,17 @@
     --bd-carousel-surface: rgb(var(--color-background));
     --bd-carousel-desktop-aspect: {{ bd_carousel_first_desktop_aspect }};
     --bd-carousel-mobile-aspect: {{ bd_carousel_first_mobile_aspect }};
+    --bd-carousel-arrow-bg: {{ section.settings.arrow_background_color }};
+    --bd-carousel-arrow-text: {{ section.settings.arrow_icon_color }};
+    --bd-carousel-arrow-border: {{ section.settings.arrow_border_color }};
+    --bd-carousel-dot-bg: {{ section.settings.dot_color }};
+    --bd-carousel-dot-active-bg: {{ section.settings.dot_active_color }};
+    --bd-carousel-button-font-size: {{ section.settings.button_font_size }}px;
+    --bd-carousel-button-min-height: {{ section.settings.button_height }}px;
+    --bd-carousel-desktop-controls-bottom: {{ section.settings.desktop_controls_bottom_offset }}px;
+    --bd-carousel-desktop-content-bottom-padding: {{ section.settings.desktop_content_bottom_padding }}px;
+    --bd-carousel-mobile-controls-bottom: {{ section.settings.mobile_controls_bottom_offset }}px;
+    --bd-carousel-mobile-content-bottom-padding: {{ section.settings.mobile_content_bottom_padding }}px;
   "
 >
   <style>
@@ -232,7 +243,10 @@
       width: 100%;
       min-height: inherit;
       display: grid;
-      padding: clamp(1.5rem, 3vw, 2.75rem);
+      padding:
+        clamp(1.5rem, 3vw, 2.75rem)
+        clamp(1.5rem, 3vw, 2.75rem)
+        var(--bd-carousel-desktop-content-bottom-padding);
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--top {
@@ -346,13 +360,13 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 3rem;
+      min-height: var(--bd-carousel-button-min-height);
       padding: 0.85rem 1.4rem;
       border-radius: 999px;
       border: 1px solid var(--bd-carousel-button-border, transparent);
-      background: var(--bd-carousel-button-bg, #111827);
+      background: color-mix(in srgb, var(--bd-carousel-button-bg, #111827) var(--bd-carousel-button-opacity, 100%), transparent);
       color: var(--bd-carousel-button-text, #ffffff);
-      font-size: 0.96rem;
+      font-size: var(--bd-carousel-button-font-size);
       font-weight: 600;
       line-height: 1;
       text-decoration: none;
@@ -369,6 +383,13 @@
     #bd-carousel-{{ section.id }} .bd-carousel__button:focus-visible {
       transform: translateY(-1px);
       box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__button.bd-carousel__button--hover-fill:hover,
+    #bd-carousel-{{ section.id }} .bd-carousel__button.bd-carousel__button--hover-fill:focus-visible {
+      background: var(--bd-carousel-button-hover-bg, var(--bd-carousel-button-bg, #111827));
+      border-color: var(--bd-carousel-button-hover-border, var(--bd-carousel-button-border, transparent));
+      color: var(--bd-carousel-button-hover-text, var(--bd-carousel-button-text, #ffffff));
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__button:focus-visible,
@@ -392,30 +413,48 @@
     #bd-carousel-{{ section.id }} .bd-carousel__controls {
       position: absolute;
       inset-inline: clamp(1rem, 2vw, 1.5rem);
-      bottom: clamp(1rem, 2vw, 1.5rem);
+      bottom: var(--bd-carousel-desktop-controls-bottom);
       z-index: 3;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
+      min-height: 3rem;
       pointer-events: none;
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__arrows,
     #bd-carousel-{{ section.id }} .bd-carousel__dots {
+      position: absolute;
+      bottom: 0;
       display: flex;
       align-items: center;
       gap: 0.75rem;
       pointer-events: auto;
     }
 
+    #bd-carousel-{{ section.id }} .bd-carousel__arrows--left,
+    #bd-carousel-{{ section.id }} .bd-carousel__dots--left {
+      left: 0;
+      justify-content: flex-start;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__arrows--center,
+    #bd-carousel-{{ section.id }} .bd-carousel__dots--center {
+      left: 50%;
+      transform: translateX(-50%);
+      justify-content: center;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__arrows--right,
+    #bd-carousel-{{ section.id }} .bd-carousel__dots--right {
+      right: 0;
+      justify-content: flex-end;
+    }
+
     #bd-carousel-{{ section.id }} .bd-carousel__nav-button {
       width: 3rem;
       height: 3rem;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
+      border: 1px solid var(--bd-carousel-arrow-border, rgba(255, 255, 255, 0.22));
+      background: var(--bd-carousel-arrow-bg, rgba(255, 255, 255, 0.12));
+      color: var(--bd-carousel-arrow-text, #fff);
       backdrop-filter: blur(12px);
       display: inline-flex;
       align-items: center;
@@ -427,8 +466,8 @@
     #bd-carousel-{{ section.id }} .bd-carousel__nav-button:hover,
     #bd-carousel-{{ section.id }} .bd-carousel__nav-button:focus-visible {
       transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.2);
-      border-color: rgba(255, 255, 255, 0.45);
+      background: color-mix(in srgb, var(--bd-carousel-arrow-bg, rgba(255, 255, 255, 0.12)) 88%, white);
+      border-color: color-mix(in srgb, var(--bd-carousel-arrow-border, rgba(255, 255, 255, 0.22)) 88%, white);
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__nav-button svg {
@@ -446,19 +485,19 @@
       border-radius: 999px;
       border: 0;
       padding: 0;
-      background: rgba(255, 255, 255, 0.34);
+      background: var(--bd-carousel-dot-bg, rgba(255, 255, 255, 0.34));
       cursor: pointer;
       transition: transform 180ms ease, background-color 180ms ease, width 180ms ease;
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__dot[aria-current="true"] {
       width: 2rem;
-      background: rgba(255, 255, 255, 0.92);
+      background: var(--bd-carousel-dot-active-bg, rgba(255, 255, 255, 0.92));
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__dot:hover,
     #bd-carousel-{{ section.id }} .bd-carousel__dot:focus-visible {
-      background: rgba(255, 255, 255, 0.82);
+      background: var(--bd-carousel-dot-active-bg, rgba(255, 255, 255, 0.82));
       transform: scale(1.05);
     }
 
@@ -568,7 +607,7 @@
       }
 
       #bd-carousel-{{ section.id }} .bd-carousel__content-wrap {
-        padding: 1.2rem 1.2rem 5rem;
+        padding: 1.2rem 1.2rem var(--bd-carousel-mobile-content-bottom-padding);
       }
 
       #bd-carousel-{{ section.id }} .bd-carousel__content {
@@ -603,6 +642,7 @@
       }
 
       #bd-carousel-{{ section.id }} .bd-carousel__controls {
+        bottom: var(--bd-carousel-mobile-controls-bottom);
         align-items: end;
       }
 
@@ -666,12 +706,41 @@
               endif
 
               assign bd_carousel_button_style = block.settings.button_style | default: 'primary'
+              assign bd_carousel_button_text = block.settings.button_text_color
+              assign bd_carousel_button_background = block.settings.button_background_color
+              assign bd_carousel_button_border = block.settings.button_border_color
+              assign bd_carousel_button_opacity = block.settings.button_background_opacity
+              assign bd_carousel_button_hover_fill = block.settings.enable_button_hover_fill
+              assign bd_carousel_button_hover_background = block.settings.button_hover_background_color
+              assign bd_carousel_button_hover_border = block.settings.button_hover_border_color
+              assign bd_carousel_button_hover_text = block.settings.button_hover_text_color
+              assign bd_carousel_button_1_label = block.settings.button_1_label
+              assign bd_carousel_button_1_link = block.settings.button_1_link
+              assign bd_carousel_button_2_label = block.settings.button_2_label
+              assign bd_carousel_button_2_link = block.settings.button_2_link
+
+              if section.settings.use_shared_buttons
+                assign bd_carousel_button_style = section.settings.shared_button_style | default: 'primary'
+                assign bd_carousel_button_text = section.settings.shared_button_text_color
+                assign bd_carousel_button_background = section.settings.shared_button_background_color
+                assign bd_carousel_button_border = section.settings.shared_button_border_color
+                assign bd_carousel_button_opacity = section.settings.shared_button_background_opacity
+                assign bd_carousel_button_hover_fill = section.settings.enable_shared_button_hover_fill
+                assign bd_carousel_button_hover_background = section.settings.shared_button_hover_background_color
+                assign bd_carousel_button_hover_border = section.settings.shared_button_hover_border_color
+                assign bd_carousel_button_hover_text = section.settings.shared_button_hover_text_color
+                assign bd_carousel_button_1_label = section.settings.shared_button_1_label
+                assign bd_carousel_button_1_link = section.settings.shared_button_1_link
+                assign bd_carousel_button_2_label = section.settings.shared_button_2_label
+                assign bd_carousel_button_2_link = section.settings.shared_button_2_link
+              endif
+
               assign bd_carousel_has_primary_button = false
               assign bd_carousel_has_secondary_button = false
-              if block.settings.button_1_label != blank
+              if bd_carousel_button_1_label != blank
                 assign bd_carousel_has_primary_button = true
               endif
-              if block.settings.button_2_label != blank
+              if bd_carousel_button_2_label != blank
                 assign bd_carousel_has_secondary_button = true
               endif
 
@@ -758,9 +827,13 @@
                   data-align="{{ block.settings.text_alignment }}"
                   style="
                     color: {{ block.settings.text_color }};
-                    --bd-carousel-button-text: {{ block.settings.button_text_color }};
-                    --bd-carousel-button-bg: {{ block.settings.button_background_color }};
-                    --bd-carousel-button-border: {{ block.settings.button_border_color }};
+                    --bd-carousel-button-text: {{ bd_carousel_button_text }};
+                    --bd-carousel-button-bg: {{ bd_carousel_button_background }};
+                    --bd-carousel-button-border: {{ bd_carousel_button_border }};
+                    --bd-carousel-button-opacity: {{ bd_carousel_button_opacity }}%;
+                    --bd-carousel-button-hover-bg: {{ bd_carousel_button_hover_background }};
+                    --bd-carousel-button-hover-border: {{ bd_carousel_button_hover_border }};
+                    --bd-carousel-button-hover-text: {{ bd_carousel_button_hover_text }};
                   "
                 >
                   {%- if block.settings.eyebrow != blank -%}
@@ -783,29 +856,29 @@
                     <div class="bd-carousel__actions">
                       {%- if bd_carousel_has_primary_button -%}
                         <a
-                          class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}"
-                          {% if block.settings.button_1_link != blank %}
-                            href="{{ block.settings.button_1_link }}"
+                          class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}{% if bd_carousel_button_hover_fill %} bd-carousel__button--hover-fill{% endif %}"
+                          {% if bd_carousel_button_1_link != blank %}
+                            href="{{ bd_carousel_button_1_link }}"
                           {% else %}
                             role="link"
                             aria-disabled="true"
                           {% endif %}
                         >
-                          {{ block.settings.button_1_label | escape }}
+                          {{ bd_carousel_button_1_label | escape }}
                         </a>
                       {%- endif -%}
 
                       {%- if bd_carousel_has_secondary_button -%}
                         <a
-                          class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}"
-                          {% if block.settings.button_2_link != blank %}
-                            href="{{ block.settings.button_2_link }}"
+                          class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}{% if bd_carousel_button_hover_fill %} bd-carousel__button--hover-fill{% endif %}"
+                          {% if bd_carousel_button_2_link != blank %}
+                            href="{{ bd_carousel_button_2_link }}"
                           {% else %}
                             role="link"
                             aria-disabled="true"
                           {% endif %}
                         >
-                          {{ block.settings.button_2_label | escape }}
+                          {{ bd_carousel_button_2_label | escape }}
                         </a>
                       {%- endif -%}
                     </div>
@@ -820,7 +893,7 @@
       {%- if section.blocks.size > 1 -%}
         <div class="bd-carousel__controls">
           {%- if section.settings.enable_arrows -%}
-            <div class="bd-carousel__arrows">
+            <div class="bd-carousel__arrows bd-carousel__arrows--{{ section.settings.arrow_position }}">
               <button
                 type="button"
                 class="bd-carousel__nav-button bd-carousel__nav-button--prev"
@@ -845,7 +918,7 @@
           {%- endif -%}
 
           {%- if section.settings.enable_dots -%}
-            <div class="bd-carousel__dots" data-bd-carousel-dots>
+            <div class="bd-carousel__dots bd-carousel__dots--{{ section.settings.dot_position }}" data-bd-carousel-dots>
               {%- for block in section.blocks -%}
                 <button
                   type="button"
@@ -1217,6 +1290,58 @@
     },
     {
       "type": "select",
+      "id": "arrow_position",
+      "label": "Arrow position",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Middle" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "dot_position",
+      "label": "Dot position",
+      "default": "right",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Middle" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "arrow_background_color",
+      "label": "Arrow background color",
+      "default": "#1f2937"
+    },
+    {
+      "type": "color",
+      "id": "arrow_icon_color",
+      "label": "Arrow icon color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "arrow_border_color",
+      "label": "Arrow border color",
+      "default": "#374151"
+    },
+    {
+      "type": "color",
+      "id": "dot_color",
+      "label": "Dot color",
+      "default": "#cbd5e1"
+    },
+    {
+      "type": "color",
+      "id": "dot_active_color",
+      "label": "Active dot color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "select",
       "id": "desktop_height",
       "label": "Desktop height",
       "default": "large",
@@ -1272,6 +1397,115 @@
       "default": 720
     },
     {
+      "type": "range",
+      "id": "button_font_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Button label size",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "button_height",
+      "min": 40,
+      "max": 72,
+      "step": 2,
+      "unit": "px",
+      "label": "Button height",
+      "default": 48
+    },
+    {
+      "type": "checkbox",
+      "id": "use_shared_buttons",
+      "label": "Use same buttons on all slides",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "shared_button_1_label",
+      "label": "Shared button 1 label"
+    },
+    {
+      "type": "url",
+      "id": "shared_button_1_link",
+      "label": "Shared button 1 link"
+    },
+    {
+      "type": "text",
+      "id": "shared_button_2_label",
+      "label": "Shared button 2 label"
+    },
+    {
+      "type": "url",
+      "id": "shared_button_2_link",
+      "label": "Shared button 2 link"
+    },
+    {
+      "type": "select",
+      "id": "shared_button_style",
+      "label": "Shared button style",
+      "default": "primary",
+      "options": [
+        { "value": "primary", "label": "Primary" },
+        { "value": "secondary", "label": "Secondary" },
+        { "value": "outline", "label": "Outline" }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "shared_button_text_color",
+      "label": "Shared button text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "shared_button_background_color",
+      "label": "Shared button background color",
+      "default": "#111827"
+    },
+    {
+      "type": "color",
+      "id": "shared_button_border_color",
+      "label": "Shared button border color",
+      "default": "#111827"
+    },
+    {
+      "type": "range",
+      "id": "shared_button_background_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Shared button background opacity",
+      "default": 100
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_shared_button_hover_fill",
+      "label": "Change shared button fill color on hover",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "shared_button_hover_background_color",
+      "label": "Shared button hover fill color",
+      "default": "#374151"
+    },
+    {
+      "type": "color",
+      "id": "shared_button_hover_text_color",
+      "label": "Shared button hover text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "shared_button_hover_border_color",
+      "label": "Shared button hover border color",
+      "default": "#374151"
+    },
+    {
       "type": "select",
       "id": "section_max_width",
       "label": "Section max width",
@@ -1304,6 +1538,26 @@
     },
     {
       "type": "range",
+      "id": "desktop_controls_bottom_offset",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "label": "Desktop controls bottom offset",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "desktop_content_bottom_padding",
+      "min": 24,
+      "max": 180,
+      "step": 4,
+      "unit": "px",
+      "label": "Desktop content bottom padding",
+      "default": 44
+    },
+    {
+      "type": "range",
       "id": "mobile_side_padding",
       "min": 0,
       "max": 40,
@@ -1311,6 +1565,26 @@
       "unit": "px",
       "label": "Mobile side padding",
       "default": 24
+    },
+    {
+      "type": "range",
+      "id": "mobile_controls_bottom_offset",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile controls bottom offset",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "mobile_content_bottom_padding",
+      "min": 48,
+      "max": 140,
+      "step": 4,
+      "unit": "px",
+      "label": "Mobile content bottom padding",
+      "default": 88
     },
     {
       "type": "checkbox",
@@ -1396,14 +1670,12 @@
         {
           "type": "text",
           "id": "eyebrow",
-          "label": "Eyebrow text",
-          "default": "Featured collection"
+          "label": "Eyebrow text"
         },
         {
           "type": "inline_richtext",
           "id": "heading",
-          "label": "Heading",
-          "default": "Move your homepage with a real carousel."
+          "label": "Heading"
         },
         {
           "type": "select",
@@ -1420,14 +1692,12 @@
         {
           "type": "richtext",
           "id": "body",
-          "label": "Subheading/body text",
-          "default": "<p>Create polished hero stories, feature launches, and homepage campaigns with smooth horizontal movement.</p>"
+          "label": "Subheading/body text"
         },
         {
           "type": "text",
           "id": "button_1_label",
-          "label": "Button 1 label",
-          "default": "Shop now"
+          "label": "Button 1 label"
         },
         {
           "type": "url",
@@ -1437,8 +1707,7 @@
         {
           "type": "text",
           "id": "button_2_label",
-          "label": "Button 2 label",
-          "default": "Learn more"
+          "label": "Button 2 label"
         },
         {
           "type": "url",
@@ -1514,6 +1783,40 @@
           "default": "#111827"
         },
         {
+          "type": "range",
+          "id": "button_background_opacity",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "unit": "%",
+          "label": "Button background opacity",
+          "default": 100
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_button_hover_fill",
+          "label": "Change fill color on hover",
+          "default": false
+        },
+        {
+          "type": "color",
+          "id": "button_hover_background_color",
+          "label": "Button hover fill color",
+          "default": "#374151"
+        },
+        {
+          "type": "color",
+          "id": "button_hover_text_color",
+          "label": "Button hover text color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "button_hover_border_color",
+          "label": "Button hover border color",
+          "default": "#374151"
+        },
+        {
           "type": "checkbox",
           "id": "use_overlay_opacity_override",
           "label": "Use overlay opacity override",
@@ -1542,34 +1845,13 @@
       "name": "Custom Premium Carousel",
       "blocks": [
         {
-          "type": "slide",
-          "settings": {
-            "eyebrow": "New season",
-            "heading": "Premium homepage storytelling that actually slides.",
-            "body": "<p>Replace static hero banners with a smoother, richer first impression that feels purpose-built.</p>",
-            "button_1_label": "Explore collection",
-            "button_2_label": "Our story"
-          }
+          "type": "slide"
         },
         {
-          "type": "slide",
-          "settings": {
-            "eyebrow": "Built for campaigns",
-            "heading": "Show launches, promotions, and editorial moments in sequence.",
-            "body": "<p>Use separate desktop and mobile imagery, modern overlays, and subtle content motion for a more premium brand feel.</p>",
-            "button_1_label": "Shop featured",
-            "button_2_label": "View details"
-          }
+          "type": "slide"
         },
         {
-          "type": "slide",
-          "settings": {
-            "eyebrow": "Fully customizable",
-            "heading": "Add, remove, and reorder slides directly in Theme Customizer.",
-            "body": "<p>Keep the layout flexible for merchandising while preserving smooth performance and accessibility.</p>",
-            "button_1_label": "Start editing",
-            "button_2_label": "See more"
-          }
+          "type": "slide"
         }
       ]
     }
