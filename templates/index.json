@@ -42,13 +42,46 @@
     },
     "custom_premium_carousel_home": {
       "type": "custom-premium-carousel",
-      "blocks": {},
-      "block_order": [],
+      "blocks": {
+        "slide_tCjUJt": {
+          "type": "slide",
+          "settings": {
+            "image_alt": "",
+            "eyebrow": "",
+            "heading": "",
+            "heading_size": "large",
+            "body": "",
+            "button_1_label": "",
+            "button_1_link": "",
+            "button_2_label": "",
+            "button_2_link": "",
+            "button_style": "primary",
+            "text_alignment": "left",
+            "vertical_position": "middle",
+            "horizontal_position": "left",
+            "text_color": "#ffffff",
+            "button_text_color": "#ffffff",
+            "button_background_color": "#111827",
+            "button_border_color": "#111827",
+            "button_background_opacity": 100,
+            "enable_button_hover_fill": false,
+            "button_hover_background_color": "#374151",
+            "button_hover_text_color": "#ffffff",
+            "button_hover_border_color": "#374151",
+            "use_overlay_opacity_override": false,
+            "overlay_opacity_override": 55,
+            "slide_link": ""
+          }
+        }
+      },
+      "block_order": [
+        "slide_tCjUJt"
+      ],
       "settings": {
         "accessibility_label": "Homepage premium carousel",
         "enable_autoplay": true,
         "autoplay_speed": 5,
-        "enable_arrows": true,
+        "enable_arrows": false,
         "enable_dots": true,
         "arrow_position": "left",
         "dot_position": "right",
@@ -64,7 +97,7 @@
         "content_max_width": 720,
         "button_font_size": 15,
         "button_height": 48,
-        "use_shared_buttons": false,
+        "use_shared_buttons": true,
         "use_shared_content_alignment": false,
         "shared_text_alignment": "left",
         "shared_vertical_position": "middle",
@@ -75,7 +108,7 @@
         "shared_content_y_desktop": 50,
         "shared_content_x_mobile": 10,
         "shared_content_y_mobile": 50,
-        "shared_button_1_label": "",
+        "shared_button_1_label": "Browse Collections",
         "shared_button_1_link": "",
         "shared_button_2_label": "",
         "shared_button_2_link": "",
