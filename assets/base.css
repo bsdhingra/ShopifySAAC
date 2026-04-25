@@ -4297,24 +4297,52 @@ details-disclosure > details {
   display:flex;
   gap:10px;
   align-items:center;
-  margin: 10px 0 14px;
+  flex-wrap: wrap;
+  margin: 6px 0 12px;
 }
 
 .bd-side-btn{
   appearance:none;
-  border:1px solid rgba(0,0,0,.18);
-  background:#fff;
+  border:1px solid rgba(15, 23, 42, .16);
+  background: rgba(255,255,255,.92);
+  color: rgb(17, 24, 39);
   border-radius:999px;
-  padding:8px 14px;
+  padding:9px 14px;
   font-size:14px;
   line-height:1;
   cursor:pointer;
+  font-weight: 600;
+  transition:
+    background-color .18s ease,
+    color .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
 }
 
-.bd-side-btn.is-active{
-  border-color: rgba(0,0,0,.45);
-  box-shadow: 0 1px 0 rgba(0,0,0,.06);
-  font-weight:600;
+.bd-side-btn.is-active,
+.bd-side-btn[aria-selected="true"]{
+  background: rgb(17, 24, 39);
+  color: #fff;
+  border-color: rgba(15, 23, 42, .9);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, .12);
+}
+
+.bd-side-btn:not(.is-active):not([aria-selected="true"]){
+  background: rgba(255,255,255,.9);
+  color: rgb(17, 24, 39);
+  border-color: rgba(15, 23, 42, .16);
+}
+
+.bd-side-btn:focus-visible{
+  outline: 2px solid rgba(15, 23, 42, .22);
+  outline-offset: 2px;
+}
+
+@media screen and (min-width: 750px) {
+  .bd-side-btn{
+    padding-left: 24px;
+    padding-right: 24px;
+  }
 }
 
 #cf-tshirt-preview-container [data-bd-inline-actions="1"] {

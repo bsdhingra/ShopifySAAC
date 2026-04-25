@@ -905,16 +905,44 @@
     const bar = box.querySelector("[data-bd-inline-upload='1']");
     if (!notice || !bar || !bar.parentNode) return;
 
-    notice.style.marginTop = "0";
+    notice.style.marginTop = "6px";
     notice.style.marginBottom = "0";
-    if (notice.parentNode !== bar.parentNode || notice.nextElementSibling !== bar) {
-      bar.insertAdjacentElement("beforebegin", notice);
+    if (notice.parentNode !== bar.parentNode || notice.previousElementSibling !== bar) {
+      bar.insertAdjacentElement("afterend", notice);
     }
+  };
+
+  const bdPlaceSideToggleAboveInlineUpload = () => {
+    const toggle = box.querySelector(".bd-side-toggle");
+    const bar = box.querySelector("[data-bd-inline-upload='1']");
+    if (!toggle || !bar || !bar.parentNode) return;
+    if (toggle.parentNode !== bar.parentNode || toggle.nextElementSibling !== bar) {
+      bar.insertAdjacentElement("beforebegin", toggle);
+    }
+  };
+
+  const bdRevealProofAreaAfterFinalize = () => {
+    const reviewWrap = box.querySelector("[data-bd-proof-review-wrap='1']");
+    const reviewStatus = box.querySelector("[data-bd-finalize-status='1']");
+    const target = (reviewWrap && !reviewWrap.hidden && reviewWrap) || reviewStatus;
+    if (!target) return;
+
+    try {
+      const rect = target.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      if (!viewportHeight) return;
+      const offset = 108;
+      const desiredTop = Math.max(0, rect.top + window.scrollY - offset);
+      const needsReveal = rect.bottom > viewportHeight - 40 || rect.top < 0;
+      if (!needsReveal) return;
+      window.scrollTo({ top: desiredTop, behavior: "smooth" });
+    } catch (e) {}
   };
 
   const bdEnsureInlineUploadUI = () => {
     // Prevent duplicates (theme section reload, etc.)
     if (box.querySelector("[data-bd-inline-upload='1']") && box.querySelector("[data-bd-upload-info='1']")) {
+      bdPlaceSideToggleAboveInlineUpload();
       bdMountSharedUploadNotice();
       return;
     }
@@ -1092,11 +1120,14 @@
       bar.insertAdjacentElement("afterend", panel);
     }
 
+    bdPlaceSideToggleAboveInlineUpload();
     bdMountSharedUploadNotice();
 
     // Click handlers: trigger the REAL inputs
     btnFront.addEventListener("click", () => {
       if (bdCropState.isOpen) return;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
       const inp = document.getElementById("cfUploadFront") || inputFront;
       try {
         if (typeof window.bdSwitchPreviewSide === "function") {
@@ -1107,11 +1138,23 @@
           if (typeof bdSwitchMainMockup === "function") bdSwitchMainMockup("front");
         }
       } catch (e) {}
+      requestAnimationFrame(() => {
+        try {
+          window.scrollTo(scrollX, scrollY);
+        } catch (err) {}
+        setTimeout(() => {
+          try {
+            window.scrollTo(scrollX, scrollY);
+          } catch (err) {}
+        }, 140);
+      });
       if (inp) inp.click();
     });
 
     btnBack.addEventListener("click", () => {
       if (bdCropState.isOpen) return;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
       const inp = document.getElementById("cfUploadBack") || inputBack;
       try {
         if (typeof window.bdSwitchPreviewSide === "function") {
@@ -1122,6 +1165,16 @@
           if (typeof bdSwitchMainMockup === "function") bdSwitchMainMockup("back");
         }
       } catch (e) {}
+      requestAnimationFrame(() => {
+        try {
+          window.scrollTo(scrollX, scrollY);
+        } catch (err) {}
+        setTimeout(() => {
+          try {
+            window.scrollTo(scrollX, scrollY);
+          } catch (err) {}
+        }, 140);
+      });
       if (inp) inp.click();
     });
 
@@ -3664,6 +3717,13 @@ const bdUseSideState = (side) => {
       });
       bdUpdateReviewUi();
       bdRefreshFinalizeUi();
+      if (runSeq === bdFinalizeRunSeq && bdDesignFinalized) {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            bdRevealProofAreaAfterFinalize();
+          }, 120);
+        });
+      }
     });
 
     return bdFinalizePromise;

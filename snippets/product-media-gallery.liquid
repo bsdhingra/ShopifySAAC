@@ -569,7 +569,15 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
 
     if (targetBtn) {
       targetBtn.setAttribute('aria-current', 'true');
-      targetBtn.scrollIntoView({ block: 'nearest', inline: 'center' });
+      const listRect = thumbsList.getBoundingClientRect();
+      const btnRect = targetBtn.getBoundingClientRect();
+      const deltaX = (btnRect.left - listRect.left) - ((listRect.width - btnRect.width) / 2);
+      if (Math.abs(deltaX) > 2) {
+        thumbsList.scrollTo({
+          left: thumbsList.scrollLeft + deltaX,
+          behavior: 'smooth'
+        });
+      }
     }
   }
 
