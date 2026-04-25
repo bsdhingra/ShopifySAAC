@@ -273,12 +273,26 @@
       justify-items: end;
     }
 
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--freeform {
+      display: block;
+    }
+
     #bd-carousel-{{ section.id }} .bd-carousel__content {
       width: min(100%, var(--bd-carousel-content-max-width));
       max-width: 100%;
       display: grid;
       gap: 0.9rem;
       text-wrap: balance;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--freeform .bd-carousel__content {
+      position: absolute;
+      top: calc(var(--bd-carousel-content-y-desktop, 50) * 1%);
+      left: calc(var(--bd-carousel-content-x-desktop, 50) * 1%);
+      transform: translate(
+        calc(var(--bd-carousel-content-x-desktop, 50) * -1%),
+        calc(var(--bd-carousel-content-y-desktop, 50) * -1%)
+      );
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__content--narrow {
@@ -610,6 +624,15 @@
         padding: 1.2rem 1.2rem var(--bd-carousel-mobile-content-bottom-padding);
       }
 
+      #bd-carousel-{{ section.id }} .bd-carousel__content-wrap--freeform .bd-carousel__content {
+        top: calc(var(--bd-carousel-content-y-mobile, 50) * 1%);
+        left: calc(var(--bd-carousel-content-x-mobile, 50) * 1%);
+        transform: translate(
+          calc(var(--bd-carousel-content-x-mobile, 50) * -1%),
+          calc(var(--bd-carousel-content-y-mobile, 50) * -1%)
+        );
+      }
+
       #bd-carousel-{{ section.id }} .bd-carousel__content {
         width: 100%;
         max-width: 100%;
@@ -680,8 +703,14 @@
       animation-duration: 1ms !important;
     }
 
+    #bd-carousel-{{ section.id }} .bd-carousel__slide[data-bd-carousel-clone="true"] .bd-carousel__content > * {
+      transition-duration: 1ms !important;
+      animation-duration: 1ms !important;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       #bd-carousel-{{ section.id }}.bd-carousel--syncing .bd-carousel__content > *,
+      #bd-carousel-{{ section.id }} .bd-carousel__slide[data-bd-carousel-clone="true"] .bd-carousel__content > *,
       #bd-carousel-{{ section.id }} .bd-carousel__track,
       #bd-carousel-{{ section.id }} .bd-carousel__content > * ,
       #bd-carousel-{{ section.id }} .bd-carousel__button,
@@ -710,6 +739,14 @@
               endif
 
               assign bd_carousel_button_style = block.settings.button_style | default: 'primary'
+              assign bd_carousel_text_alignment = block.settings.text_alignment | default: 'left'
+              assign bd_carousel_vertical_position = block.settings.vertical_position | default: 'middle'
+              assign bd_carousel_horizontal_position = block.settings.horizontal_position | default: 'left'
+              assign bd_carousel_freeform_position = false
+              assign bd_carousel_content_x_desktop = 50
+              assign bd_carousel_content_y_desktop = 50
+              assign bd_carousel_content_x_mobile = 50
+              assign bd_carousel_content_y_mobile = 50
               assign bd_carousel_button_text = block.settings.button_text_color
               assign bd_carousel_button_background = block.settings.button_background_color
               assign bd_carousel_button_border = block.settings.button_border_color
@@ -737,6 +774,26 @@
                 assign bd_carousel_button_1_link = section.settings.shared_button_1_link
                 assign bd_carousel_button_2_label = section.settings.shared_button_2_label
                 assign bd_carousel_button_2_link = section.settings.shared_button_2_link
+              endif
+
+              if section.settings.use_shared_content_alignment
+                assign bd_carousel_text_alignment = section.settings.shared_text_alignment | default: 'left'
+                assign bd_carousel_vertical_position = section.settings.shared_vertical_position | default: 'middle'
+                assign bd_carousel_horizontal_position = section.settings.shared_horizontal_position | default: 'left'
+
+                if section.settings.enable_shared_freeform_position
+                  assign bd_carousel_freeform_position = true
+                  assign bd_carousel_content_x_desktop = section.settings.shared_content_x_desktop
+                  assign bd_carousel_content_y_desktop = section.settings.shared_content_y_desktop
+
+                  if section.settings.use_same_shared_position_on_mobile
+                    assign bd_carousel_content_x_mobile = section.settings.shared_content_x_desktop
+                    assign bd_carousel_content_y_mobile = section.settings.shared_content_y_desktop
+                  else
+                    assign bd_carousel_content_x_mobile = section.settings.shared_content_x_mobile
+                    assign bd_carousel_content_y_mobile = section.settings.shared_content_y_mobile
+                  endif
+                endif
               endif
 
               assign bd_carousel_has_primary_button = false
@@ -824,11 +881,19 @@
               {%- endif -%}
 
               <div
-                class="bd-carousel__content-wrap bd-carousel__content-wrap--{{ block.settings.vertical_position }} bd-carousel__content-wrap--{{ block.settings.horizontal_position }}"
+                class="bd-carousel__content-wrap bd-carousel__content-wrap--{{ bd_carousel_vertical_position }} bd-carousel__content-wrap--{{ bd_carousel_horizontal_position }}{% if bd_carousel_freeform_position %} bd-carousel__content-wrap--freeform{% endif %}"
+                {% if bd_carousel_freeform_position %}
+                  style="
+                    --bd-carousel-content-x-desktop: {{ bd_carousel_content_x_desktop }};
+                    --bd-carousel-content-y-desktop: {{ bd_carousel_content_y_desktop }};
+                    --bd-carousel-content-x-mobile: {{ bd_carousel_content_x_mobile }};
+                    --bd-carousel-content-y-mobile: {{ bd_carousel_content_y_mobile }};
+                  "
+                {% endif %}
               >
                 <div
                   class="bd-carousel__content bd-carousel__content--{{ bd_carousel_content_width }}"
-                  data-align="{{ block.settings.text_alignment }}"
+                  data-align="{{ bd_carousel_text_alignment }}"
                   style="
                     color: {{ block.settings.text_color }};
                     --bd-carousel-button-text: {{ bd_carousel_button_text }};
@@ -1425,6 +1490,97 @@
       "id": "use_shared_buttons",
       "label": "Use same buttons on all slides",
       "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "use_shared_content_alignment",
+      "label": "Use same text and button alignment on all slides",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "shared_text_alignment",
+      "label": "Shared text alignment",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "shared_vertical_position",
+      "label": "Shared text vertical position",
+      "default": "middle",
+      "options": [
+        { "value": "top", "label": "Top" },
+        { "value": "middle", "label": "Middle" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "shared_horizontal_position",
+      "label": "Shared text horizontal position",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_shared_freeform_position",
+      "label": "Enable freeform shared positioning",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "use_same_shared_position_on_mobile",
+      "label": "Use same shared position on mobile and desktop",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "shared_content_x_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Shared horizontal position desktop",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "shared_content_y_desktop",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Shared vertical position desktop",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "shared_content_x_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Shared horizontal position mobile",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "shared_content_y_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Shared vertical position mobile",
+      "default": 50
     },
     {
       "type": "text",
