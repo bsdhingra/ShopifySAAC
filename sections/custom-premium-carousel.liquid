@@ -9,8 +9,11 @@
   assign bd_carousel_image_fit = section.settings.image_fit | default: 'cover'
   assign bd_carousel_section_width = section.settings.section_max_width | default: 'full'
   assign bd_carousel_use_page_width = false
+  assign bd_carousel_use_custom_width = false
   if bd_carousel_section_width == 'page'
     assign bd_carousel_use_page_width = true
+  elsif bd_carousel_section_width == 'custom'
+    assign bd_carousel_use_custom_width = true
   endif
   assign bd_carousel_content_width = section.settings.text_container_width | default: 'medium'
   assign bd_carousel_overlay_style = section.settings.overlay_style | default: 'gradient'
@@ -58,6 +61,7 @@
     --bd-carousel-global-overlay-opacity: {{ bd_carousel_global_overlay_opacity | divided_by: 100.0 }};
     --bd-carousel-mobile-gutter: {{ section.settings.mobile_side_padding }}px;
     --bd-carousel-desktop-gutter: {{ section.settings.desktop_side_padding }}px;
+    --bd-carousel-section-max-width: {{ section.settings.custom_section_width }}px;
   "
 >
   <style>
@@ -86,6 +90,11 @@
     #bd-carousel-{{ section.id }} .bd-carousel__shell--page {
       padding-left: 0;
       padding-right: 0;
+    }
+
+    #bd-carousel-{{ section.id }} .bd-carousel__shell--custom {
+      max-width: var(--bd-carousel-section-max-width);
+      margin: 0 auto;
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__frame {
@@ -600,7 +609,7 @@
     }
   </style>
 
-  <div class="bd-carousel__shell {% if bd_carousel_use_page_width %}bd-carousel__shell--page page-width{% else %}bd-carousel__shell--full{% endif %}">
+  <div class="bd-carousel__shell {% if bd_carousel_use_page_width %}bd-carousel__shell--page page-width{% elsif bd_carousel_use_custom_width %}bd-carousel__shell--custom bd-carousel__shell--full{% else %}bd-carousel__shell--full{% endif %}">
     <div class="bd-carousel__frame">
       <div class="bd-carousel__viewport" data-bd-carousel-viewport>
         <div class="bd-carousel__track" data-bd-carousel-track>
@@ -1204,8 +1213,19 @@
       "default": "full",
       "options": [
         { "value": "full", "label": "Full width" },
-        { "value": "page", "label": "Page width" }
+        { "value": "page", "label": "Page width" },
+        { "value": "custom", "label": "Custom width" }
       ]
+    },
+    {
+      "type": "range",
+      "id": "custom_section_width",
+      "min": 1200,
+      "max": 2000,
+      "step": 20,
+      "unit": "px",
+      "label": "Custom section width",
+      "default": 1600
     },
     {
       "type": "range",
