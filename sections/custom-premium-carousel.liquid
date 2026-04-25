@@ -561,6 +561,13 @@
       #bd-carousel-{{ section.id }} .bd-carousel__slide.is-active .bd-carousel__content > *:nth-child(4) {
         transition-delay: 160ms;
       }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__content > .bd-carousel__actions,
+      #bd-carousel-{{ section.id }} .bd-carousel__slide.is-active .bd-carousel__content > .bd-carousel__actions {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
     {% endif %}
 
     #bd-carousel-{{ section.id }}.bd-carousel--desktop-small .bd-carousel__slide {
