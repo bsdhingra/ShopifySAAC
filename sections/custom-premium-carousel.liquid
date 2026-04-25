@@ -121,7 +121,7 @@
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__shell--custom {
-      max-width: var(--bd-carousel-section-max-width);
+      max-width: calc(var(--bd-carousel-section-max-width) + (var(--bd-carousel-mobile-gutter) * 2));
       margin: 0 auto;
     }
 
@@ -664,6 +664,10 @@
       #bd-carousel-{{ section.id }} .bd-carousel__shell--full {
         padding-left: var(--bd-carousel-desktop-gutter);
         padding-right: var(--bd-carousel-desktop-gutter);
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__shell--custom {
+        max-width: calc(var(--bd-carousel-section-max-width) + (var(--bd-carousel-desktop-gutter) * 2));
       }
 
       #bd-carousel-{{ section.id }}.bd-carousel--hide-desktop {
