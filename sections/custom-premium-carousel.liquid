@@ -37,6 +37,20 @@
   if bd_carousel_autoplay_speed < 2
     assign bd_carousel_autoplay_speed = 2
   endif
+
+  assign bd_carousel_first_block = section.blocks.first
+  assign bd_carousel_first_desktop_aspect = 1.7778
+  assign bd_carousel_first_mobile_aspect = 1.25
+  if bd_carousel_first_block
+    if bd_carousel_first_block.settings.desktop_image and bd_carousel_first_block.settings.desktop_image.aspect_ratio
+      assign bd_carousel_first_desktop_aspect = bd_carousel_first_block.settings.desktop_image.aspect_ratio
+    endif
+    if bd_carousel_first_block.settings.mobile_image and bd_carousel_first_block.settings.mobile_image.aspect_ratio
+      assign bd_carousel_first_mobile_aspect = bd_carousel_first_block.settings.mobile_image.aspect_ratio
+    else
+      assign bd_carousel_first_mobile_aspect = bd_carousel_first_desktop_aspect
+    endif
+  endif
 -%}
 
 <section
@@ -63,6 +77,8 @@
     --bd-carousel-desktop-gutter: {{ section.settings.desktop_side_padding }}px;
     --bd-carousel-section-max-width: {{ section.settings.custom_section_width }}px;
     --bd-carousel-surface: rgb(var(--color-background));
+    --bd-carousel-desktop-aspect: {{ bd_carousel_first_desktop_aspect }};
+    --bd-carousel-mobile-aspect: {{ bd_carousel_first_mobile_aspect }};
   "
 >
   <style>
@@ -510,6 +526,11 @@
       min-height: min(92vh, 58rem);
     }
 
+    #bd-carousel-{{ section.id }}.bd-carousel--desktop-adapt .bd-carousel__slide {
+      min-height: auto;
+      aspect-ratio: var(--bd-carousel-desktop-aspect);
+    }
+
     @media screen and (max-width: 989px) {
       #bd-carousel-{{ section.id }} .bd-carousel__frame {
         border-radius: 1.5rem;
@@ -539,6 +560,11 @@
 
       #bd-carousel-{{ section.id }}.bd-carousel--mobile-large .bd-carousel__slide {
         min-height: 38rem;
+      }
+
+      #bd-carousel-{{ section.id }}.bd-carousel--mobile-adapt .bd-carousel__slide {
+        min-height: auto;
+        aspect-ratio: var(--bd-carousel-mobile-aspect);
       }
 
       #bd-carousel-{{ section.id }} .bd-carousel__content-wrap {
@@ -1166,6 +1192,7 @@
       "label": "Desktop height",
       "default": "large",
       "options": [
+        { "value": "adapt", "label": "Adapt to first image" },
         { "value": "small", "label": "Small" },
         { "value": "medium", "label": "Medium" },
         { "value": "large", "label": "Large" },
@@ -1178,6 +1205,7 @@
       "label": "Mobile height",
       "default": "medium",
       "options": [
+        { "value": "adapt", "label": "Adapt to first image" },
         { "value": "small", "label": "Small" },
         { "value": "medium", "label": "Medium" },
         { "value": "large", "label": "Large" }
