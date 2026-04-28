@@ -494,11 +494,22 @@
   {%- liquid
     assign next_year = 'now' | date: '%Y' | plus: 1
     assign schema_price_valid_until = next_year | append: '-12-31'
+    assign schema_description = product.description | strip_html | strip_newlines | strip
+    if schema_description == blank
+      assign schema_description = product.title
+    endif
+    assign description_injection_token = ',"offers":'
+    assign description_injection_replacement = ',"description":' | append: schema_description | json | append: ',"offers":'
     assign schema_price_currency_token = '"priceCurrency":"'
-    assign price_valid_until_fragment = '"priceValidUntil":"' | append: schema_price_valid_until | append: '","priceCurrency":"'
+    assign shipping_details_fragment = '"shippingDetails":{"@type":"OfferShippingDetails","shippingDestination":{"@type":"DefinedRegion","addressCountry":"US"},"deliveryTime":{"@type":"ShippingDeliveryTime","transitTime":{"@type":"QuantitativeValue","minValue":5,"maxValue":7,"unitCode":"DAY"}}},'
+    assign return_policy_fragment = '"hasMerchantReturnPolicy":{"@type":"MerchantReturnPolicy","applicableCountry":"US","returnPolicyCountry":"US","returnPolicyCategory":"https://schema.org/MerchantReturnNotPermitted"},'
+    assign price_valid_until_fragment = '"priceValidUntil":"' | append: schema_price_valid_until | append: '",' | append: shipping_details_fragment | append: return_policy_fragment | append: '"priceCurrency":"'
     capture product_structured_data
       echo product | structured_data
     endcapture
+    unless product_structured_data contains '"description":'
+      assign product_structured_data = product_structured_data | replace_first: description_injection_token, description_injection_replacement
+    endunless
     unless product_structured_data contains '"priceValidUntil":'
       assign product_structured_data = product_structured_data | replace: schema_price_currency_token, price_valid_until_fragment
     endunless
