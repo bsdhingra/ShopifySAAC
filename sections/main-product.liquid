@@ -528,6 +528,10 @@
 {%- assign bd_preview_config_id = product.metafields.custom.preview_config_id | default: '' -%}
 {%- if bd_preview_config_id == blank and product.tags contains 'cf-garment-polo' -%}
   {%- assign bd_preview_config_id = 'polo-shared-basic' -%}
+{%- elsif bd_preview_config_id == blank and product.tags contains 'cf-garment-girls-onesies' -%}
+  {%- assign bd_preview_config_id = 'girls-onesies-shared-basic' -%}
+{%- elsif bd_preview_config_id == blank and product.tags contains 'cf-garment-boys-onesies' -%}
+  {%- assign bd_preview_config_id = 'boys-onesies-shared-basic' -%}
 {%- elsif bd_preview_config_id == blank and product.tags contains 'cf-garment-hoodie' -%}
   {%- assign bd_preview_config_id = 'hoodie-shared-basic' -%}
 {%- elsif bd_preview_config_id == blank and product.tags contains 'cf-tshirt-preview' -%}
@@ -537,6 +541,10 @@
 {%- assign bd_preview_config_file = product.metafields.custom.preview_config_file | default: '' -%}
 {%- if bd_preview_config_file == blank and product.tags contains 'cf-garment-polo' -%}
   {%- assign bd_preview_config_file = 'cf-polo-config.json' -%}
+{%- elsif bd_preview_config_file == blank and product.tags contains 'cf-garment-girls-onesies' -%}
+  {%- assign bd_preview_config_file = 'cf-onesies-config.json' -%}
+{%- elsif bd_preview_config_file == blank and product.tags contains 'cf-garment-boys-onesies' -%}
+  {%- assign bd_preview_config_file = 'cf-onesies-config.json' -%}
 {%- elsif bd_preview_config_file == blank and product.tags contains 'cf-garment-hoodie' -%}
   {%- assign bd_preview_config_file = 'cf-hoodie-config.json' -%}
 {%- elsif bd_preview_config_file == blank and product.tags contains 'cf-tshirt-preview' -%}
@@ -549,6 +557,8 @@
 {%- assign bd_safe_print_garment = 'tshirt' -%}
 {%- if product.tags contains 'cf-garment-polo' -%}
   {%- assign bd_safe_print_garment = 'polo' -%}
+{%- elsif product.tags contains 'cf-garment-girls-onesies' or product.tags contains 'cf-garment-boys-onesies' -%}
+  {%- assign bd_safe_print_garment = 'onesies' -%}
 {%- elsif product.tags contains 'cf-garment-hoodie' -%}
   {%- assign bd_safe_print_garment = 'hoodie' -%}
 {%- elsif product.tags contains 'cf-garment-tshirt' -%}

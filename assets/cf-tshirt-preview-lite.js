@@ -2532,6 +2532,10 @@ requestAnimationFrame(() => {
       front: { left: 35.5, top: 32, width: 30, height: 38 },
       back: { left: 36.5, top: 32, width: 30, height: 38 }
     },
+    onesies: {
+      front: { left: 35.5, top: 28, width: 30, height: 38 },
+      back: { left: 36.5, top: 28, width: 30, height: 38 }
+    },
     hoodie: {
       front: { left: 35.5, top: 28, width: 30, height: 31 },
       back: { left: 35.5, top: 32, width: 30, height: 40 }

@@ -1,0 +1,74 @@
+{
+  "girls-onesies-shared-basic": {
+    "colorMockupMap": {
+      "Hot Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_hot_pink.png?v=1777312691",
+        "back": ""
+      },
+      "Light Purple": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_light_purple.png?v=1777312891",
+        "back": ""
+      },
+      "Dark Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_dark_pink.png?v=1777313321",
+        "back": ""
+      },
+      "Turquoise": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_turquoise.png?v=1777313024",
+        "back": ""
+      },
+      "Yellow": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_yellow_daisy.png?v=1777312982",
+        "back": ""
+      },
+      "Baby Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_baby_pink.png?v=1777313362",
+        "back": ""
+      },
+      "Orange": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_orange.png?v=1777312752",
+        "back": ""
+      },
+      "Soft Pink": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_soft_pink.png?v=1777313381",
+        "back": ""
+      }
+    }
+  },
+  "boys-onesies-shared-basic": {
+    "colorMockupMap": {
+      "Royal Blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_royal_blue.png?v=1777312241",
+        "back": ""
+      },
+      "Red": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_red.png?v=1777312591",
+        "back": ""
+      },
+      "Navy": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_navy.png?v=1777312397",
+        "back": ""
+      },
+      "Yellow": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_yellow.png?v=1777312563",
+        "back": ""
+      },
+      "Light blue": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_light_blue.png?v=1777312460",
+        "back": ""
+      },
+      "Green": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_green.png?v=1777312294",
+        "back": ""
+      },
+      "Dark gray": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_dark_gray.png?v=1777312348",
+        "back": ""
+      },
+      "Light gray": {
+        "front": "https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_onesie_light_gray.png?v=1777312369",
+        "back": ""
+      }
+    }
+  }
+}
