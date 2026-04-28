@@ -503,8 +503,8 @@
     assign parent_description_injection_replacement = '"@type":"Product","description":' | append: schema_description_json | append: ','
     assign variant_first_description_injection_token = '"hasVariant":[{"@type":"Product",'
     assign variant_first_description_injection_replacement = '"hasVariant":[{"@type":"Product","description":' | append: schema_description_json | append: ','
-    assign variant_next_description_injection_token = '},{"@type":"Product",'
-    assign variant_next_description_injection_replacement = '},{"@type":"Product","description":' | append: schema_description_json | append: ','
+    assign variant_next_description_injection_token = ',"@type":"Product",'
+    assign variant_next_description_injection_replacement = ',"@type":"Product","description":' | append: schema_description_json | append: ','
     assign schema_price_currency_token = '"priceCurrency":"'
     assign shipping_details_fragment = '"shippingDetails":{"@type":"OfferShippingDetails","shippingDestination":{"@type":"DefinedRegion","addressCountry":"US"},"deliveryTime":{"@type":"ShippingDeliveryTime","transitTime":{"@type":"QuantitativeValue","minValue":5,"maxValue":7,"unitCode":"DAY"}}},'
     assign return_policy_fragment = '"hasMerchantReturnPolicy":{"@type":"MerchantReturnPolicy","applicableCountry":"US","returnPolicyCountry":"US","returnPolicyCategory":"https://schema.org/MerchantReturnNotPermitted"},'
@@ -515,7 +515,7 @@
     unless product_structured_data contains '"hasVariant":[{"@type":"Product","description":'
       assign product_structured_data = product_structured_data | replace: variant_first_description_injection_token, variant_first_description_injection_replacement
     endunless
-    unless product_structured_data contains '},{"@type":"Product","description":'
+    unless product_structured_data contains ',"@type":"Product","description":'
       assign product_structured_data = product_structured_data | replace: variant_next_description_injection_token, variant_next_description_injection_replacement
     endunless
     unless product_structured_data contains '"@context":"http://schema.org/","@type":"Product","description":'
