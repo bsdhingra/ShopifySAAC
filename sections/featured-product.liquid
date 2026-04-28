@@ -528,10 +528,12 @@
           {%- liquid
             assign schema_variant_url = request.origin | append: variant.url
             assign schema_variant_price = variant.price | divided_by: 100.0
-            if variant.featured_media
-              assign schema_variant_image_url = variant.featured_media | image_url: width: 1920 | prepend: 'https:'
+            assign schema_variant_name = product.title | append: ' - ' | append: variant.title
+            assign schema_variant_media = variant.featured_media | default: seo_media
+            if schema_variant_media
+              assign schema_variant_image_url = schema_variant_media | image_url: width: 1920 | prepend: 'https:'
             else
-              assign schema_variant_image_url = schema_product_image_url
+              assign schema_variant_image_url = blank
             endif
           -%}
           {
@@ -539,11 +541,11 @@
             "@type": "Product",
             "description": {{ schema_description_json }},
             "image": {{ schema_variant_image_url | json }},
-            "name": {{ variant.name | json }},
+            "name": {{ schema_variant_name | json }},
             "offers": {
               "@id": {{ schema_variant_url | append: '#offer' | json }},
               "@type": "Offer",
-              "availability": {% if variant.available %}"http://schema.org/InStock"{% else %}"http://schema.org/OutOfStock"{% endif %},
+              "availability": {% if variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
               "price": {{ schema_variant_price | json }},
               "priceValidUntil": {{ schema_price_valid_until | json }},
               "shippingDetails": {
@@ -565,10 +567,9 @@
               "hasMerchantReturnPolicy": {
                 "@type": "MerchantReturnPolicy",
                 "applicableCountry": "US",
-                "returnPolicyCountry": "US",
                 "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
               },
-              "priceCurrency": {{ schema_currency | json }},
+              "priceCurrency": "USD",
               "url": {{ schema_variant_url | json }}
             }
           }{%- unless forloop.last -%},{%- endunless -%}
