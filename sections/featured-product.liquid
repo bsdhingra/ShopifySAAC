@@ -527,9 +527,7 @@
     unless product_structured_data contains '"hasVariant":[{"@type":"Product","description":'
       assign product_structured_data = product_structured_data | replace: variant_first_description_injection_token, variant_first_description_injection_replacement
     endunless
-    unless product_structured_data contains ',"@type":"Product","description":'
-      assign product_structured_data = product_structured_data | replace: variant_next_description_injection_token, variant_next_description_injection_replacement
-    endunless
+    assign product_structured_data = product_structured_data | replace: variant_next_description_injection_token, variant_next_description_injection_replacement
     unless product_structured_data contains '"@context":"http://schema.org/","@type":"Product","description":'
       assign product_structured_data = product_structured_data | replace_first: parent_description_injection_token, parent_description_injection_replacement
     endunless
