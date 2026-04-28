@@ -54,5 +54,25 @@
         }
       }
     }
+  },
+  "custom-printed-wooden-door-sign-12": {
+    "default": {
+      "frame": {
+        "cxPct": 0.5038,
+        "cyPct": 0.55,
+        "radiusPct": 0.457
+      },
+      "editor": {
+        "minScale": 1,
+        "maxScale": 3.5
+      },
+      "slider": {
+        "enabled": true,
+        "minRadiusPct": 0.22,
+        "maxRadiusPct": 0.457,
+        "defaultRadiusPct": 0.4,
+        "stepPct": 0.005
+      }
+    }
   }
 }

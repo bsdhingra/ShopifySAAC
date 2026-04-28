@@ -440,17 +440,58 @@
 #cf-circle-preview-container .cf-circle-status {
   flex: 1 1 16rem;
   min-width: 16rem;
+  min-height: 3rem;
+  display: block;
   font-size: 0.92rem;
   color: rgba(var(--color-foreground), 0.74);
 }
 
 #cf-circle-preview-container .cf-circle-meta {
   width: 100%;
+  display: block;
   font-size: 0.86rem;
   color: rgba(var(--color-foreground), 0.64);
 }
 
 #cf-circle-preview-container .cf-circle-inline-notice {
+  margin: 0;
+}
+
+#cf-circle-preview-container .cf-circle-frame-slider-row[hidden] {
+  display: none !important;
+}
+
+#cf-circle-preview-container .cf-circle-frame-slider-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+#cf-circle-preview-container .cf-circle-frame-slider-label {
+  color: rgba(var(--color-foreground), 0.76);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+#cf-circle-preview-container .cf-circle-frame-step {
+  width: 2rem;
+  height: 2rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(17, 24, 39, 0.78);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#cf-circle-preview-container .cf-circle-frame-slider {
+  width: 100%;
   margin: 0;
 }
 
@@ -548,6 +589,20 @@
     gap: 0.65rem;
   }
 
+  #cf-circle-preview-container .cf-circle-frame-slider-row {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    gap: 0.55rem;
+  }
+
+  #cf-circle-preview-container .cf-circle-frame-slider-label {
+    font-size: 0.84rem;
+  }
+
+  #cf-circle-preview-container .cf-circle-frame-step {
+    width: 1.9rem;
+    height: 1.9rem;
+  }
+
   #cf-circle-preview-container .cf-circle-action-row {
     display: flex;
     flex-wrap: nowrap;
@@ -557,6 +612,10 @@
   #cf-circle-preview-container .cf-circle-status,
   #cf-circle-preview-container .cf-circle-meta {
     min-width: 0;
+  }
+
+  #cf-circle-preview-container .cf-circle-status {
+    min-height: 3.4rem;
   }
 
   #cf-circle-preview-container .cf-start-btn {

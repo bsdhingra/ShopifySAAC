@@ -61,7 +61,36 @@
                 </span>
               </span>
             </p>
-          </div>
+            </div>
+            <div class="cf-circle-frame-slider-row" data-cf-circle-frame-slider-row hidden>
+              <span class="cf-circle-frame-slider-label">Frame size</span>
+              <button
+                type="button"
+                class="cf-circle-frame-step"
+                data-cf-circle-frame-decrease
+                aria-label="Decrease frame size"
+              >
+                -
+              </button>
+              <input
+                type="range"
+                class="cf-circle-frame-slider"
+                data-cf-circle-frame-slider
+                min="0"
+                max="100"
+                step="1"
+                value="0"
+                aria-label="Frame size"
+              >
+              <button
+                type="button"
+                class="cf-circle-frame-step"
+                data-cf-circle-frame-increase
+                aria-label="Increase frame size"
+              >
+                +
+              </button>
+            </div>
             <div class="cf-circle-status" data-cf-circle-status>
               Upload one design to start the circular preview.
             </div>
@@ -101,7 +130,7 @@
             </button>
           </div>
           <p class="cf-circle-editor-helper">
-            Edit your image below. The circular preview updates automatically.
+            Adjust your image. The preview section updates automatically.
           </p>
         </div>
       </div>

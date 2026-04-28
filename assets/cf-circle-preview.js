@@ -23,6 +23,10 @@
   const designEditImg = root.querySelector("[data-cf-circle-design-edit]");
   const previewDesignImg = root.querySelector("[data-cf-circle-preview-design]");
   const resizeHandle = root.querySelector("[data-cf-circle-handle]");
+  const frameSliderRow = root.querySelector("[data-cf-circle-frame-slider-row]");
+  const frameSliderInput = root.querySelector("[data-cf-circle-frame-slider]");
+  const frameDecreaseBtn = root.querySelector("[data-cf-circle-frame-decrease]");
+  const frameIncreaseBtn = root.querySelector("[data-cf-circle-frame-increase]");
   const statusEl = root.querySelector("[data-cf-circle-status]");
   const metaEl = root.querySelector("[data-cf-circle-meta]");
   const variantMediaMapScript = root.querySelector("[data-cf-circle-variant-media]");
@@ -66,8 +70,7 @@
       height: 0
     },
     placement: null,
-    defaultPlacement: null,
-    frame: null
+    defaultPlacement: null
   };
 
   const editorFrameConfig = Object.freeze({
@@ -100,8 +103,11 @@
   let allowNextSubmit = false;
   let draftPersistFrame = 0;
   let pendingRestoreSnapshot = null;
+  let frameRadiusPct = null;
+  let restoreInProgress = false;
+  let restoreCompleted = false;
   const PROOF_WAIT_MS = 1400;
-  const PROOF_NOTICE_TEXT = "Preview ready. If the upload looks correct, you can add to cart. Preparing the cart proof image.";
+  const PROOF_NOTICE_TEXT = "Preparing the cart proof image...";
   const PROOF_FALLBACK_TEXT = "Proof size is greater than 10MB or proof upload could not complete. Adding to cart without the proof preview.";
 
   if (variantMediaMapScript) {
@@ -134,6 +140,7 @@
       designUrl,
       placement: { ...state.placement },
       variantId: currentVariantId || readVariantId(),
+      frameRadiusPct: frameRadiusPct != null ? Number(frameRadiusPct) : null,
       isOpen: root.classList.contains("is-design-open") || !body.hidden
     };
   };
@@ -154,6 +161,7 @@
   };
 
   const scheduleDraftPersist = () => {
+    if (restoreInProgress) return;
     if (draftPersistFrame) return;
     draftPersistFrame = window.requestAnimationFrame(() => {
       draftPersistFrame = 0;
@@ -221,6 +229,13 @@
     try {
       document.body.classList.remove("overflow-hidden");
     } catch (e) {}
+  };
+
+  const setRestoreMode = (active) => {
+    restoreInProgress = !!active;
+    if (restoreInProgress) {
+      restoreCompleted = false;
+    }
   };
 
   const getVariantIdInput = () => {
@@ -344,6 +359,12 @@
         globalDefault.mockup || {},
         productDefault.mockup || {},
         variantConfig.mockup || {}
+      ),
+      slider: Object.assign(
+        {},
+        globalDefault.slider || {},
+        productDefault.slider || {},
+        variantConfig.slider || {}
       )
     };
   };
@@ -354,6 +375,51 @@
       cxPct: resolved.frame.cxPct != null ? Number(resolved.frame.cxPct) : 0.5,
       cyPct: resolved.frame.cyPct != null ? Number(resolved.frame.cyPct) : 0.5,
       radiusPct: resolved.frame.radiusPct != null ? Number(resolved.frame.radiusPct) : 0.22
+    };
+  };
+
+  const getFrameSliderConfig = () => {
+    const resolved = getResolvedConfig();
+    const baseFrame = getFrameConfig();
+    const enabled = String(resolved.slider.enabled || "").toLowerCase() === "true" || resolved.slider.enabled === true;
+    const maxRadiusPct = resolved.slider.maxRadiusPct != null ? Number(resolved.slider.maxRadiusPct) : baseFrame.radiusPct;
+    const minCandidate =
+      resolved.slider.minRadiusPct != null
+        ? Number(resolved.slider.minRadiusPct)
+        : Math.max(0.06, maxRadiusPct * 0.65);
+    const minRadiusPct = Math.min(minCandidate, maxRadiusPct);
+    const defaultCandidate =
+      resolved.slider.defaultRadiusPct != null
+        ? Number(resolved.slider.defaultRadiusPct)
+        : baseFrame.radiusPct;
+    const defaultRadiusPct = clamp(defaultCandidate, minRadiusPct, maxRadiusPct);
+    const stepPct = Math.max(0.001, Number(resolved.slider.stepPct || 0.005));
+    return {
+      enabled,
+      minRadiusPct,
+      maxRadiusPct,
+      defaultRadiusPct,
+      stepPct
+    };
+  };
+
+  const resetFrameRadiusSelection = () => {
+    const slider = getFrameSliderConfig();
+    frameRadiusPct = slider.enabled ? slider.defaultRadiusPct : null;
+  };
+
+  const getCurrentFrameConfig = () => {
+    const baseFrame = getFrameConfig();
+    const slider = getFrameSliderConfig();
+    if (!slider.enabled) return baseFrame;
+    const radiusPct = clamp(
+      frameRadiusPct != null ? Number(frameRadiusPct) : slider.defaultRadiusPct,
+      slider.minRadiusPct,
+      slider.maxRadiusPct
+    );
+    return {
+      ...baseFrame,
+      radiusPct
     };
   };
 
@@ -371,13 +437,13 @@
   const getGalleryImageSrc = () => {
     const scope = getScopedRoot();
     const activeImg = scope.querySelector(
-      'media-gallery li.product__media-item.is-active img:not(.bd-design-preview-base):not(.bd-design-preview-overlay)'
+      'media-gallery li.product__media-item.is-active:not([data-bd-design-preview-slide="1"]) img:not(.bd-design-preview-base):not(.bd-design-preview-overlay)'
     );
     if (activeImg && activeImg.currentSrc) return normalizeSrc(activeImg.currentSrc);
     if (activeImg && activeImg.src) return normalizeSrc(activeImg.src);
 
     const firstImg = scope.querySelector(
-      'media-gallery li.product__media-item img:not(.bd-design-preview-base):not(.bd-design-preview-overlay)'
+      'media-gallery li.product__media-item:not([data-bd-design-preview-slide="1"]) img:not(.bd-design-preview-base):not(.bd-design-preview-overlay)'
     );
     if (firstImg && firstImg.currentSrc) return normalizeSrc(firstImg.currentSrc);
     if (firstImg && firstImg.src) return normalizeSrc(firstImg.src);
@@ -478,6 +544,14 @@
     }
   };
 
+  const hideHeroPreviewSlide = () => {
+    const heroPack = ensureHeroPreviewSlide();
+    if (!heroPack) return;
+    heroPack.slide.hidden = true;
+    heroPack.mask.hidden = true;
+    heroPack.wrap.hidden = true;
+  };
+
   const computeContainedBounds = (containerWidth, containerHeight) => {
     const naturalWidth = state.mockup.width || 1;
     const naturalHeight = state.mockup.height || 1;
@@ -530,15 +604,18 @@
       width: size,
       height: size
     };
+    const slider = getFrameSliderConfig();
+    const currentFrame = getCurrentFrameConfig();
+    const maxRadiusPct = slider.enabled ? slider.maxRadiusPct : currentFrame.radiusPct;
+    const ratio = maxRadiusPct > 0 ? clamp(currentFrame.radiusPct / maxRadiusPct, 0.35, 1) : 1;
     return computeCircleRect(bounds, {
       ...editorFrameConfig,
-      radiusPct: editorFrameConfig.radiusPct
+      radiusPct: round(editorFrameConfig.radiusPct * ratio)
     });
   };
 
   const computePreviewFrameRect = () => {
-    if (!state.frame) state.frame = getFrameConfig();
-    return computeCircleRect(computePreviewBounds(), state.frame);
+    return computeCircleRect(computePreviewBounds(), getCurrentFrameConfig());
   };
 
   const computePreviewMaskRect = () => {
@@ -588,7 +665,7 @@
     if (frameInput) {
       frameInput.value = JSON.stringify({
         variantId: currentVariantId || "",
-        frame: state.frame || getFrameConfig(),
+        frame: getCurrentFrameConfig(),
         mockupSrc: state.mockup.src || ""
       });
     }
@@ -672,8 +749,8 @@
     return JSON.stringify({
       variantId: currentVariantId || "",
       mockupSrc: state.mockup.src,
-      designSrc: designUrlInput ? String(designUrlInput.value || "").trim() : state.design.src,
-      frame: state.frame || getFrameConfig(),
+        designSrc: designUrlInput ? String(designUrlInput.value || "").trim() : state.design.src,
+      frame: getCurrentFrameConfig(),
       placement: state.placement
     });
   };
@@ -710,7 +787,7 @@
       cyPct: resolved.frame.cyPct != null ? Number(resolved.frame.cyPct) : 0.5,
       radiusPct: resolved.frame.radiusPct != null ? Number(resolved.frame.radiusPct) : 0.22
     });
-    const liveFrame = computeCircleRect(bounds, state.frame || getFrameConfig());
+    const liveFrame = computeCircleRect(bounds, getCurrentFrameConfig());
 
     ctx.save();
     ctx.beginPath();
@@ -890,9 +967,10 @@
   };
 
   const render = () => {
-    state.frame = getFrameConfig();
     if (!state.mockup.width || !state.mockup.height) return;
     const heroPack = ensureHeroPreviewSlide();
+    const slider = getFrameSliderConfig();
+    const currentFrame = getCurrentFrameConfig();
 
     const editorFrame = computeEditorFrameRect();
     const previewFrame = computePreviewFrameRect();
@@ -912,6 +990,15 @@
     previewFrameEl.style.top = `${previewFrame.y}px`;
     previewFrameEl.style.width = `${previewFrame.diameter}px`;
     previewFrameEl.style.height = `${previewFrame.diameter}px`;
+    if (frameSliderRow && frameSliderInput) {
+      frameSliderRow.hidden = !slider.enabled;
+      if (slider.enabled) {
+        frameSliderInput.min = String(slider.minRadiusPct);
+        frameSliderInput.max = String(slider.maxRadiusPct);
+        frameSliderInput.step = String(slider.stepPct);
+        frameSliderInput.value = String(currentFrame.radiusPct);
+      }
+    }
     updatePlaceholderCopy(editorFrame);
 
     if (!state.design.src || !state.design.width || !state.design.height) {
@@ -995,7 +1082,7 @@
       }
 
       const heroBounds = computeContainedBounds(heroPack.stage.clientWidth, heroPack.stage.clientHeight);
-      const heroFrame = computeCircleRect(heroBounds, state.frame || getFrameConfig());
+      const heroFrame = computeCircleRect(heroBounds, currentFrame);
       const resolved = getResolvedConfig();
       const heroMaskFrame = computeCircleRect(heroBounds, {
         cxPct: resolved.frame.cxPct != null ? Number(resolved.frame.cxPct) : 0.5,
@@ -1072,9 +1159,12 @@
     }
   };
 
-  const setDesignSrc = (src) => {
+  const setDesignSrc = (src, options) => {
     const nextSrc = normalizeSrc(src);
     if (!nextSrc) return;
+    const preservePlacement = options && options.preservePlacement ? { ...options.preservePlacement } : null;
+    const preserveFrameRadiusPct =
+      options && options.preserveFrameRadiusPct != null ? Number(options.preserveFrameRadiusPct) : null;
     const restoreSnapshot =
       pendingRestoreSnapshot && pendingRestoreSnapshot.designUrl === nextSrc
         ? pendingRestoreSnapshot
@@ -1085,15 +1175,22 @@
       proofLastUrl = "";
       setProofUrl("");
       setProofNotice("");
-      state.frame = getFrameConfig();
+      resetFrameRadiusSelection();
       state.design.width = designEditImg.naturalWidth || 0;
       state.design.height = designEditImg.naturalHeight || 0;
       state.defaultPlacement = getDefaultPlacement();
       state.placement =
         restoreSnapshot && restoreSnapshot.placement
           ? { ...restoreSnapshot.placement }
-          : state.defaultPlacement;
+          : preservePlacement || state.defaultPlacement;
+      if (restoreSnapshot && restoreSnapshot.frameRadiusPct != null) {
+        frameRadiusPct = Number(restoreSnapshot.frameRadiusPct);
+      } else if (preserveFrameRadiusPct != null) {
+        frameRadiusPct = preserveFrameRadiusPct;
+      }
       pendingRestoreSnapshot = null;
+      setRestoreMode(false);
+      restoreCompleted = true;
       setBodyOpen();
       render();
       activateHeroPreviewSlide();
@@ -1114,7 +1211,12 @@
       const resolved = getResolvedConfig();
       const configMockup = normalizeSrc(resolved.mockup.src || resolved.mockup.mockupSrc);
       setMockupSrc(configMockup || variantSrc || variantIdSrc || gallerySrc || defaultMockupSrc);
-      state.frame = getFrameConfig();
+      const slider = getFrameSliderConfig();
+      if (!slider.enabled) {
+        frameRadiusPct = null;
+      } else if (!restoreInProgress && (currentVariantId !== lastVariantId || frameRadiusPct == null)) {
+        frameRadiusPct = slider.defaultRadiusPct;
+      }
       lastVariantId = currentVariantId;
       render();
     });
@@ -1180,6 +1282,9 @@
   const syncFromLocalUpload = () => {
     const file = uploadInput.files && uploadInput.files[0];
     if (!file) return;
+    if (designUrlInput) {
+      designUrlInput.value = "";
+    }
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = URL.createObjectURL(file);
     setDesignSrc(objectUrl);
@@ -1197,7 +1302,7 @@
     if (!nextSrc) return;
     if (snapshot && snapshot.designUrl === nextSrc) {
       pendingRestoreSnapshot = snapshot;
-      if (snapshot.isOpen) setBodyOpen();
+      setRestoreMode(true);
     }
     if (designUrlInput && !String(designUrlInput.value || "").trim()) {
       designUrlInput.value = nextSrc;
@@ -1207,15 +1312,27 @@
         if (pendingRestoreSnapshot.placement) {
           state.placement = { ...pendingRestoreSnapshot.placement };
         }
-        state.frame = getFrameConfig();
+        if (pendingRestoreSnapshot.frameRadiusPct != null) {
+          frameRadiusPct = Number(pendingRestoreSnapshot.frameRadiusPct);
+        }
         pendingRestoreSnapshot = null;
       }
+      setRestoreMode(false);
+      restoreCompleted = true;
       setBodyOpen();
+      activateHeroPreviewSlide();
       requestRender();
       return;
     }
     setBodyOpen();
-    setDesignSrc(nextSrc);
+    const shouldPromoteLocalPreview =
+      state.design.src &&
+      /^blob:/i.test(String(state.design.src || "").trim()) &&
+      !restoreInProgress;
+    setDesignSrc(nextSrc, shouldPromoteLocalPreview ? {
+      preservePlacement: state.placement,
+      preserveFrameRadiusPct: frameRadiusPct
+    } : null);
   };
 
   const handleVariantEvent = (event) => {
@@ -1237,7 +1354,34 @@
 
   resetBtn?.addEventListener("click", () => {
     state.placement = getDefaultPlacement();
-    state.frame = getFrameConfig();
+    resetFrameRadiusSelection();
+    requestRender();
+  });
+
+  frameSliderInput?.addEventListener("input", () => {
+    frameRadiusPct = Number(frameSliderInput.value || 0);
+    requestRender();
+  });
+  frameDecreaseBtn?.addEventListener("click", () => {
+    const slider = getFrameSliderConfig();
+    if (!slider.enabled) return;
+    const next = clamp(
+      (frameRadiusPct != null ? frameRadiusPct : slider.defaultRadiusPct) - slider.stepPct,
+      slider.minRadiusPct,
+      slider.maxRadiusPct
+    );
+    frameRadiusPct = next;
+    requestRender();
+  });
+  frameIncreaseBtn?.addEventListener("click", () => {
+    const slider = getFrameSliderConfig();
+    if (!slider.enabled) return;
+    const next = clamp(
+      (frameRadiusPct != null ? frameRadiusPct : slider.defaultRadiusPct) + slider.stepPct,
+      slider.minRadiusPct,
+      slider.maxRadiusPct
+    );
+    frameRadiusPct = next;
     requestRender();
   });
 
@@ -1350,6 +1494,7 @@
   loadConfig().finally(() => {
     currentVariantId = readVariantId();
     lastVariantId = currentVariantId;
+    resetFrameRadiusSelection();
     updateMockupFromCurrentState(null);
     if (shouldAttemptDraftRestore()) {
       syncFromUploaderPreview({ useDraftSnapshot: true });
@@ -1361,36 +1506,30 @@
     closeTransientCartUi();
     currentVariantId = readVariantId();
     lastVariantId = currentVariantId;
+    setRestoreMode(shouldAttemptDraftRestore({ persisted: !!(event && event.persisted) }));
+    if (restoreInProgress) {
+      hideHeroPreviewSlide();
+    }
     updateMockupFromCurrentState(null, { forceConfigReload: true });
-    if (!shouldAttemptDraftRestore({ persisted: !!(event && event.persisted) })) {
+    if (!restoreInProgress) {
       syncHiddenState();
       return;
     }
-    window.setTimeout(() => {
+    const runRestorePass = () => {
+      if (restoreCompleted) return;
       syncFromUploaderPreview({ useDraftSnapshot: true });
       syncHiddenState();
-      if ((designUrlInput && String(designUrlInput.value || "").trim()) || state.design.src) {
+      if (!restoreInProgress && ((designUrlInput && String(designUrlInput.value || "").trim()) || state.design.src)) {
         setBodyOpen();
         requestRender();
       }
-    }, 0);
-    window.setTimeout(() => {
-      syncFromUploaderPreview({ useDraftSnapshot: true });
-      if ((designUrlInput && String(designUrlInput.value || "").trim()) || state.design.src) {
-        setBodyOpen();
-        requestRender();
-      }
-    }, 120);
-    window.setTimeout(() => {
-      syncFromUploaderPreview({ useDraftSnapshot: true });
-      if ((designUrlInput && String(designUrlInput.value || "").trim()) || state.design.src) {
-        setBodyOpen();
-        requestRender();
-      }
-    }, 260);
+    };
+    window.setTimeout(runRestorePass, 0);
+    window.setTimeout(runRestorePass, 160);
   });
 
   window.addEventListener("pagehide", () => {
+    setRestoreMode(false);
     persistDraftSessionNow();
   });
 })();
