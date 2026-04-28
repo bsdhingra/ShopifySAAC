@@ -500,20 +500,14 @@
     endif
     assign schema_description_json = schema_description | json
     assign parent_description_injection_token = '"@type":"Product",'
-    assign variant_first_description_injection_token = '"hasVariant":[{"@type":"Product",'
-    assign variant_next_description_injection_token = ',"@type":"Product",'
+    assign variant_description_injection_token = '#variant","@type":"Product",'
     capture parent_description_injection_replacement
       echo '"@type":"Product","description":'
       echo schema_description_json
       echo ','
     endcapture
-    capture variant_first_description_injection_replacement
-      echo '"hasVariant":[{"@type":"Product","description":'
-      echo schema_description_json
-      echo ','
-    endcapture
-    capture variant_next_description_injection_replacement
-      echo ',"@type":"Product","description":'
+    capture variant_description_injection_replacement
+      echo '#variant","@type":"Product","description":'
       echo schema_description_json
       echo ','
     endcapture
@@ -524,10 +518,7 @@
     capture product_structured_data
       echo product | structured_data
     endcapture
-    unless product_structured_data contains '"hasVariant":[{"@type":"Product","description":'
-      assign product_structured_data = product_structured_data | replace: variant_first_description_injection_token, variant_first_description_injection_replacement
-    endunless
-    assign product_structured_data = product_structured_data | replace: variant_next_description_injection_token, variant_next_description_injection_replacement
+    assign product_structured_data = product_structured_data | replace: variant_description_injection_token, variant_description_injection_replacement
     unless product_structured_data contains '"@context":"http://schema.org/","@type":"Product","description":'
       assign product_structured_data = product_structured_data | replace_first: parent_description_injection_token, parent_description_injection_replacement
     endunless
