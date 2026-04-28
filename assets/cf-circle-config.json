@@ -1,0 +1,58 @@
+{
+  "__default__": {
+    "frame": {
+      "cxPct": 0.5,
+      "cyPct": 0.5,
+      "radiusPct": 0.22
+    },
+    "editor": {
+      "minScale": 1,
+      "maxScale": 3.5
+    }
+  },
+  "custom-printed-wood-photo-blocks": {
+    "default": {
+      "editor": {
+        "minScale": 1,
+        "maxScale": 3.5
+      }
+    },
+    "variants": {
+      "47451898773669": {
+        "frame": {
+          "cxPct": 0.399,
+          "cyPct": 0.562,
+          "radiusPct": 0.15
+        }
+      },
+      "47451898806437": {
+        "frame": {
+          "cxPct": 0.445,
+          "cyPct": 0.53,
+          "radiusPct": 0.205
+        }
+      },
+      "47451898839205": {
+        "frame": {
+          "cxPct": 0.50,
+          "cyPct": 0.621,
+          "radiusPct": 0.114
+        }
+      },
+      "47451898871973": {
+        "frame": {
+          "cxPct": 0.572,
+          "cyPct": 0.54,
+          "radiusPct": 0.11
+        }
+      },
+      "47451898904741": {
+        "frame": {
+          "cxPct": 0.613,
+          "cyPct": 0.579,
+          "radiusPct": 0.073
+        }
+      }
+    }
+  }
+}

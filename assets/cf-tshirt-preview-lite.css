@@ -1,13 +1,65 @@
 /* CF TSHIRT: canvas host */
 #cf-tshirt-preview-container .cf-preview-canvas { position: relative; }
 
-/* Print zone: visual only (JS controls size/position) */
+/* Legacy print zone stays functional for geometry but remains visually hidden. */
 #cf-tshirt-preview-container .cf-print-zone{
   position:absolute;
-  border:2px dashed rgba(0,0,0,.25);
-  border-radius:10px;
+  border-color: transparent !important;
+  background: transparent !important;
   pointer-events:none;
   z-index:1;
+  opacity: 0 !important;
+}
+
+#cf-tshirt-preview-container .bd-soft-print-area {
+  position: absolute;
+  display: block !important;
+  border: 1.5px dashed rgba(255, 255, 255, 0.64);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow:
+    inset 0 0 0 1px rgba(17, 24, 39, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+  z-index: 11;
+  opacity: 0;
+  transition:
+    opacity 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+#cf-tshirt-preview-container.is-open .bd-soft-print-area,
+#cf-tshirt-preview-container.has-design .bd-soft-print-area,
+#cf-tshirt-preview-container .cf-designer-body:not([hidden]) .bd-soft-print-area {
+  opacity: 0.58 !important;
+}
+
+#cf-tshirt-preview-container.is-outside-safe-area .bd-soft-print-area {
+  opacity: 1;
+  border-color: rgba(255, 245, 220, 0.96);
+  background:
+    linear-gradient(180deg, rgba(255, 239, 213, 0.22), rgba(255, 239, 213, 0.1)),
+    rgba(245, 158, 11, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(146, 64, 14, 0.18),
+    0 0 0 1px rgba(255, 248, 220, 0.2);
+}
+
+#cf-tshirt-preview-container .bd-soft-print-warning {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(217, 119, 6, 0.24);
+  background: rgba(255, 251, 235, 0.78);
+  color: rgba(120, 53, 15, 0.95);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+#cf-tshirt-preview-container .bd-soft-print-warning[hidden] {
+  display: none !important;
 }
 
 /* ===== CF TSHIRT: Visual-only — single resize control (bottom-right) ===== */

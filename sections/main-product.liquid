@@ -51,6 +51,14 @@
   {{ 'cf-tumbler-preview.css' | asset_url | stylesheet_tag }}
   <script src="{{ 'cf-tumbler-preview.js' | asset_url }}" defer></script>
 {% endif %}
+{% if product.tags contains 'cf-mug-preview' %}
+  {{ 'cf-mug-preview.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'cf-mug-preview.js' | asset_url }}" defer></script>
+{% endif %}
+{% if product.tags contains 'cf-circle-preview' %}
+  {{ 'cf-circle-preview.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'cf-circle-preview.js' | asset_url }}" defer></script>
+{% endif %}
 
 {% if product.tags contains 'cf-tshirt-preview' %}
   <script>document.documentElement.classList.add('bd-tshirt-preview-required');</script>
@@ -538,6 +546,20 @@
 {%- if bd_preview_config_file != blank -%}
   {%- assign bd_preview_config_url = bd_preview_config_file | asset_url -%}
 {%- endif -%}
+{%- assign bd_safe_print_garment = 'tshirt' -%}
+{%- if product.tags contains 'cf-garment-polo' -%}
+  {%- assign bd_safe_print_garment = 'polo' -%}
+{%- elsif product.tags contains 'cf-garment-hoodie' -%}
+  {%- assign bd_safe_print_garment = 'hoodie' -%}
+{%- elsif product.tags contains 'cf-garment-tshirt' -%}
+  {%- assign bd_safe_print_garment = 'tshirt' -%}
+{%- endif -%}
+{%- assign bd_safe_print_placement = '' -%}
+{%- if product.tags contains 'cf-placement-left-chest' -%}
+  {%- assign bd_safe_print_placement = 'left-chest' -%}
+{%- elsif product.tags contains 'cf-placement-back-wide' -%}
+  {%- assign bd_safe_print_placement = 'back-wide' -%}
+{%- endif -%}
 
 {%- assign bd_first_variant_src = '' -%}
 {%- if product.selected_or_first_available_variant.featured_media and product.selected_or_first_available_variant.featured_media.media_type == 'image' -%}
@@ -563,6 +585,8 @@
      data-print-scale-h="0.46"
      data-print-center-x="0.49"
      data-print-center-y="0.58"
+     data-safe-print-garment="{{ bd_safe_print_garment }}"
+     data-safe-print-placement="{{ bd_safe_print_placement }}"
 >
 
     <!-- START BUTTON -->
@@ -617,6 +641,7 @@
 />
 
         <div class="cf-print-zone" aria-hidden="true"></div>
+        <div class="bd-soft-print-area" aria-hidden="true"></div>
 
         <img
           class="cf-preview-design"
@@ -633,6 +658,12 @@
 
 {%- if product.tags contains 'cf-tumbler-preview' -%}
   {% render 'cf-tumbler-preview', product: product %}
+{%- endif -%}
+{%- if product.tags contains 'cf-mug-preview' -%}
+  {% render 'cf-mug-preview', product: product %}
+{%- endif -%}
+{%- if product.tags contains 'cf-circle-preview' -%}
+  {% render 'cf-circle-preview', product: product %}
 {%- endif -%}
 
               {%- when 'popup' -%}

@@ -1,23 +1,19 @@
-{%- assign cf_tumbler_mockup_src = '' -%}
-{%- if product.handle == 'custom-print-20-oz-insulated-tumbler-dual-lids' -%}
-  {%- assign cf_tumbler_mockup_src = 'https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Tumbler_Preview.png?v=1776214299' -%}
-{%- endif -%}
-
 <div
-  id="cf-tumbler-preview-container"
+  id="cf-mug-preview-container"
   class="cf-tumbler-preview-box"
-  data-cf-preview="tumbler"
-  data-cf-config="tumbler-wrap"
-  data-cf-tumbler
+  data-cf-preview="mug"
+  data-cf-config="mug-wrap"
+  data-cf-mug
   data-product-handle="{{ product.handle }}"
-  data-config-url="{{ 'cf-tumbler-config.json' | asset_url }}"
+  data-config-key="__mug_default__"
+  data-config-url="{{ 'cf-mug-config.json' | asset_url }}"
 >
   <div class="cf-start-row">
     <button type="button" class="button cf-start-btn" data-cf-start-btn>
       Start Designing
     </button>
     <div class="cf-start-hint">
-      Click to open the tumbler designer, then upload your design.
+      Click to open the mug designer, then upload your design.
     </div>
   </div>
 
@@ -32,10 +28,10 @@
         Reset Placement
       </button>
       <div class="cf-tumbler-upload-hint">
-        Edit your wrap design below. The composite tumbler preview updates automatically.
+        Edit your wrap design below. The composite mug preview updates automatically.
       </div>
       <div class="cf-tumbler-status" data-cf-tumbler-status>
-        Upload one design to start the tumbler preview.
+        Upload one design to start the mug preview.
       </div>
       <div class="cf-tumbler-meta" data-cf-tumbler-meta></div>
     </div>
@@ -48,12 +44,12 @@
             type="button"
             class="cf-uploader__notice-trigger"
             aria-label="About upload rights"
-            aria-describedby="CFTumblerNoticeTooltip"
+            aria-describedby="CFMugNoticeTooltip"
           >
             i
           </button>
           <span
-            id="CFTumblerNoticeTooltip"
+            id="CFMugNoticeTooltip"
             class="cf-uploader__notice-tooltip"
             role="tooltip"
           >
@@ -92,8 +88,9 @@
       </div>
     </div>
 
-    <div class="cf-tumbler-canvas" aria-label="Tumbler preview" role="group">
-      <canvas class="cf-tumbler-composite-canvas" data-cf-tumbler-composite-canvas aria-label="Composite tumbler preview"></canvas>
+    <div class="cf-tumbler-canvas" aria-label="Mug preview" role="group">
+      <canvas class="cf-tumbler-composite-canvas" data-cf-tumbler-composite-canvas aria-label="Composite mug preview"></canvas>
     </div>
   </div>
 </div>
+

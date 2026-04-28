@@ -939,11 +939,31 @@
     } catch (e) {}
   };
 
+  const bdEnsureSafePrintWarning = () => {
+    const panel = box.querySelector("[data-bd-upload-info='1']");
+    if (!panel) return null;
+    let warning = panel.querySelector("[data-bd-safe-print-warning='1']");
+    if (!warning) {
+      warning = document.createElement("div");
+      warning.className = "bd-soft-print-warning";
+      warning.setAttribute("data-bd-safe-print-warning", "1");
+      warning.hidden = true;
+      const reviewActions = panel.querySelector("[data-bd-finalize-actions='1']");
+      if (reviewActions) {
+        reviewActions.insertAdjacentElement("beforebegin", warning);
+      } else {
+        panel.appendChild(warning);
+      }
+    }
+    return warning;
+  };
+
   const bdEnsureInlineUploadUI = () => {
     // Prevent duplicates (theme section reload, etc.)
     if (box.querySelector("[data-bd-inline-upload='1']") && box.querySelector("[data-bd-upload-info='1']")) {
       bdPlaceSideToggleAboveInlineUpload();
       bdMountSharedUploadNotice();
+      bdEnsureSafePrintWarning();
       return;
     }
 
@@ -1092,6 +1112,12 @@
     reviewStatus.setAttribute("data-bd-finalize-status", "1");
     reviewStatus.className = "bd-proof-review-status";
     panel.appendChild(reviewStatus);
+
+    const safePrintWarning = document.createElement("div");
+    safePrintWarning.className = "bd-soft-print-warning";
+    safePrintWarning.setAttribute("data-bd-safe-print-warning", "1");
+    safePrintWarning.hidden = true;
+    panel.appendChild(safePrintWarning);
 
     const reviewActions = document.createElement("div");
     reviewActions.setAttribute("data-bd-finalize-actions", "1");
@@ -1537,6 +1563,7 @@
       try {
         if (typeof window.bdHeroPreviewUpdate === "function") window.bdHeroPreviewUpdate();
       } catch (e) {}
+      bdScheduleSoftPrintRefresh();
     });
 
   
@@ -2485,10 +2512,198 @@ requestAnimationFrame(() => {
     try {
       document.dispatchEvent(new CustomEvent("bd:design-preview-refresh"));
     } catch (e) {}
+    bdScheduleSoftPrintRefresh();
   };
 
   // keep zone aligned with base load
   const printZoneEl = canvas.querySelector(".cf-print-zone");
+  const bdSoftPrintAreaEl = (() => {
+    let el = canvas.querySelector(".bd-soft-print-area");
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "bd-soft-print-area";
+      el.setAttribute("aria-hidden", "true");
+      canvas.appendChild(el);
+    }
+    return el;
+  })();
+  const SAFE_PRINT_AREAS = {
+    tshirt: {
+      front: { left: 35.5, top: 32, width: 30, height: 38 },
+      back: { left: 36.5, top: 32, width: 30, height: 38 }
+    },
+    hoodie: {
+      front: { left: 35.5, top: 28, width: 30, height: 31 },
+      back: { left: 35.5, top: 32, width: 30, height: 40 }
+    },
+    polo: {
+      front: { left: 32, top: 24, width: 36, height: 42 },
+      back: { left: 31.5, top: 26, width: 36, height: 43 }
+    }
+  };
+  const SAFE_PRINT_PLACEMENT_OVERRIDES = {
+    "left-chest": {
+      tshirt: {
+        front: { left: 53, top: 30, width: 12, height: 12 }
+      },
+      hoodie: {
+        front: { left: 55, top: 32, width: 16, height: 16 }
+      },
+      polo: {
+        front: { left: 61, top: 28, width: 15, height: 16 }
+      }
+    },
+    "back-wide": {
+      tshirt: {
+        back: { left: 34, top: 27, width: 36, height: 12 }
+      }
+    }
+  };
+  let bdSoftPrintRefreshFrame = 0;
+
+  const bdGetSafePrintGarmentType = () => {
+    const garment = String(box.dataset.safePrintGarment || "").toLowerCase().trim();
+    return SAFE_PRINT_AREAS[garment] ? garment : "tshirt";
+  };
+
+  const bdGetSafePrintPlacement = () => String(box.dataset.safePrintPlacement || "").toLowerCase().trim();
+
+  const bdGetSafePrintSkipMeta = () => {
+    const skipped = String(box.dataset.safePrintSkip || "").toLowerCase() === "true";
+    const reason = String(box.dataset.safePrintSkipReason || "").trim();
+    return { skipped, reason };
+  };
+
+  const bdSetSafePrintState = (next = {}) => {
+    const previewState = window.__bdTshirtPreviewState;
+    if (!previewState) return;
+    if (Object.prototype.hasOwnProperty.call(next, "outsideSafePrintArea")) {
+      previewState.outsideSafePrintArea = !!next.outsideSafePrintArea;
+    }
+    if (Object.prototype.hasOwnProperty.call(next, "safePrintGarmentType")) {
+      previewState.safePrintGarmentType = String(next.safePrintGarmentType || "tshirt");
+    }
+    if (Object.prototype.hasOwnProperty.call(next, "safePrintSide")) {
+      previewState.safePrintSide = String(next.safePrintSide || bdGetActiveSide());
+    }
+    if (Object.prototype.hasOwnProperty.call(next, "safePrintAreaSkipped")) {
+      previewState.safePrintAreaSkipped = !!next.safePrintAreaSkipped;
+    }
+    if (Object.prototype.hasOwnProperty.call(next, "safePrintAreaSkipReason")) {
+      previewState.safePrintAreaSkipReason = String(next.safePrintAreaSkipReason || "");
+    }
+  };
+
+  const bdSetSafePrintWarningVisible = (visible) => {
+    const warning = bdEnsureSafePrintWarning();
+    if (!warning) return;
+    warning.hidden = !visible;
+    warning.textContent = visible
+      ? "Part of your design may be outside the ideal print area. We’ll review it before production."
+      : "";
+  };
+
+  const bdHideSoftPrintArea = ({ skipped = false, reason = "" } = {}) => {
+    if (bdSoftPrintAreaEl) {
+      bdSoftPrintAreaEl.style.left = "";
+      bdSoftPrintAreaEl.style.top = "";
+      bdSoftPrintAreaEl.style.width = "";
+      bdSoftPrintAreaEl.style.height = "";
+      bdSoftPrintAreaEl.style.opacity = "";
+      bdSoftPrintAreaEl.hidden = true;
+    }
+    box.classList.remove("is-outside-safe-area");
+    bdSetSafePrintWarningVisible(false);
+    bdSetSafePrintState({
+      outsideSafePrintArea: false,
+      safePrintGarmentType: bdGetSafePrintGarmentType(),
+      safePrintSide: bdGetActiveSide(),
+      safePrintAreaSkipped: skipped,
+      safePrintAreaSkipReason: reason
+    });
+  };
+
+  const bdRefreshSoftPrintArea = () => {
+    bdSoftPrintRefreshFrame = 0;
+
+    const skipMeta = bdGetSafePrintSkipMeta();
+    const garment = bdGetSafePrintGarmentType();
+    const placement = bdGetSafePrintPlacement();
+    const side = bdGetActiveSide();
+
+    if (skipMeta.skipped) {
+      bdHideSoftPrintArea({ skipped: true, reason: skipMeta.reason });
+      return;
+    }
+
+    const baseImg = canvas.querySelector(".cf-preview-base");
+    const presetByGarment = SAFE_PRINT_AREAS[garment] || SAFE_PRINT_AREAS.tshirt;
+    const placementPreset =
+      placement &&
+      SAFE_PRINT_PLACEMENT_OVERRIDES[placement] &&
+      SAFE_PRINT_PLACEMENT_OVERRIDES[placement][garment] &&
+      SAFE_PRINT_PLACEMENT_OVERRIDES[placement][garment][side]
+        ? SAFE_PRINT_PLACEMENT_OVERRIDES[placement][garment][side]
+        : null;
+    const preset = placementPreset || presetByGarment[side] || presetByGarment.front;
+    if (!bdSoftPrintAreaEl || !baseImg || !preset) {
+      bdHideSoftPrintArea();
+      return;
+    }
+
+    const cRect = canvas.getBoundingClientRect();
+    const bRect = baseImg.getBoundingClientRect();
+    if (!cRect.width || !cRect.height || !bRect.width || !bRect.height) {
+      bdHideSoftPrintArea();
+      return;
+    }
+
+    const left = bRect.left - cRect.left + (bRect.width * preset.left) / 100;
+    const top = bRect.top - cRect.top + (bRect.height * preset.top) / 100;
+    const width = (bRect.width * preset.width) / 100;
+    const height = (bRect.height * preset.height) / 100;
+
+    bdSoftPrintAreaEl.hidden = false;
+    bdSoftPrintAreaEl.style.left = `${left}px`;
+    bdSoftPrintAreaEl.style.top = `${top}px`;
+    bdSoftPrintAreaEl.style.width = `${width}px`;
+    bdSoftPrintAreaEl.style.height = `${height}px`;
+
+    const hasVisibleDesign = wrap && wrap.style.display !== "none" && !designImg.hidden && (hasFrontDesign || hasBackDesign);
+    let outsideSafePrintArea = false;
+    if (hasVisibleDesign) {
+      const safeRect = bdSoftPrintAreaEl.getBoundingClientRect();
+      const artRect = wrap.getBoundingClientRect();
+      const toleranceX = Math.max(4, safeRect.width * 0.025);
+      const toleranceY = Math.max(4, safeRect.height * 0.025);
+      const effectiveSafeRect = {
+        left: safeRect.left - toleranceX,
+        top: safeRect.top - toleranceY,
+        right: safeRect.right + toleranceX,
+        bottom: safeRect.bottom + toleranceY
+      };
+      outsideSafePrintArea =
+        artRect.left < effectiveSafeRect.left ||
+        artRect.top < effectiveSafeRect.top ||
+        artRect.right > effectiveSafeRect.right ||
+        artRect.bottom > effectiveSafeRect.bottom;
+    }
+
+    box.classList.toggle("is-outside-safe-area", outsideSafePrintArea);
+    bdSetSafePrintWarningVisible(!!(hasVisibleDesign && outsideSafePrintArea));
+    bdSetSafePrintState({
+      outsideSafePrintArea,
+      safePrintGarmentType: garment,
+      safePrintSide: side,
+      safePrintAreaSkipped: false,
+      safePrintAreaSkipReason: ""
+    });
+  };
+
+  const bdScheduleSoftPrintRefresh = () => {
+    if (bdSoftPrintRefreshFrame) return;
+    bdSoftPrintRefreshFrame = requestAnimationFrame(bdRefreshSoftPrintArea);
+  };
 
   const canvasRect = () => canvas.getBoundingClientRect();
 
@@ -2816,27 +3031,29 @@ const bdUseSideState = (side) => {
 
   const bdUploadProofBlobToCloudinary = ({ blob, side }) => {
     const { cloud, preset, folder } = bdGetProofCloudConfig();
-    if (!cloud || !preset || !blob) {
-      return Promise.reject(new Error("Missing proof Cloudinary configuration"));
+    if (!blob) {
+      return Promise.reject(new Error("Missing proof upload blob"));
+    }
+    if (typeof window.bdPatchUploadProviderConfig === "function") {
+      window.bdPatchUploadProviderConfig({
+        providers: {
+          cloudinary: {
+            cloudName: cloud,
+            uploadPreset: preset,
+            proofFolder: folder || "proofs"
+          }
+        }
+      });
+    }
+    if (typeof window.bdUploadAsset !== "function") {
+      return Promise.reject(new Error("Upload provider is not initialized."));
     }
 
-    const uploadUrl = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloud)}/image/upload`;
-    const fd = new FormData();
-    fd.append("file", blob, `proof-${side}-${Date.now()}.${BD_PROOF_UPLOAD_EXT}`);
-    fd.append("upload_preset", preset);
-    if (folder) fd.append("folder", folder);
-
-    return fetch(uploadUrl, {
-      method: "POST",
-      body: fd
-    }).then(async (res) => {
-      if (!res.ok) {
-        throw new Error(await res.text());
-      }
-      const json = await res.json();
-      const proofUrl = json.secure_url || json.url || "";
-      return proofUrl;
-    });
+    return window.bdUploadAsset(blob, {
+      kind: "proof",
+      filename: `proof-${side}-${Date.now()}.${BD_PROOF_UPLOAD_EXT}`,
+      folder
+    }).then((result) => String((result && (result.secureUrl || result.url)) || "").trim());
   };
 
   const bdGetPlacementPayloadForSide = (side) => {
@@ -3534,6 +3751,7 @@ const bdUseSideState = (side) => {
     } else {
       bdSetReviewStatusContent(reviewStatus, "Finalize your design to generate the required proof before adding to cart.");
     }
+    bdScheduleSoftPrintRefresh();
   };
 
   const bdInvalidateProofState = (sides, { reason = "", markDirty = {} } = {}) => {
@@ -3988,6 +4206,11 @@ const bdUseSideState = (side) => {
     hasFrontDesign: () => !!hasFrontDesign,
     hasBackDesign: () => !!hasBackDesign,
     getActiveSide: () => bdGetActiveSide(),
+    outsideSafePrintArea: false,
+    safePrintGarmentType: bdGetSafePrintGarmentType(),
+    safePrintSide: bdGetActiveSide(),
+    safePrintAreaSkipped: bdGetSafePrintSkipMeta().skipped,
+    safePrintAreaSkipReason: bdGetSafePrintSkipMeta().reason,
     syncBaseByVariantColor: () => bdSyncBaseByVariantColor(),
     invalidateProofMockupsForBaseChange: () => bdInvalidateProofMockupsForBaseChange(),
     getRequiredProofSides: () => bdGetRequiredProofSides(),
@@ -4045,6 +4268,7 @@ const bdUseSideState = (side) => {
 
     bdWritePlacement();
     bdSchedulePlacementRefresh();
+    bdScheduleSoftPrintRefresh();
   };
 
   // safe hook for other scripts
@@ -4060,6 +4284,7 @@ const bdUseSideState = (side) => {
       try {
         bdUpdatePrintZoneFromInches();
       } catch (e) {}
+      bdScheduleSoftPrintRefresh();
       if (bdDraftRestoreInProgress) return;
       try {
         document.dispatchEvent(new CustomEvent("bd:base-changed"));
@@ -4078,6 +4303,7 @@ const bdUseSideState = (side) => {
     try {
       bdUpdatePrintZoneFromInches();
     } catch (e) {}
+    bdScheduleSoftPrintRefresh();
   });
 
   window.addEventListener("resize", () =>
@@ -4085,6 +4311,7 @@ const bdUseSideState = (side) => {
       try {
         bdUpdatePrintZoneFromInches();
       } catch (e) {}
+      bdScheduleSoftPrintRefresh();
     })
   );
 
@@ -4134,6 +4361,7 @@ const bdUseSideState = (side) => {
       bdUpdatePrintZoneFromInches();
       bdClampSizeAndPosToZone();
       apply();
+      bdScheduleSoftPrintRefresh();
     });
   };
 
@@ -4198,6 +4426,7 @@ const bdUseSideState = (side) => {
     try {
       document.dispatchEvent(new CustomEvent("bd:design-preview-refresh"));
     } catch (e) {}
+    bdScheduleSoftPrintRefresh();
     bdScheduleDraftSessionPersist();
   };
 
@@ -4232,6 +4461,7 @@ window.bdSwitchPreviewSide = function (side, opts = {}) {
 
   // 3) Always switch the base mockup too
   if (typeof bdSwitchMainMockup === "function") bdSwitchMainMockup(s);
+  bdScheduleSoftPrintRefresh();
 
   // Keep preview UI visible
   box.classList.remove("is-hidden");
@@ -4258,6 +4488,7 @@ window.bdSwitchPreviewSide = function (side, opts = {}) {
     requestAnimationFrame(() => {
       try { bdSyncPreviewBase(); } catch (e) {}
       try { bdUpdatePrintZoneFromInches(); } catch (e) {}
+      bdScheduleSoftPrintRefresh();
       try {
         if (typeof window.bdGalleryRestorePrimaryMedia === "function") {
           window.bdGalleryRestorePrimaryMedia();
@@ -4295,6 +4526,7 @@ window.bdSwitchPreviewSide = function (side, opts = {}) {
       wrap.style.display = "block";
       try { bdRefreshZoneAndClamp(); } catch (e) {}
       try { apply(); } catch (e) {}
+      bdScheduleSoftPrintRefresh();
       if (!bdDraftRestoreInProgress) {
         try { bdScheduleProofMockupSync({ side: s }); } catch (e) {}
         bdDispatchPreviewRefreshBatch();
@@ -4663,6 +4895,7 @@ const endPointer = () => {
     bdSyncBaseByVariantColor();
     // set correct side base right away
     bdSwitchMainMockup(bdActiveSide);
+    bdScheduleSoftPrintRefresh();
   });
 })();
 

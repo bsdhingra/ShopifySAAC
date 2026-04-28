@@ -12,6 +12,8 @@
 {% assign has_u2 = false %}
 {% assign is_tshirt_preview = false %}
 {% assign is_tumbler_preview = false %}
+{% assign is_mug_preview = false %}
+{% assign is_circle_preview = false %}
 {% assign is_front_only_tshirt = false %}
 {% assign is_back_only_tshirt = false %}
 {% assign is_front_back_tshirt = false %}
@@ -22,6 +24,12 @@
 {% if product.tags contains 'cf-tumbler-preview' %}
   {% assign is_tumbler_preview = true %}
 {% endif %}
+{% if product.tags contains 'cf-mug-preview' %}
+  {% assign is_mug_preview = true %}
+{% endif %}
+{% if product.tags contains 'cf-circle-preview' %}
+  {% assign is_circle_preview = true %}
+{% endif %}
 {% if product.tags contains 'cf-config-back-only' %}
   {% assign is_back_only_tshirt = true %}
 {% elsif product.tags contains 'cf-config-front-back' %}
@@ -29,7 +37,6 @@
 {% elsif product.tags contains 'cf-tshirt-preview' %}
   {% assign is_front_only_tshirt = true %}
 {% endif %}
-
 {% if product.tags contains 'cf-text' %}
   {% assign has_text = true %}
 {% endif %}
@@ -39,11 +46,10 @@
 {% if product.tags contains 'cf-upload2' %}
   {% assign has_u2 = true %}
 {% endif %}
-
 {% if is_front_only_tshirt or is_front_back_tshirt %}
   {% assign has_u1 = true %}
 {% endif %}
-{% if is_tumbler_preview %}
+{% if is_tumbler_preview or is_mug_preview or is_circle_preview %}
   {% assign has_u1 = true %}
 {% endif %}
 {% if is_back_only_tshirt or is_front_back_tshirt %}
@@ -58,7 +64,7 @@
   {% assign hide_tshirt_upload_blocks = true %}
 {% endif %}
 {% assign hide_tumbler_upload_blocks = false %}
-{% if is_tumbler_preview %}
+{% if is_tumbler_preview or is_mug_preview or is_circle_preview %}
   {% assign hide_tumbler_upload_blocks = true %}
 {% endif %}
 
@@ -73,7 +79,7 @@
 {%- assign u1_label = u1_label | strip -%}
 {%- assign u2_label = u2_label | strip -%}
 {%- assign text_label = text_label | strip -%}
-{%- assign upload_notice_text = 'Upload only images you have rights to use — no copyrighted or trademarked content.' -%}
+{%- assign upload_notice_text = 'Upload only images you have rights to use - no copyrighted or trademarked content.' -%}
 {%- assign upload_notice_tooltip = 'You must have the legal right to use any image you upload. Do not upload copyrighted or trademarked content without authorization' -%}
 
 
@@ -217,30 +223,32 @@
         </div>
       {% endif %}
 
-      {% if has_u1 or has_u2 %}
-        <div class="cf-uploader__notice" data-cf-upload-notice>
-          <p class="cf-uploader__notice-text">
-            <span>{{ upload_notice_text }}</span>
-            <span class="cf-uploader__notice-tooltip-wrap">
-              <button
-                type="button"
-                class="cf-uploader__notice-trigger"
-                aria-label="About upload rights"
-                aria-describedby="CFUploadNoticeTooltip-{{ section.id | default: 'main' }}"
-              >
-                i
-              </button>
-              <span
-                id="CFUploadNoticeTooltip-{{ section.id | default: 'main' }}"
-                class="cf-uploader__notice-tooltip"
-                role="tooltip"
-              >
-                {{ upload_notice_tooltip }}
+      {% unless is_tshirt_preview or is_tumbler_preview or is_mug_preview or is_circle_preview %}
+        {% if has_u1 or has_u2 %}
+          <div class="cf-uploader__notice" data-cf-upload-notice>
+            <p class="cf-uploader__notice-text">
+              <span>{{ upload_notice_text }}</span>
+              <span class="cf-uploader__notice-tooltip-wrap">
+                <button
+                  type="button"
+                  class="cf-uploader__notice-trigger"
+                  aria-label="About upload rights"
+                  aria-describedby="CFUploadNoticeTooltip-{{ section.id | default: 'main' }}"
+                >
+                  i
+                </button>
+                <span
+                  id="CFUploadNoticeTooltip-{{ section.id | default: 'main' }}"
+                  class="cf-uploader__notice-tooltip"
+                  role="tooltip"
+                >
+                  {{ upload_notice_tooltip }}
+                </span>
               </span>
-            </span>
-          </p>
-        </div>
-      {% endif %}
+            </p>
+          </div>
+        {% endif %}
+      {% endunless %}
 
       {% if has_text %}
         <div class="cf-uploader__block">

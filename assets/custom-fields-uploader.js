@@ -154,12 +154,86 @@
     return root.dataset[`uploadLarge${idx}`] === "true";
   }
 
-  function uploadToCloudinary({ cloud, preset, folder, file, onProgress }) {
-    const url = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloud)}/image/upload`;
+  const DEFAULT_UPLOAD_PROVIDER_CONFIG = {
+    activeProvider: "uploadcare",
+    providers: {
+      cloudinary: {
+        enabled: true,
+        cloudName: "dddoiamwn",
+        uploadPreset: "guoeywbk",
+        uploadFolder: "Customer Uploads",
+        proofFolder: "proofs"
+      },
+      uploadcare: {
+        enabled: true,
+        publicKey: "5875ca176774d35226ea",
+        store: "auto",
+        cdnBase: "https://1wa89vtiok.ucarecd.net",
+        uploadFolder: "Customer Uploads",
+        proofFolder: "proofs"
+      }
+    }
+  };
+
+  function mergeUploadProviderConfig(base, override) {
+    const next = {
+      activeProvider: base.activeProvider,
+      providers: {
+        cloudinary: { ...base.providers.cloudinary },
+        uploadcare: { ...base.providers.uploadcare }
+      }
+    };
+    if (!override || typeof override !== "object") return next;
+    if (typeof override.activeProvider === "string" && override.activeProvider.trim()) {
+      next.activeProvider = override.activeProvider.trim();
+    }
+    if (override.providers && typeof override.providers === "object") {
+      if (override.providers.cloudinary && typeof override.providers.cloudinary === "object") {
+        Object.assign(next.providers.cloudinary, override.providers.cloudinary);
+      }
+      if (override.providers.uploadcare && typeof override.providers.uploadcare === "object") {
+        Object.assign(next.providers.uploadcare, override.providers.uploadcare);
+      }
+    }
+    return next;
+  }
+
+  function ensureUploadProviderConfig() {
+    const existing = window.BD_UPLOAD_PROVIDER_CONFIG && typeof window.BD_UPLOAD_PROVIDER_CONFIG === "object"
+      ? window.BD_UPLOAD_PROVIDER_CONFIG
+      : {};
+    const merged = mergeUploadProviderConfig(DEFAULT_UPLOAD_PROVIDER_CONFIG, existing);
+    window.BD_UPLOAD_PROVIDER_CONFIG = merged;
+    return merged;
+  }
+
+  function patchUploadProviderConfig(partial) {
+    const merged = mergeUploadProviderConfig(ensureUploadProviderConfig(), partial);
+    window.BD_UPLOAD_PROVIDER_CONFIG = merged;
+    return merged;
+  }
+
+  function applyUploaderRootConfig(root) {
+    if (!root) return ensureUploadProviderConfig();
+    const cloud = String(root.dataset.cloud || "").trim();
+    const preset = String(root.dataset.preset || "").trim();
+    const folder = String(root.dataset.folder || "").trim();
+    const uploadcareCdnBase = String(root.dataset.uploadcareCdnBase || "").trim();
+    const patch = { providers: { cloudinary: {}, uploadcare: {} } };
+    if (cloud) patch.providers.cloudinary.cloudName = cloud;
+    if (preset) patch.providers.cloudinary.uploadPreset = preset;
+    if (folder) patch.providers.cloudinary.uploadFolder = folder;
+    if (uploadcareCdnBase) patch.providers.uploadcare.cdnBase = uploadcareCdnBase;
+    return patchUploadProviderConfig(patch);
+  }
+
+  function uploadFormData({ url, formData, onProgress }) {
     const fd = new FormData();
-    fd.append("file", file);
-    fd.append("upload_preset", preset);
-    if (folder) fd.append("folder", folder);
+    if (formData instanceof FormData) {
+      for (const [key, value] of formData.entries()) {
+        fd.append(key, value);
+      }
+    }
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -188,9 +262,236 @@
     });
   }
 
+  function normalizeCloudinaryUploadResponse(raw, fileOrBlob, fallbackFilename) {
+    const filename = String(
+      fallbackFilename ||
+      (fileOrBlob && fileOrBlob.name) ||
+      raw.original_filename ||
+      raw.public_id ||
+      ""
+    ).trim();
+    const id = String(raw.public_id || raw.asset_id || "").trim();
+    const secureUrl = String(raw.secure_url || raw.url || "").trim();
+    return {
+      provider: "cloudinary",
+      url: secureUrl,
+      secureUrl,
+      id,
+      publicId: id,
+      filename,
+      width: Number.isFinite(Number(raw.width)) ? Number(raw.width) : null,
+      height: Number.isFinite(Number(raw.height)) ? Number(raw.height) : null,
+      raw
+    };
+  }
+
+  function uploadAssetViaCloudinary(fileOrBlob, options, providerConfig) {
+    const cloud = String(providerConfig.cloudName || "").trim();
+    const preset = String(providerConfig.uploadPreset || "").trim();
+    if (!cloud || !preset) {
+      return Promise.reject(new Error("Cloudinary upload is not configured."));
+    }
+
+    const kind = options.kind === "proof" ? "proof" : "original";
+    const folder = String(
+      options.folder ||
+      (kind === "proof" ? providerConfig.proofFolder : providerConfig.uploadFolder) ||
+      ""
+    ).trim();
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloud)}/image/upload`;
+    const formData = new FormData();
+    formData.append("file", fileOrBlob);
+    formData.append("upload_preset", preset);
+    if (folder) formData.append("folder", folder);
+
+    return uploadFormData({
+      url: uploadUrl,
+      formData,
+      onProgress: options.onProgress
+    }).then((raw) => normalizeCloudinaryUploadResponse(raw, fileOrBlob, options.filename));
+  }
+
+  function extractUploadcareUuid(response) {
+    if (!response || typeof response !== "object") return "";
+    if (typeof response.file === "string" && response.file.trim()) return response.file.trim();
+    if (typeof response.uuid === "string" && response.uuid.trim()) return response.uuid.trim();
+    const firstStringValue = Object.values(response).find(
+      (value) => typeof value === "string" && value.trim().length > 10
+    );
+    return typeof firstStringValue === "string" ? firstStringValue.trim() : "";
+  }
+
+  function normalizeUploadcareCdnBase(cdnBase) {
+    const base = String(cdnBase || "").trim();
+    if (!base) return "";
+    const withProtocol = /^https?:\/\//i.test(base) ? base : `https://${base}`;
+    return withProtocol.replace(/\/+$/, "");
+  }
+
+  function buildUploadcareDeliveryUrl(uuid, filename, providerConfig) {
+    const normalizedBase = normalizeUploadcareCdnBase(providerConfig && providerConfig.cdnBase);
+    if (!uuid || !normalizedBase) return "";
+    const safeFilename = String(filename || "").trim();
+    if (!safeFilename) return `${normalizedBase}/${uuid}/`;
+    return `${normalizedBase}/${uuid}/${encodeURIComponent(safeFilename)}`;
+  }
+
+  function normalizeUploadcareUploadResponse(raw, fileOrBlob, fallbackFilename, providerConfig) {
+    const uuid = extractUploadcareUuid(raw);
+    const filename = String(fallbackFilename || (fileOrBlob && fileOrBlob.name) || "").trim();
+    const secureUrl = buildUploadcareDeliveryUrl(uuid, filename, providerConfig);
+    return {
+      provider: "uploadcare",
+      url: secureUrl,
+      secureUrl,
+      id: uuid,
+      publicId: uuid,
+      filename,
+      width: null,
+      height: null,
+      raw
+    };
+  }
+
+  async function fetchUploadcareFileInfo(uuid, publicKey) {
+    const safeUuid = String(uuid || "").trim();
+    const safePublicKey = String(publicKey || "").trim();
+    if (!safeUuid || !safePublicKey) return null;
+    const infoUrl = `https://upload.uploadcare.com/info/?pub_key=${encodeURIComponent(safePublicKey)}&file_id=${encodeURIComponent(safeUuid)}`;
+    const res = await fetch(infoUrl, { method: "GET" });
+    if (!res.ok) {
+      return {
+        ok: false,
+        status: Number(res.status || 0)
+      };
+    }
+    const json = await res.json();
+    return {
+      ok: true,
+      status: Number(res.status || 0),
+      uuid: String(json.uuid || json.file_id || safeUuid).trim(),
+      filename: String(json.original_filename || json.filename || "").trim(),
+      mimeType: String(json.mime_type || "").trim(),
+      isImage: !!json.is_image,
+      isStored: !!json.is_stored,
+      isReady: !!json.is_ready
+    };
+  }
+
+  async function captureUploadcareDebug(result, options, uploadFile, providerConfig, storeMode) {
+    if (!window.__BD_UPLOADCARE_DEBUG__) return;
+    const debugState = {
+      ts: Date.now(),
+      kind: options.kind === "proof" ? "proof" : "original",
+      request: {
+        fieldName: "file",
+        publicKeyPresent: !!String(providerConfig.publicKey || "").trim(),
+        store: String(storeMode || providerConfig.store || "auto").trim() || "auto",
+        cdnBase: normalizeUploadcareCdnBase(providerConfig.cdnBase || ""),
+        filename: String((uploadFile && uploadFile.name) || options.filename || "").trim(),
+        mimeType: String((uploadFile && uploadFile.type) || "").trim()
+      },
+      response: result.raw || null,
+      normalized: {
+        provider: result.provider,
+        url: result.url,
+        secureUrl: result.secureUrl,
+        id: result.id,
+        publicId: result.publicId,
+        filename: result.filename
+      },
+      fileInfo: null,
+      probe: null
+    };
+
+    try {
+      debugState.fileInfo = await fetchUploadcareFileInfo(result.id, providerConfig.publicKey);
+    } catch (err) {
+      debugState.fileInfo = {
+        ok: false,
+        status: 0,
+        error: String((err && err.message) || err || "").trim()
+      };
+    }
+
+    try {
+      const probeRes = await fetch(result.secureUrl || result.url || "", {
+        method: "HEAD"
+      });
+      debugState.probe = {
+        method: "HEAD",
+        ok: !!probeRes.ok,
+        status: Number(probeRes.status || 0),
+        contentType: String(probeRes.headers.get("content-type") || "").trim()
+      };
+    } catch (err) {
+      debugState.probe = {
+        method: "HEAD",
+        ok: false,
+        status: 0,
+        error: String((err && err.message) || err || "").trim()
+      };
+    }
+
+    window.__BD_UPLOADCARE_DEBUG_LAST__ = debugState;
+  }
+
+  function uploadAssetViaUploadcare(fileOrBlob, options, providerConfig) {
+    const publicKey = String(providerConfig.publicKey || "").trim();
+    if (!publicKey) {
+      return Promise.reject(new Error("Uploadcare public key is missing."));
+    }
+    const kind = options.kind === "proof" ? "proof" : "original";
+    const store = kind === "proof"
+      ? "1"
+      : (String(providerConfig.store || "auto").trim() || "auto");
+    const filename = String(options.filename || (fileOrBlob && fileOrBlob.name) || "upload").trim() || "upload";
+    const uploadFile =
+      typeof File === "function" &&
+      fileOrBlob instanceof Blob &&
+      !(fileOrBlob instanceof File)
+        ? new File([fileOrBlob], filename, {
+            type: String(fileOrBlob.type || "application/octet-stream").trim() || "application/octet-stream"
+          })
+        : fileOrBlob;
+    const formData = new FormData();
+    formData.append("UPLOADCARE_PUB_KEY", publicKey);
+    formData.append("UPLOADCARE_STORE", store);
+    formData.append("file", uploadFile, filename);
+
+    return uploadFormData({
+      url: "https://upload.uploadcare.com/base/",
+      formData,
+      onProgress: options.onProgress
+    }).then(async (raw) => {
+      const result = normalizeUploadcareUploadResponse(raw, uploadFile, filename, providerConfig);
+      await captureUploadcareDebug(result, options, uploadFile, providerConfig, store);
+      return result;
+    });
+  }
+
+  window.bdGetUploadProviderConfig = ensureUploadProviderConfig;
+  window.bdPatchUploadProviderConfig = patchUploadProviderConfig;
+  window.bdUploadAsset = function (fileOrBlob, options = {}) {
+    const config = ensureUploadProviderConfig();
+    const activeProvider = String(config.activeProvider || "cloudinary").trim() || "cloudinary";
+    const providerConfig = config.providers && config.providers[activeProvider];
+    if (!providerConfig) {
+      return Promise.reject(new Error(`Upload provider "${activeProvider}" is not configured.`));
+    }
+    if (!providerConfig.enabled) {
+      return Promise.reject(new Error(`Upload provider "${activeProvider}" is disabled.`));
+    }
+    if (activeProvider === "uploadcare") {
+      return uploadAssetViaUploadcare(fileOrBlob, options, providerConfig);
+    }
+    return uploadAssetViaCloudinary(fileOrBlob, options, providerConfig);
+  };
+
   function init(root) {
     if (!root || root.__cfUploaderInitialized) return;
     root.__cfUploaderInitialized = true;
+    applyUploaderRootConfig(root);
     const cloud = root.dataset.cloud || "";
     const preset = root.dataset.preset || "";
     const folder = root.dataset.folder || "";
@@ -312,18 +613,11 @@
           setStatus(root, idx, exceedsSizeLimit ? largeFileMsg : "Uploading...", exceedsSizeLimit ? "warn" : "ok");
         }
 
-        if (!cloud || !preset) {
-          setStatus(root, idx, "Cloudinary not configured in theme settings.", "error");
-          syncSideUploadStateInputs(root, form);
-          return;
-        }
-
         try {
-          const res = await uploadToCloudinary({
-            cloud,
-            preset,
+          const res = await window.bdUploadAsset(file, {
+            kind: "original",
+            filename: file.name,
             folder,
-            file,
             onProgress: (pct) => {
               if (!isLatestUploadSeq(root, idx, uploadSeq)) return;
               setProgress(root, idx, pct);
@@ -332,9 +626,9 @@
 
           if (!isLatestUploadSeq(root, idx, uploadSeq)) return;
 
-          const secureUrl = res.secure_url || res.url || "";
+          const secureUrl = res.secureUrl || res.url || "";
           setSlotFieldValues(root, "data-url", idx, secureUrl);
-          setSlotFieldValues(root, "data-publicid", idx, res.public_id || "");
+          setSlotFieldValues(root, "data-publicid", idx, res.publicId || res.id || "");
 
           if (lowResWarn) {
             setStatus(root, idx, lowResMsg, "warn");
@@ -360,7 +654,7 @@
             idx,
             exceedsSizeLimit
               ? "Your image is over 10MB. You can still preview your design—after ordering, email the original file to info@sarvsartsandcrafts.com and we’ll handle the proof and printing."
-              : "Upload failed. Please try again.",
+              : String((err && err.message) || "Upload failed. Please try again."),
             exceedsSizeLimit ? "warn" : "error"
           );
           setSlotFieldValues(root, "data-url", idx, "");

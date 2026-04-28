@@ -244,7 +244,7 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
       {%- assign featured_media = default_featured_media -%}
       {%- assign media_position = 0 -%}
 
-      {%- if product.tags contains 'cf-tshirt-preview' -%}
+      {%- if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-circle-preview' -%}
         <li
           id="Slide-{{ section.id }}-bd-design-preview"
           class="product__media-item grid__item slider__slide bd-design-preview-slide{% if single_media_visible %} product__media-item--single{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"

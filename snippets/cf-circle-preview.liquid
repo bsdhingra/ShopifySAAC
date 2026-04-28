@@ -1,0 +1,138 @@
+<div
+  id="cf-circle-preview-container"
+  class="cf-circle-preview-box"
+  data-cf-preview="circle"
+  data-cf-circle
+  data-product-handle="{{ product.handle }}"
+  data-config-url="{{ 'cf-circle-config.json' | asset_url }}"
+  {% if product.selected_or_first_available_variant.featured_media and product.selected_or_first_available_variant.featured_media.media_type == 'image' %}
+    data-default-mockup-src="{{ product.selected_or_first_available_variant.featured_media | image_url: width: 1440 }}"
+  {% elsif product.featured_media and product.featured_media.media_type == 'image' %}
+    data-default-mockup-src="{{ product.featured_media | image_url: width: 1440 }}"
+  {% endif %}
+>
+  <script type="application/json" data-cf-circle-variant-media>
+    {
+      {%- for variant in product.variants -%}
+        "{{ variant.id }}": {% if variant.featured_media and variant.featured_media.media_type == 'image' %}{{ variant.featured_media | image_url: width: 1440 | json }}{% elsif variant.featured_image %}{{ variant.featured_image | image_url: width: 1440 | json }}{% else %}""{% endif %}{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    }
+  </script>
+  <div class="cf-start-row">
+    <button type="button" class="button cf-start-btn" data-cf-start-btn>
+      Start Designing
+    </button>
+    <div class="cf-start-hint">
+      Click to open the designer, then upload your design and adjust preview within the circular frame.
+    </div>
+  </div>
+
+  <div class="cf-circle-designer-body" hidden>
+    <div class="cf-circle-layout">
+      <div class="cf-circle-editor-panel">
+        <div class="cf-circle-editor-surface">
+          <div class="cf-circle-toolbar">
+            <div class="cf-circle-action-row">
+              <button type="button" class="button button--secondary cf-circle-upload-btn" data-cf-circle-upload-btn>
+                Upload Design
+              </button>
+              <button type="button" class="button button--secondary cf-circle-reset-btn" data-cf-circle-reset-btn hidden>
+                Reset Crop
+              </button>
+            </div>
+            <div class="cf-uploader__notice cf-circle-inline-notice">
+              <p class="cf-uploader__notice-text">
+                <span>Upload only images you have rights to use - no copyrighted or trademarked content.</span>
+                <span class="cf-uploader__notice-tooltip-wrap">
+                  <button
+                    type="button"
+                    class="cf-uploader__notice-trigger"
+                    aria-label="About upload rights"
+                    aria-describedby="CFCircleNoticeTooltip"
+                  >
+                    i
+                  </button>
+                  <span
+                    id="CFCircleNoticeTooltip"
+                    class="cf-uploader__notice-tooltip"
+                    role="tooltip"
+                  >
+                    You must have the legal right to use any image you upload. Do not upload copyrighted or trademarked content without authorization.
+                </span>
+              </span>
+            </p>
+          </div>
+            <div class="cf-circle-status" data-cf-circle-status>
+              Upload one design to start the circular preview.
+            </div>
+            <div class="cf-circle-meta" data-cf-circle-meta></div>
+          </div>
+
+          <div class="cf-circle-surface-label">Design Area</div>
+          <div class="cf-circle-editor-stage" data-cf-circle-stage>
+            <div class="cf-circle-editor-stage__grid" aria-hidden="true"></div>
+            <div class="cf-circle-placeholder" data-cf-circle-placeholder aria-hidden="true">
+              <div class="cf-circle-placeholder__inner">
+                <span class="cf-circle-placeholder__eyebrow" data-cf-circle-placeholder-eyebrow>Circular photo area</span>
+                <span class="cf-circle-placeholder__title" data-cf-circle-placeholder-title>Uploaded photo will appear in this area</span>
+                <span class="cf-circle-placeholder__hint" data-cf-circle-placeholder-hint>Upload your image to preview it within the circle.</span>
+              </div>
+            </div>
+            <div class="cf-circle-frame-label" data-cf-circle-frame-label aria-hidden="true">Design area</div>
+            <div class="cf-circle-frame" data-cf-circle-frame aria-hidden="true"></div>
+            <div class="cf-circle-design-wrap" data-cf-circle-design-wrap hidden>
+              <img
+                class="cf-circle-design-edit"
+                data-cf-circle-design-edit
+                alt="Editable circular design"
+                width="1200"
+                height="1200"
+                loading="lazy"
+              >
+            </div>
+            <button
+              type="button"
+              class="cf-circle-handle"
+              data-cf-circle-handle="se"
+              aria-label="Resize design"
+              hidden
+            >
+              <span class="cf-circle-control-label">Resize image</span>
+            </button>
+          </div>
+          <p class="cf-circle-editor-helper">
+            Edit your image below. The circular preview updates automatically.
+          </p>
+        </div>
+      </div>
+
+      <div class="cf-circle-preview-panel">
+        <div class="cf-circle-preview-surface">
+          <div class="cf-circle-surface-label">Live Preview</div>
+          <div class="cf-circle-preview-stage" data-cf-circle-preview-stage>
+            <img
+              class="cf-circle-mockup"
+              data-cf-circle-mockup
+              alt="Variant mockup"
+              width="1440"
+              height="1440"
+              loading="lazy"
+            >
+            <div class="cf-circle-preview-mask" data-cf-circle-preview-mask hidden aria-hidden="true"></div>
+            <div class="cf-circle-preview-frame" data-cf-circle-preview-frame aria-hidden="true"></div>
+            <div class="cf-circle-preview-design-wrap" data-cf-circle-preview-design-wrap hidden>
+              <img
+                class="cf-circle-preview-design"
+                data-cf-circle-preview-design
+                alt="Live circular preview"
+                width="1200"
+                height="1200"
+                loading="lazy"
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

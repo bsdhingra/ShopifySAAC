@@ -1,6 +1,6 @@
-/* assets/cf-tumbler-preview.js */
+/* assets/cf-mug-preview.js */
 (function () {
-  const root = document.getElementById("cf-tumbler-preview-container");
+  const root = document.getElementById("cf-mug-preview-container");
   if (!root) return;
 
   const startBtn = root.querySelector("[data-cf-start-btn]");
@@ -26,6 +26,7 @@
   const designUrlInput = uploader ? uploader.querySelector('[data-url="1"]') : null;
   const productInfo = root.closest("product-info");
   const productHandle = root.dataset.productHandle || "";
+  const configKey = root.dataset.configKey || "";
   const configUrl = root.dataset.configUrl || "";
 
   if (!stage || !editorCanvas || !designWrap || !designEditImg || !compositeCanvas || !uploadInput) return;
@@ -73,7 +74,7 @@
     root.closest(".shopify-section") ||
     document;
   const getDraftSessionKey = () =>
-    `cf-customizer-draft:tumbler:${productHandle || window.location.pathname}`;
+    `cf-customizer-draft:mug:${configKey || productHandle || window.location.pathname}`;
 
   const getProductForm = () => {
     if (productInfo) {
@@ -275,14 +276,14 @@
   const getProofNotice = () => {
     const productForm = getProductForm();
     if (!productForm) return "";
-    const input = productForm.querySelector("#cf_tumbler_proof_notice");
+    const input = productForm.querySelector("#cf_mug_proof_notice");
     return input ? String(input.value || "").trim() : "";
   };
 
 
   const loadConfig = () => {
     if (configPromise) return configPromise;
-    if (!configUrl || !productHandle || typeof fetch !== "function") {
+    if (!configUrl || (!productHandle && !configKey) || typeof fetch !== "function") {
       configPromise = Promise.resolve(null);
       return configPromise;
     }
@@ -290,7 +291,10 @@
     configPromise = fetch(configUrl)
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
-        config = json && json[productHandle] ? json[productHandle] : null;
+        config =
+          (json && configKey && json[configKey]) ||
+          (json && productHandle && json[productHandle]) ||
+          null;
         spec = buildSpec();
         return config;
       })
@@ -640,12 +644,12 @@
   const ensureProofInput = () => {
     const productForm = getProductForm();
     if (!productForm) return null;
-    let input = productForm.querySelector("#cf_tumbler_proof_mockup_url");
+    let input = productForm.querySelector("#cf_mug_proof_mockup_url");
     if (!input) {
       input = document.createElement("input");
       input.type = "hidden";
       input.name = "properties[Proof Mockup URL]";
-      input.id = "cf_tumbler_proof_mockup_url";
+      input.id = "cf_mug_proof_mockup_url";
       productForm.appendChild(input);
     }
     return input;
@@ -654,12 +658,12 @@
   const ensureProofNoticeInput = () => {
     const productForm = getProductForm();
     if (!productForm) return null;
-    let input = productForm.querySelector("#cf_tumbler_proof_notice");
+    let input = productForm.querySelector("#cf_mug_proof_notice");
     if (!input) {
       input = document.createElement("input");
       input.type = "hidden";
       input.name = "properties[_Proof Notice]";
-      input.id = "cf_tumbler_proof_notice";
+      input.id = "cf_mug_proof_notice";
       productForm.appendChild(input);
     }
     return input;
@@ -668,12 +672,12 @@
   const ensureUploadNoticeInput = () => {
     const productForm = getProductForm();
     if (!productForm) return null;
-    let input = productForm.querySelector("#cf_tumbler_upload_notice");
+    let input = productForm.querySelector("#cf_mug_upload_notice");
     if (!input) {
       input = document.createElement("input");
       input.type = "hidden";
       input.name = "properties[_Upload Notice]";
-      input.id = "cf_tumbler_upload_notice";
+      input.id = "cf_mug_upload_notice";
       productForm.appendChild(input);
     }
     return input;
@@ -699,7 +703,7 @@
       canvas.toBlob(
         (blob) => {
           if (blob) resolve(blob);
-          else reject(new Error("Tumbler proof export failed"));
+      else reject(new Error("Mug proof export failed"));
         },
         "image/png",
         0.92
@@ -728,7 +732,7 @@
 
     return window.bdUploadAsset(blob, {
       kind: "proof",
-      filename: `tumbler-proof-${Date.now()}.png`,
+        filename: `mug-proof-${Date.now()}.png`,
       folder
     }).then((result) => String((result && (result.secureUrl || result.url)) || "").trim());
   };
@@ -741,12 +745,40 @@
     const topY = zone.y + zone.topOffset;
     const bottomY = zone.y + zone.height;
     const curveY = bottomY - zone.bottomCurveDepth;
+    const sideCornerRadius = Math.min(
+      visibleWidth * 0.008,
+      zone.bottomCurveDepth * 0.16,
+      3.5
+    );
 
     ctx.beginPath();
     ctx.moveTo(leftX, topY);
     ctx.lineTo(rightX, topY);
-    ctx.lineTo(rightX, curveY);
-    ctx.quadraticCurveTo(zone.centerX, bottomY, leftX, curveY);
+    ctx.quadraticCurveTo(
+      rightX,
+      topY,
+      rightX,
+      topY
+    );
+    ctx.lineTo(rightX, curveY + sideCornerRadius);
+    ctx.quadraticCurveTo(
+      rightX,
+      curveY,
+      rightX - sideCornerRadius,
+      curveY
+    );
+    ctx.quadraticCurveTo(
+      zone.centerX,
+      bottomY,
+      leftX + sideCornerRadius,
+      curveY
+    );
+    ctx.quadraticCurveTo(
+      leftX,
+      curveY,
+      leftX,
+      curveY + sideCornerRadius
+    );
     ctx.lineTo(leftX, topY);
     ctx.closePath();
   };
@@ -964,7 +996,7 @@
       return proofLastUrl;
     })()
       .catch((err) => {
-        console.error("Tumbler proof sync failed", err);
+      console.error("Mug proof sync failed", err);
         setProofNotice(PROOF_NOTICE_TEXT);
         return "";
       })
@@ -991,7 +1023,7 @@
     if (!statusEl || !metaEl) return;
     if (!state.src) {
       const hiddenStatus = statusSource ? String(statusSource.textContent || "").trim() : "";
-      statusEl.textContent = hiddenStatus || "Upload one design to start the tumbler preview.";
+      statusEl.textContent = hiddenStatus || "Upload one design to start the mug preview.";
       metaEl.textContent = metaSource && metaSource.textContent ? metaSource.textContent : "";
       return;
     }
@@ -1290,7 +1322,7 @@
             e.preventDefault();
             e.stopImmediatePropagation();
             if (statusEl) {
-              statusEl.textContent = "Finishing your tumbler preview before adding to cart...";
+    statusEl.textContent = "Finishing your mug preview before adding to cart...";
             }
             const syncedUrl = await waitForCurrentProof(MOBILE_PROOF_WAIT_MS);
             if (syncedUrl) {
@@ -1322,7 +1354,7 @@
         e.preventDefault();
         e.stopImmediatePropagation();
         if (statusEl) {
-          statusEl.textContent = "Preparing your tumbler proof image before adding to cart...";
+      statusEl.textContent = "Preparing your mug proof image before adding to cart...";
         }
 
         const syncedUrl = await syncProofNow({ force: true });

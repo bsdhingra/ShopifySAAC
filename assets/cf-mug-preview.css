@@ -1,4 +1,4 @@
-#cf-tumbler-preview-container {
+#cf-mug-preview-container {
   margin-top: 16px;
   padding: 16px;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -6,49 +6,49 @@
   background: #fff;
 }
 
-#cf-tumbler-preview-container.is-hidden .cf-tumbler-designer-body {
+#cf-mug-preview-container.is-hidden .cf-tumbler-designer-body {
   display: none;
 }
 
-#cf-tumbler-preview-container.is-design-open .cf-start-row {
+#cf-mug-preview-container.is-design-open .cf-start-row {
   display: none;
 }
 
-#cf-tumbler-preview-container .cf-start-row {
+#cf-mug-preview-container .cf-start-row {
   display: flex;
   gap: 12px;
   align-items: center;
   justify-content: space-between;
 }
 
-#cf-tumbler-preview-container .cf-start-btn,
-#cf-tumbler-preview-container .cf-tumbler-upload-btn {
+#cf-mug-preview-container .cf-start-btn,
+#cf-mug-preview-container .cf-tumbler-upload-btn {
   min-height: 44px;
 }
 
-#cf-tumbler-preview-container .cf-start-hint,
-#cf-tumbler-preview-container .cf-tumbler-upload-hint {
+#cf-mug-preview-container .cf-start-hint,
+#cf-mug-preview-container .cf-tumbler-upload-hint {
   font-size: 1.3rem;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.68);
 }
 
-#cf-tumbler-preview-container .cf-tumbler-designer-body {
+#cf-mug-preview-container .cf-tumbler-designer-body {
   margin-top: 16px;
 }
 
-#cf-tumbler-preview-container .cf-preview-title {
+#cf-mug-preview-container .cf-preview-title {
   margin-bottom: 12px;
   font-size: 1.6rem;
   font-weight: 600;
 }
 
-#cf-tumbler-preview-container .cf-preview-title--small {
+#cf-mug-preview-container .cf-preview-title--small {
   margin-bottom: 8px;
   font-size: 1.4rem;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-toolbar {
+#cf-mug-preview-container .cf-tumbler-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -56,21 +56,21 @@
   margin-bottom: 14px;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-status {
+#cf-mug-preview-container .cf-tumbler-status {
   width: 100%;
   font-size: 1.3rem;
   line-height: 1.45;
   color: rgba(0, 0, 0, 0.66);
 }
 
-#cf-tumbler-preview-container .cf-tumbler-meta {
+#cf-mug-preview-container .cf-tumbler-meta {
   width: 100%;
   font-size: 1.2rem;
   line-height: 1.45;
   color: rgba(0, 0, 0, 0.58);
 }
 
-#cf-tumbler-preview-container .cf-tumbler-canvas {
+#cf-mug-preview-container .cf-tumbler-canvas {
   position: relative;
   width: 100%;
   max-width: 720px;
@@ -81,11 +81,11 @@
   background: transparent;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-editor-panel {
+#cf-mug-preview-container .cf-tumbler-editor-panel {
   margin-bottom: 18px;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-editor-stage {
+#cf-mug-preview-container .cf-tumbler-editor-stage {
   position: relative;
   width: 100%;
   max-width: 100%;
@@ -100,7 +100,7 @@
   touch-action: none;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-editor-stage__grid {
+#cf-mug-preview-container .cf-tumbler-editor-stage__grid {
   position: absolute;
   inset: 0;
   background-image:
@@ -110,7 +110,7 @@
   pointer-events: none;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-editor-canvas {
+#cf-mug-preview-container .cf-tumbler-editor-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -119,18 +119,18 @@
   pointer-events: none;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-editor-guides {
+#cf-mug-preview-container .cf-tumbler-editor-guides {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-editor-guide {
+#cf-mug-preview-container .cf-tumbler-editor-guide {
   position: absolute;
   pointer-events: none;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-editor-guide span {
+#cf-mug-preview-container .cf-tumbler-editor-guide span {
   position: absolute;
   left: 50%;
   top: 6px;
@@ -144,7 +144,7 @@
   background: rgba(255, 255, 255, 0.78);
 }
 
-#cf-tumbler-preview-container .cf-tumbler-design-wrap {
+#cf-mug-preview-container .cf-tumbler-design-wrap {
   position: absolute;
   left: 0;
   top: 0;
@@ -157,15 +157,15 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
-#cf-tumbler-preview-container .cf-tumbler-design-wrap.is-dragging {
+#cf-mug-preview-container .cf-tumbler-design-wrap.is-dragging {
   cursor: grabbing;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-design-wrap.is-resizing {
+#cf-mug-preview-container .cf-tumbler-design-wrap.is-resizing {
   cursor: nwse-resize;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-design-edit {
+#cf-mug-preview-container .cf-tumbler-design-edit {
   display: block;
   width: 100%;
   height: 100%;
@@ -174,7 +174,7 @@
   opacity: 0;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-handle {
+#cf-mug-preview-container .cf-tumbler-handle {
   position: absolute;
   right: -10px;
   bottom: -10px;
@@ -188,14 +188,14 @@
   touch-action: none;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-handle::before {
+#cf-mug-preview-container .cf-tumbler-handle::before {
   content: "";
   position: absolute;
   inset: -12px;
   background: transparent;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-handle::after {
+#cf-mug-preview-container .cf-tumbler-handle::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -210,14 +210,14 @@
   pointer-events: none;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-base {
+#cf-mug-preview-container .cf-tumbler-base {
   display: block;
   width: 100%;
   height: auto;
   border-radius: 10px;
 }
 
-#cf-tumbler-preview-container .cf-tumbler-composite-canvas {
+#cf-mug-preview-container .cf-tumbler-composite-canvas {
   display: block;
   width: 100%;
   height: auto;
@@ -226,41 +226,42 @@
 }
 
 @media (max-width: 749px) {
-  #cf-tumbler-preview-container {
+  #cf-mug-preview-container {
     padding: 12px;
   }
 
-  #cf-tumbler-preview-container .cf-start-row {
+  #cf-mug-preview-container .cf-start-row {
     flex-direction: column;
     align-items: stretch;
   }
 
-  #cf-tumbler-preview-container .cf-start-btn,
-  #cf-tumbler-preview-container .cf-tumbler-upload-btn {
+  #cf-mug-preview-container .cf-start-btn,
+  #cf-mug-preview-container .cf-tumbler-upload-btn {
     width: 100%;
   }
 
-  #cf-tumbler-preview-container .cf-tumbler-editor-stage {
+  #cf-mug-preview-container .cf-tumbler-editor-stage {
     min-height: clamp(200px, 42vw, 280px);
   }
 
-  #cf-tumbler-preview-container .cf-tumbler-handle {
+  #cf-mug-preview-container .cf-tumbler-handle {
     width: 26px;
     height: 26px;
     right: -10px;
     bottom: -10px;
   }
 
-  #cf-tumbler-preview-container .cf-tumbler-handle::before {
+  #cf-mug-preview-container .cf-tumbler-handle::before {
     inset: -16px;
   }
 
-  #cf-tumbler-preview-container .cf-tumbler-handle::after {
+  #cf-mug-preview-container .cf-tumbler-handle::after {
     width: 15px;
     height: 15px;
   }
 
-  #cf-tumbler-preview-container .cf-tumbler-editor-guide span {
+  #cf-mug-preview-container .cf-tumbler-editor-guide span {
     font-size: 1rem;
   }
 }
+
