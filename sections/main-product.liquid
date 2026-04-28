@@ -977,7 +977,7 @@
         echo product | structured_data
       endcapture
       unless product_structured_data contains '"description":'
-        assign product_structured_data = product_structured_data | replace_first: description_injection_token, description_injection_replacement
+        assign product_structured_data = product_structured_data | replace: description_injection_token, description_injection_replacement
       endunless
       unless product_structured_data contains '"priceValidUntil":'
         assign product_structured_data = product_structured_data | replace: schema_price_currency_token, price_valid_until_fragment
