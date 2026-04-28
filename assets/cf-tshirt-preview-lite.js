@@ -2532,7 +2532,11 @@ requestAnimationFrame(() => {
       front: { left: 35.5, top: 32, width: 30, height: 38 },
       back: { left: 36.5, top: 32, width: 30, height: 38 }
     },
-    onesies: {
+    "girls-onesies": {
+      front: { left: 36.2, top: 28, width: 30, height: 38 },
+      back: { left: 36.5, top: 28, width: 30, height: 38 }
+    },
+    "boys-onesies": {
       front: { left: 35.5, top: 28, width: 30, height: 38 },
       back: { left: 36.5, top: 28, width: 30, height: 38 }
     },

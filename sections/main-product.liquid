@@ -557,8 +557,10 @@
 {%- assign bd_safe_print_garment = 'tshirt' -%}
 {%- if product.tags contains 'cf-garment-polo' -%}
   {%- assign bd_safe_print_garment = 'polo' -%}
-{%- elsif product.tags contains 'cf-garment-girls-onesies' or product.tags contains 'cf-garment-boys-onesies' -%}
-  {%- assign bd_safe_print_garment = 'onesies' -%}
+{%- elsif product.tags contains 'cf-garment-girls-onesies' -%}
+  {%- assign bd_safe_print_garment = 'girls-onesies' -%}
+{%- elsif product.tags contains 'cf-garment-boys-onesies' -%}
+  {%- assign bd_safe_print_garment = 'boys-onesies' -%}
 {%- elsif product.tags contains 'cf-garment-hoodie' -%}
   {%- assign bd_safe_print_garment = 'hoodie' -%}
 {%- elsif product.tags contains 'cf-garment-tshirt' -%}
