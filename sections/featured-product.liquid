@@ -495,12 +495,12 @@
     assign next_year = 'now' | date: '%Y' | plus: 1
     assign schema_price_valid_until = next_year | append: '-12-31'
     assign schema_price_currency_token = '"priceCurrency":"'
-    assign schema_price_currency_replacement = '"priceValidUntil":' | append: schema_price_valid_until | json | append: ',"priceCurrency":"'
+    assign price_valid_until_fragment = '"priceValidUntil":"' | append: schema_price_valid_until | append: '","priceCurrency":"'
     capture product_structured_data
       echo product | structured_data
     endcapture
     unless product_structured_data contains '"priceValidUntil":'
-      assign product_structured_data = product_structured_data | replace: schema_price_currency_token, schema_price_currency_replacement
+      assign product_structured_data = product_structured_data | replace: schema_price_currency_token, price_valid_until_fragment
     endunless
   -%}
   <script type="application/ld+json">
