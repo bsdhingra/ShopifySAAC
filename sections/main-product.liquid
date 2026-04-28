@@ -968,35 +968,82 @@
         assign schema_description = product.title
       endif
       assign schema_description_json = schema_description | json
-      assign parent_description_injection_token = '"@type":"Product",'
-      assign variant_description_injection_token = '#variant","@type":"Product",'
-      capture parent_description_injection_replacement
-        echo '"@type":"Product","description":'
-        echo schema_description_json
-        echo ','
-      endcapture
-      capture variant_description_injection_replacement
-        echo '#variant","@type":"Product","description":'
-        echo schema_description_json
-        echo ','
-      endcapture
-      assign schema_price_currency_token = '"priceCurrency":"'
-      assign shipping_details_fragment = '"shippingDetails":{"@type":"OfferShippingDetails","shippingDestination":{"@type":"DefinedRegion","addressCountry":"US"},"deliveryTime":{"@type":"ShippingDeliveryTime","transitTime":{"@type":"QuantitativeValue","minValue":5,"maxValue":7,"unitCode":"DAY"}}},'
-      assign return_policy_fragment = '"hasMerchantReturnPolicy":{"@type":"MerchantReturnPolicy","applicableCountry":"US","returnPolicyCountry":"US","returnPolicyCategory":"https://schema.org/MerchantReturnNotPermitted"},'
-      assign price_valid_until_fragment = '"priceValidUntil":"' | append: schema_price_valid_until | append: '",' | append: shipping_details_fragment | append: return_policy_fragment | append: '"priceCurrency":"'
-      capture product_structured_data
-        echo product | structured_data
-      endcapture
-      assign product_structured_data = product_structured_data | replace: variant_description_injection_token, variant_description_injection_replacement
-      unless product_structured_data contains '"@context":"http://schema.org/","@type":"Product","description":'
-        assign product_structured_data = product_structured_data | replace_first: parent_description_injection_token, parent_description_injection_replacement
-      endunless
-      unless product_structured_data contains '"priceValidUntil":'
-        assign product_structured_data = product_structured_data | replace: schema_price_currency_token, price_valid_until_fragment
-      endunless
+      assign schema_brand_name = product.vendor | default: shop.name
+      assign schema_category = product.type
+      assign schema_currency = cart.currency.iso_code | default: shop.currency
+      assign schema_product_url = request.origin | append: product.url
+      if seo_media
+        assign schema_product_image_url = seo_media | image_url: width: 1920 | prepend: 'https:'
+      else
+        assign schema_product_image_url = blank
+      endif
     -%}
     <script type="application/ld+json">
-      {{ product_structured_data }}
+      {
+        "@context": "http://schema.org/",
+        "@type": "Product",
+        "name": {{ product.title | json }},
+        "description": {{ schema_description_json }},
+        "image": {{ schema_product_image_url | json }},
+        "brand": {
+          "@type": "Brand",
+          "name": {{ schema_brand_name | json }}
+        },
+        "category": {{ schema_category | json }},
+        "url": {{ schema_product_url | json }},
+        "productGroupID": {{ product.id | json }},
+        "hasVariant": [
+          {%- for variant in product.variants -%}
+            {%- liquid
+              assign schema_variant_url = request.origin | append: variant.url
+              assign schema_variant_price = variant.price | divided_by: 100.0
+              if variant.featured_media
+                assign schema_variant_image_url = variant.featured_media | image_url: width: 1920 | prepend: 'https:'
+              else
+                assign schema_variant_image_url = schema_product_image_url
+              endif
+            -%}
+            {
+              "@id": {{ schema_variant_url | append: '#variant' | json }},
+              "@type": "Product",
+              "description": {{ schema_description_json }},
+              "image": {{ schema_variant_image_url | json }},
+              "name": {{ variant.name | json }},
+              "offers": {
+                "@id": {{ schema_variant_url | append: '#offer' | json }},
+                "@type": "Offer",
+                "availability": {% if variant.available %}"http://schema.org/InStock"{% else %}"http://schema.org/OutOfStock"{% endif %},
+                "price": {{ schema_variant_price | json }},
+                "priceValidUntil": {{ schema_price_valid_until | json }},
+                "shippingDetails": {
+                  "@type": "OfferShippingDetails",
+                  "shippingDestination": {
+                    "@type": "DefinedRegion",
+                    "addressCountry": "US"
+                  },
+                  "deliveryTime": {
+                    "@type": "ShippingDeliveryTime",
+                    "transitTime": {
+                      "@type": "QuantitativeValue",
+                      "minValue": 5,
+                      "maxValue": 7,
+                      "unitCode": "DAY"
+                    }
+                  }
+                },
+                "hasMerchantReturnPolicy": {
+                  "@type": "MerchantReturnPolicy",
+                  "applicableCountry": "US",
+                  "returnPolicyCountry": "US",
+                  "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
+                },
+                "priceCurrency": {{ schema_currency | json }},
+                "url": {{ schema_variant_url | json }}
+              }
+            }{%- unless forloop.last -%},{%- endunless -%}
+          {%- endfor -%}
+        ]
+      }
     </script>
   </div>
 </product-info>
