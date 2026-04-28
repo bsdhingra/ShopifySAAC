@@ -86,6 +86,12 @@
     --bd-carousel-dot-active-bg: {{ section.settings.dot_active_color }};
     --bd-carousel-button-font-size: {{ section.settings.button_font_size }}px;
     --bd-carousel-button-min-height: {{ section.settings.button_height }}px;
+    --bd-carousel-mobile-button-font-size: {{ section.settings.mobile_button_font_size }}px;
+    --bd-carousel-mobile-button-min-height: {{ section.settings.mobile_button_height }}px;
+    --bd-carousel-mobile-button-horizontal-padding: {{ section.settings.mobile_button_horizontal_padding }}px;
+    --bd-carousel-mobile-button-shadow-strength: {{ section.settings.mobile_button_shadow_strength | divided_by: 100.0 }};
+    --bd-carousel-mobile-button-x: {{ section.settings.mobile_button_x }};
+    --bd-carousel-mobile-button-y: {{ section.settings.mobile_button_y }};
     --bd-carousel-desktop-controls-bottom: {{ section.settings.desktop_controls_bottom_offset }}px;
     --bd-carousel-desktop-content-bottom-padding: {{ section.settings.desktop_content_bottom_padding }}px;
     --bd-carousel-mobile-controls-bottom: {{ section.settings.mobile_controls_bottom_offset }}px;
@@ -709,6 +715,27 @@
         height: 2.7rem;
       }
 
+      #bd-carousel-{{ section.id }} .bd-carousel__button {
+        font-size: var(--bd-carousel-mobile-button-font-size);
+        min-height: var(--bd-carousel-mobile-button-min-height);
+        padding: 0.7rem var(--bd-carousel-mobile-button-horizontal-padding);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.16),
+          0 6px 14px rgba(15, 23, 42, calc(0.12 * var(--bd-carousel-mobile-button-shadow-strength))),
+          0 2px 5px rgba(15, 23, 42, calc(0.08 * var(--bd-carousel-mobile-button-shadow-strength)));
+      }
+
+      #bd-carousel-{{ section.id }} .bd-carousel__actions--mobile-custom {
+        position: absolute;
+        left: calc(var(--bd-carousel-mobile-button-x) * 1%);
+        top: calc(var(--bd-carousel-mobile-button-y) * 1%);
+        transform: translate(-50%, -50%);
+        z-index: 4;
+        width: max-content;
+        max-width: calc(100% - 24px);
+        justify-content: center;
+      }
+
       #bd-carousel-{{ section.id }}.bd-carousel--hide-mobile {
         display: none;
       }
@@ -953,7 +980,7 @@
                   {%- endif -%}
 
                   {%- if bd_carousel_has_primary_button or bd_carousel_has_secondary_button -%}
-                    <div class="bd-carousel__actions">
+                    <div class="bd-carousel__actions{% if section.settings.mobile_button_position_mode == 'custom' %} bd-carousel__actions--mobile-custom{% endif %}">
                       {%- if bd_carousel_has_primary_button -%}
                         <a
                           class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}{% if bd_carousel_button_hover_fill %} bd-carousel__button--hover-fill{% endif %}"
@@ -1515,6 +1542,76 @@
       "unit": "px",
       "label": "Button height",
       "default": 48
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_font_size",
+      "min": 11,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Mobile button label size",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_height",
+      "min": 36,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile button height",
+      "default": 42
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_horizontal_padding",
+      "min": 10,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Mobile button horizontal padding",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_shadow_strength",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Mobile button shadow strength",
+      "default": 60
+    },
+    {
+      "type": "select",
+      "id": "mobile_button_position_mode",
+      "label": "Mobile button position mode",
+      "default": "normal",
+      "options": [
+        { "value": "normal", "label": "Follow content" },
+        { "value": "custom", "label": "Custom mobile position" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_x",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Mobile button horizontal position",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_y",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "Mobile button vertical position",
+      "default": 74
     },
     {
       "type": "checkbox",
