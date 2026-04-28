@@ -967,8 +967,8 @@
       if schema_description == blank
         assign schema_description = product.title
       endif
-      assign description_injection_token = ',"offers":'
-      assign description_injection_replacement = ',"description":' | append: schema_description | json | append: ',"offers":'
+      assign description_injection_token = '"@type":"Product",'
+      assign description_injection_replacement = '"@type":"Product","description":' | append: schema_description | json | append: ','
       assign schema_price_currency_token = '"priceCurrency":"'
       assign shipping_details_fragment = '"shippingDetails":{"@type":"OfferShippingDetails","shippingDestination":{"@type":"DefinedRegion","addressCountry":"US"},"deliveryTime":{"@type":"ShippingDeliveryTime","transitTime":{"@type":"QuantitativeValue","minValue":5,"maxValue":7,"unitCode":"DAY"}}},'
       assign return_policy_fragment = '"hasMerchantReturnPolicy":{"@type":"MerchantReturnPolicy","applicableCountry":"US","returnPolicyCountry":"US","returnPolicyCategory":"https://schema.org/MerchantReturnNotPermitted"},'
@@ -976,7 +976,7 @@
       capture product_structured_data
         echo product | structured_data
       endcapture
-      unless product_structured_data contains '"description":'
+      unless product_structured_data contains '"@type":"Product","description":'
         assign product_structured_data = product_structured_data | replace: description_injection_token, description_injection_replacement
       endunless
       unless product_structured_data contains '"priceValidUntil":'
