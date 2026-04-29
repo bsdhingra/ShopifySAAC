@@ -373,7 +373,6 @@
       flex-wrap: wrap;
       gap: 0.75rem;
       margin-top: 0.5rem;
-      width: 100%;
     }
 
     #bd-carousel-{{ section.id }} .bd-carousel__button {
@@ -728,13 +727,16 @@
 
       #bd-carousel-{{ section.id }} .bd-carousel__actions--mobile-custom {
         position: absolute;
-        left: 50%;
+        left: calc(var(--bd-carousel-mobile-button-x) * 1%);
         top: calc(var(--bd-carousel-mobile-button-y) * 1%);
         transform: translate(-50%, -50%);
-        width: 100%;
+        width: max-content;
+        max-width: calc(100% - 24px);
         display: flex;
         justify-content: center;
         align-items: center;
+        flex-wrap: nowrap;
+        margin-top: 0;
         z-index: 4;
       }
 
