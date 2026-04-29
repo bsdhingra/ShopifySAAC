@@ -376,6 +376,10 @@
       margin-top: 0.5rem;
     }
 
+    #bd-carousel-{{ section.id }} .bd-carousel__actions--mobile-strip {
+      display: none;
+    }
+
     #bd-carousel-{{ section.id }} .bd-carousel__button {
       position: relative;
       display: inline-flex;
@@ -737,7 +741,11 @@
           bottom: calc(var(--bd-carousel-mobile-button-min-height) + var(--bd-carousel-mobile-cta-spacing) + 1.2rem);
         }
 
-        #bd-carousel-{{ section.id }} .bd-carousel__actions {
+        #bd-carousel-{{ section.id }} .bd-carousel__actions--inside {
+          display: none;
+        }
+
+        #bd-carousel-{{ section.id }} .bd-carousel__actions--mobile-strip {
           position: absolute;
           left: 50%;
           bottom: var(--bd-carousel-mobile-cta-spacing);
@@ -745,10 +753,9 @@
           width: calc(100% - 24px);
           max-width: calc(100% - 24px);
           box-sizing: border-box;
-          margin-bottom: 0;
-          margin-top: 0;
           display: flex;
           justify-content: center;
+          margin: 0;
           z-index: 4;
         }
       {% endif %}
@@ -764,7 +771,11 @@
           top: calc(var(--bd-carousel-mobile-button-min-height) + var(--bd-carousel-mobile-cta-spacing) + 1.2rem);
         }
 
-        #bd-carousel-{{ section.id }} .bd-carousel__actions {
+        #bd-carousel-{{ section.id }} .bd-carousel__actions--inside {
+          display: none;
+        }
+
+        #bd-carousel-{{ section.id }} .bd-carousel__actions--mobile-strip {
           position: absolute;
           left: 50%;
           top: var(--bd-carousel-mobile-cta-spacing);
@@ -772,10 +783,9 @@
           width: calc(100% - 24px);
           max-width: calc(100% - 24px);
           box-sizing: border-box;
-          margin-top: 0;
-          margin-bottom: 0;
           display: flex;
           justify-content: center;
+          margin: 0;
           z-index: 4;
         }
       {% endif %}
@@ -1044,7 +1054,37 @@
                   {%- endif -%}
 
                   {%- if bd_carousel_has_primary_button or bd_carousel_has_secondary_button -%}
-                    <div class="bd-carousel__actions{% if section.settings.mobile_button_position_mode == 'custom' %} bd-carousel__actions--mobile-custom{% endif %}">
+                    <div class="bd-carousel__actions bd-carousel__actions--inside{% if section.settings.mobile_button_position_mode == 'custom' %} bd-carousel__actions--mobile-custom{% endif %}">
+                      {%- if bd_carousel_has_primary_button -%}
+                        <a
+                          class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}{% if bd_carousel_button_hover_fill %} bd-carousel__button--hover-fill{% endif %}"
+                          {% if bd_carousel_button_1_link != blank %}
+                            href="{{ bd_carousel_button_1_link }}"
+                          {% else %}
+                            role="link"
+                            aria-disabled="true"
+                          {% endif %}
+                        >
+                          {{ bd_carousel_button_1_label | escape }}
+                        </a>
+                      {%- endif -%}
+
+                      {%- if bd_carousel_has_secondary_button -%}
+                        <a
+                          class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}{% if bd_carousel_button_hover_fill %} bd-carousel__button--hover-fill{% endif %}"
+                          {% if bd_carousel_button_2_link != blank %}
+                            href="{{ bd_carousel_button_2_link }}"
+                          {% else %}
+                            role="link"
+                            aria-disabled="true"
+                          {% endif %}
+                        >
+                          {{ bd_carousel_button_2_label | escape }}
+                        </a>
+                      {%- endif -%}
+                    </div>
+
+                    <div class="bd-carousel__actions bd-carousel__actions--mobile-strip">
                       {%- if bd_carousel_has_primary_button -%}
                         <a
                           class="bd-carousel__button bd-carousel__button--{{ bd_carousel_button_style }}{% if bd_carousel_button_hover_fill %} bd-carousel__button--hover-fill{% endif %}"
