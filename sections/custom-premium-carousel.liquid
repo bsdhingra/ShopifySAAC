@@ -727,16 +727,19 @@
 
       #bd-carousel-{{ section.id }} .bd-carousel__actions--mobile-custom {
         position: absolute;
-        left: calc(var(--bd-carousel-mobile-button-x) * 1%);
+        left: 0;
         top: calc(var(--bd-carousel-mobile-button-y) * 1%);
-        transform: translate(-50%, -50%);
-        width: max-content;
-        max-width: calc(100% - 24px);
+        transform: translateY(-50%);
+        width: 100%;
+        max-width: 100%;
+        padding-inline: 12px;
+        box-sizing: border-box;
         display: flex;
         justify-content: center;
         align-items: center;
         flex-wrap: nowrap;
         margin-top: 0;
+        margin-left: calc((var(--bd-carousel-mobile-button-x) - 50) * 1%);
         z-index: 4;
       }
 
