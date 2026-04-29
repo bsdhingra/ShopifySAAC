@@ -727,25 +727,56 @@
       }
 
       {% if section.settings.mobile_cta_layout == 'below' %}
+        #bd-carousel-{{ section.id }} .bd-carousel__slide {
+          padding-bottom: calc(var(--bd-carousel-mobile-button-min-height) + var(--bd-carousel-mobile-cta-spacing) + 1.2rem);
+          box-sizing: border-box;
+        }
+
+        #bd-carousel-{{ section.id }} .bd-carousel__media-wrap,
+        #bd-carousel-{{ section.id }} .bd-carousel__slide-link {
+          bottom: calc(var(--bd-carousel-mobile-button-min-height) + var(--bd-carousel-mobile-cta-spacing) + 1.2rem);
+        }
+
         #bd-carousel-{{ section.id }} .bd-carousel__actions {
-          position: static;
-          margin-top: var(--bd-carousel-mobile-cta-spacing);
+          position: absolute;
+          left: 50%;
+          bottom: var(--bd-carousel-mobile-cta-spacing);
+          transform: translateX(-50%);
+          width: calc(100% - 24px);
+          max-width: calc(100% - 24px);
+          box-sizing: border-box;
           margin-bottom: 0;
+          margin-top: 0;
           display: flex;
           justify-content: center;
-          width: 100%;
+          z-index: 4;
         }
       {% endif %}
 
       {% if section.settings.mobile_cta_layout == 'above' %}
+        #bd-carousel-{{ section.id }} .bd-carousel__slide {
+          padding-top: calc(var(--bd-carousel-mobile-button-min-height) + var(--bd-carousel-mobile-cta-spacing) + 1.2rem);
+          box-sizing: border-box;
+        }
+
+        #bd-carousel-{{ section.id }} .bd-carousel__media-wrap,
+        #bd-carousel-{{ section.id }} .bd-carousel__slide-link {
+          top: calc(var(--bd-carousel-mobile-button-min-height) + var(--bd-carousel-mobile-cta-spacing) + 1.2rem);
+        }
+
         #bd-carousel-{{ section.id }} .bd-carousel__actions {
-          position: static;
+          position: absolute;
+          left: 50%;
+          top: var(--bd-carousel-mobile-cta-spacing);
+          transform: translateX(-50%);
+          width: calc(100% - 24px);
+          max-width: calc(100% - 24px);
+          box-sizing: border-box;
           margin-top: 0;
-          margin-bottom: var(--bd-carousel-mobile-cta-spacing);
+          margin-bottom: 0;
           display: flex;
           justify-content: center;
-          width: 100%;
-          order: -1;
+          z-index: 4;
         }
       {% endif %}
 
