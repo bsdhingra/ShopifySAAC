@@ -266,7 +266,7 @@
 }
 
 #cf-circle-preview-container .cf-circle-preview-mask {
-  background: rgba(214, 220, 209, 0.74);
+  background: #ffffff;
   box-shadow: none;
   pointer-events: none;
   z-index: 1;

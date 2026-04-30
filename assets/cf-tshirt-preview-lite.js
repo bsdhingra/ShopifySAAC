@@ -2533,12 +2533,12 @@ requestAnimationFrame(() => {
       back: { left: 36.5, top: 32, width: 30, height: 38 }
     },
     "girls-onesies": {
-      front: { left: 36.2, top: 28, width: 30, height: 38 },
-      back: { left: 36.5, top: 28, width: 30, height: 38 }
+      front: { left: 36.2, top: 21, width: 30, height: 40 },
+      back: { left: 36.5, top: 21, width: 30, height: 40 }
     },
     "boys-onesies": {
-      front: { left: 35.5, top: 28, width: 30, height: 38 },
-      back: { left: 36.5, top: 28, width: 30, height: 38 }
+      front: { left: 35.5, top: 21, width: 30, height: 40 },
+      back: { left: 36.5, top: 21, width: 30, height: 40 }
     },
     hoodie: {
       front: { left: 35.5, top: 28, width: 30, height: 31 },
@@ -2780,6 +2780,29 @@ requestAnimationFrame(() => {
     return { left, top, right: left + width, bottom: top + height, width, height };
   };
 
+  const bdGetBaseBounds = () => {
+    const cRect = canvasRect();
+    const cw = cRect.width || canvas.clientWidth || 1;
+    const ch = cRect.height || canvas.clientHeight || 1;
+    const baseImg = canvas.querySelector(".cf-preview-base");
+
+    if (!baseImg) {
+      return { left: 0, top: 0, right: cw, bottom: ch, width: cw, height: ch };
+    }
+
+    const bRect = baseImg.getBoundingClientRect();
+    if (!(bRect.width > 10 && bRect.height > 10) || !cRect.width || !cRect.height) {
+      return { left: 0, top: 0, right: cw, bottom: ch, width: cw, height: ch };
+    }
+
+    const left = bRect.left - cRect.left;
+    const top = bRect.top - cRect.top;
+    const width = bRect.width;
+    const height = bRect.height;
+
+    return { left, top, right: left + width, bottom: top + height, width, height };
+  };
+
   // --------------------------
   // Overlay wrapper + handles
   // --------------------------
@@ -2862,7 +2885,23 @@ const bdUseSideState = (side) => {
   let hasBackDesign = false;
 
   const bdClampSizeAndPosToZone = () => {
-    if (BD_DISABLE_ZONE) return;
+    if (BD_DISABLE_ZONE) {
+      const b = bdGetBaseBounds();
+      if (!b.width || !b.height) return;
+
+      const halfW = state.w / 2;
+      const halfH = state.h / 2;
+      const overflowX = Math.min(state.w * 0.35, b.width * 0.12);
+      const overflowY = Math.min(state.h * 0.35, b.height * 0.12);
+      const minCx = b.left + halfW - overflowX;
+      const maxCx = b.right - halfW + overflowX;
+      const minCy = b.top + halfH - overflowY;
+      const maxCy = b.bottom - halfH + overflowY;
+
+      state.cx = minCx <= maxCx ? clamp(state.cx, minCx, maxCx) : b.left + b.width / 2;
+      state.cy = minCy <= maxCy ? clamp(state.cy, minCy, maxCy) : b.top + b.height / 2;
+      return;
+    }
 
     const z = bdGetZone();
     if (!z.width || !z.height) return;

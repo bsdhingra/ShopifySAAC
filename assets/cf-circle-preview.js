@@ -488,7 +488,7 @@
       heroPreviewMask.style.position = "absolute";
       heroPreviewMask.style.borderRadius = "50%";
       heroPreviewMask.style.pointerEvents = "none";
-      heroPreviewMask.style.background = "rgba(220,224,214,0.72)";
+      heroPreviewMask.style.background = "#ffffff";
       heroPreviewMask.style.boxShadow = "none";
       heroPreviewMask.style.zIndex = "1";
       stageEl.appendChild(heroPreviewMask);
@@ -793,7 +793,7 @@
     ctx.beginPath();
     ctx.arc(maskFrame.x + maskFrame.radius, maskFrame.y + maskFrame.radius, maskFrame.radius, 0, Math.PI * 2);
     ctx.closePath();
-    ctx.fillStyle = "rgba(220, 224, 214, 0.72)";
+    ctx.fillStyle = "#ffffff";
     ctx.fill();
     ctx.restore();
 
@@ -1056,7 +1056,7 @@
     previewMaskEl.style.top = `${previewMaskFrame.y}px`;
     previewMaskEl.style.width = `${previewMaskFrame.diameter}px`;
     previewMaskEl.style.height = `${previewMaskFrame.diameter}px`;
-    previewMaskEl.style.background = "rgba(214, 220, 209, 0.74)";
+    previewMaskEl.style.background = "#ffffff";
     previewMaskEl.style.boxShadow = "none";
 
     previewFrameEl.hidden = true;
