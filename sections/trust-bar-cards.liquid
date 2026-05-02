@@ -2,7 +2,6 @@
   assign trust_enabled = section.settings.enable_section
   assign mobile_behavior = section.settings.mobile_behavior | default: 'scroll'
   assign show_fifth_card = section.settings.show_fifth_card
-  assign text_size = section.settings.text_size | default: 'small'
   assign card_radius = section.settings.card_radius | default: 'pill'
   assign content_alignment = section.settings.content_alignment | default: 'center'
   assign icon_position = section.settings.icon_position | default: 'before'
@@ -11,6 +10,9 @@
   assign rotate_interval = section.settings.rotate_interval | default: 4
   assign custom_width_desktop = section.settings.custom_width_desktop | default: 1320
   assign custom_width_mobile = section.settings.custom_width_mobile | default: 360
+  assign font_size_desktop = section.settings.font_size_desktop | default: 13
+  assign font_size_mobile = section.settings.font_size_mobile | default: 12
+  assign font_weight = section.settings.font_weight | default: '500'
 
   assign card_1_text = section.settings.card_1_text | strip
   assign card_2_text = section.settings.card_2_text | strip
@@ -36,11 +38,13 @@
       --bd-trust-card-border: {{ section.settings.card_border_color }};
       --bd-trust-text-color: {{ section.settings.text_color }};
       --bd-trust-card-radius: {% case card_radius %}{% when 'soft' %}0.8rem{% when 'rounded' %}1.15rem{% else %}999px{% endcase %};
-      --bd-trust-font-size: {% if text_size == 'medium' %}1.35rem{% else %}1.15rem{% endif %};
+      --bd-trust-font-size-desktop: {{ font_size_desktop }}px;
+      --bd-trust-font-size-mobile: {{ font_size_mobile }}px;
+      --bd-trust-font-size: var(--bd-trust-font-size-desktop);
+      --bd-trust-font-weight: {{ font_weight }};
       --bd-trust-line-height: 1.2;
       --bd-trust-content-justify: {% case content_alignment %}{% when 'left' %}flex-start{% when 'right' %}flex-end{% else %}center{% endcase %};
       --bd-trust-content-text-align: {% case content_alignment %}{% when 'left' %}left{% when 'right' %}right{% else %}center{% endcase %};
-      --bd-trust-card-horizontal-padding: 0.85rem;
       color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
       margin: 0;
       padding: 0.35rem 0;
@@ -91,8 +95,8 @@
       {% if use_theme_font %}
         font-family: var(--font-body-family);
         font-style: var(--font-body-style);
-        font-weight: var(--font-body-weight);
       {% endif %}
+      font-weight: var(--bd-trust-font-weight);
       line-height: var(--bd-trust-line-height);
       letter-spacing: 0;
       margin: 0;
@@ -180,6 +184,7 @@
 
     @media screen and (max-width: 749px) {
       #shopify-section-{{ section.id }} .bd-trust-bar-cards {
+        --bd-trust-font-size: var(--bd-trust-font-size-mobile);
         padding: 0.35rem 0;
       }
 
@@ -217,6 +222,9 @@
 
       #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="scroll"] .bd-trust-card {
         flex: 0 0 auto;
+        min-width: min(26rem, calc(100vw - 4rem));
+        width: min(26rem, calc(100vw - 4rem));
+        max-width: calc(100vw - 4rem);
         scroll-snap-align: start;
       }
 
@@ -227,12 +235,14 @@
       }
 
       #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="rotate"] .bd-trust-card {
+        box-sizing: border-box;
         display: none;
         flex: 0 0 auto;
         justify-content: center;
         margin: 0 auto;
-        max-width: max-content;
-        min-width: min(100%, 28rem);
+        max-width: none;
+        min-width: 0;
+        width: 100%;
       }
 
       #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="rotate"] .bd-trust-card.is-active {
@@ -586,13 +596,35 @@
       "default": "#1f2937"
     },
     {
+      "type": "range",
+      "id": "font_size_desktop",
+      "label": "Desktop font size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "font_size_mobile",
+      "label": "Mobile font size",
+      "min": 11,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
       "type": "select",
-      "id": "text_size",
-      "label": "Text size",
-      "default": "small",
+      "id": "font_weight",
+      "label": "Font weight",
+      "default": "500",
       "options": [
-        { "value": "small", "label": "Small" },
-        { "value": "medium", "label": "Medium" }
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semi-bold" },
+        { "value": "700", "label": "Bold" }
       ]
     },
     {
