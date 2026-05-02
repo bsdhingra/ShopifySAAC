@@ -4,6 +4,8 @@
   assign show_fifth_card = section.settings.show_fifth_card
   assign text_size = section.settings.text_size | default: 'small'
   assign card_radius = section.settings.card_radius | default: 'pill'
+  assign content_alignment = section.settings.content_alignment | default: 'center'
+  assign icon_position = section.settings.icon_position | default: 'before'
   assign use_theme_font = section.settings.use_theme_font
   assign width_mode = section.settings.width_mode | default: 'page'
   assign rotate_interval = section.settings.rotate_interval | default: 4
@@ -36,6 +38,8 @@
       --bd-trust-card-radius: {% case card_radius %}{% when 'soft' %}0.8rem{% when 'rounded' %}1.15rem{% else %}999px{% endcase %};
       --bd-trust-font-size: {% if text_size == 'medium' %}1.35rem{% else %}1.15rem{% endif %};
       --bd-trust-line-height: 1.2;
+      --bd-trust-content-justify: {% case content_alignment %}{% when 'left' %}flex-start{% when 'right' %}flex-end{% else %}center{% endcase %};
+      --bd-trust-content-text-align: {% case content_alignment %}{% when 'left' %}left{% when 'right' %}right{% else %}center{% endcase %};
       color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
       margin: 0;
       padding: 0.35rem 0;
@@ -103,19 +107,22 @@
       color: inherit;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
+      justify-content: var(--bd-trust-content-justify);
       gap: 0.55rem;
       text-decoration: none;
+      width: 100%;
     }
 
     #shopify-section-{{ section.id }} .bd-trust-card__content {
       align-items: center;
       display: inline-flex;
       gap: 0.55rem;
-      justify-content: center;
+      justify-content: var(--bd-trust-content-justify);
       max-width: 100%;
       min-width: 0;
       overflow: hidden;
+      text-align: var(--bd-trust-content-text-align);
+      width: 100%;
     }
 
     #shopify-section-{{ section.id }} .bd-trust-card__icon {
@@ -218,14 +225,16 @@
           {%- if section.settings.card_1_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_1_link }}">
               <span class="bd-trust-card__content">
-                {%- if card_1_icon != blank -%}<span class="bd-trust-card__icon">{{ card_1_icon | escape }}</span>{%- endif -%}
+                {%- if icon_position == 'before' and card_1_icon != blank -%}<span class="bd-trust-card__icon">{{ card_1_icon | escape }}</span>{%- endif -%}
                 <span>{{ card_1_text | escape }}</span>
+                {%- if icon_position == 'after' and card_1_icon != blank -%}<span class="bd-trust-card__icon">{{ card_1_icon | escape }}</span>{%- endif -%}
               </span>
             </a>
           {%- else -%}
             <span class="bd-trust-card__content">
-              {%- if card_1_icon != blank -%}<span class="bd-trust-card__icon">{{ card_1_icon | escape }}</span>{%- endif -%}
+              {%- if icon_position == 'before' and card_1_icon != blank -%}<span class="bd-trust-card__icon">{{ card_1_icon | escape }}</span>{%- endif -%}
               <span>{{ card_1_text | escape }}</span>
+              {%- if icon_position == 'after' and card_1_icon != blank -%}<span class="bd-trust-card__icon">{{ card_1_icon | escape }}</span>{%- endif -%}
             </span>
           {%- endif -%}
         </div>
@@ -236,14 +245,16 @@
           {%- if section.settings.card_2_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_2_link }}">
               <span class="bd-trust-card__content">
-                {%- if card_2_icon != blank -%}<span class="bd-trust-card__icon">{{ card_2_icon | escape }}</span>{%- endif -%}
+                {%- if icon_position == 'before' and card_2_icon != blank -%}<span class="bd-trust-card__icon">{{ card_2_icon | escape }}</span>{%- endif -%}
                 <span>{{ card_2_text | escape }}</span>
+                {%- if icon_position == 'after' and card_2_icon != blank -%}<span class="bd-trust-card__icon">{{ card_2_icon | escape }}</span>{%- endif -%}
               </span>
             </a>
           {%- else -%}
             <span class="bd-trust-card__content">
-              {%- if card_2_icon != blank -%}<span class="bd-trust-card__icon">{{ card_2_icon | escape }}</span>{%- endif -%}
+              {%- if icon_position == 'before' and card_2_icon != blank -%}<span class="bd-trust-card__icon">{{ card_2_icon | escape }}</span>{%- endif -%}
               <span>{{ card_2_text | escape }}</span>
+              {%- if icon_position == 'after' and card_2_icon != blank -%}<span class="bd-trust-card__icon">{{ card_2_icon | escape }}</span>{%- endif -%}
             </span>
           {%- endif -%}
         </div>
@@ -254,14 +265,16 @@
           {%- if section.settings.card_3_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_3_link }}">
               <span class="bd-trust-card__content">
-                {%- if card_3_icon != blank -%}<span class="bd-trust-card__icon">{{ card_3_icon | escape }}</span>{%- endif -%}
+                {%- if icon_position == 'before' and card_3_icon != blank -%}<span class="bd-trust-card__icon">{{ card_3_icon | escape }}</span>{%- endif -%}
                 <span>{{ card_3_text | escape }}</span>
+                {%- if icon_position == 'after' and card_3_icon != blank -%}<span class="bd-trust-card__icon">{{ card_3_icon | escape }}</span>{%- endif -%}
               </span>
             </a>
           {%- else -%}
             <span class="bd-trust-card__content">
-              {%- if card_3_icon != blank -%}<span class="bd-trust-card__icon">{{ card_3_icon | escape }}</span>{%- endif -%}
+              {%- if icon_position == 'before' and card_3_icon != blank -%}<span class="bd-trust-card__icon">{{ card_3_icon | escape }}</span>{%- endif -%}
               <span>{{ card_3_text | escape }}</span>
+              {%- if icon_position == 'after' and card_3_icon != blank -%}<span class="bd-trust-card__icon">{{ card_3_icon | escape }}</span>{%- endif -%}
             </span>
           {%- endif -%}
         </div>
@@ -272,14 +285,16 @@
           {%- if section.settings.card_4_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_4_link }}">
               <span class="bd-trust-card__content">
-                {%- if card_4_icon != blank -%}<span class="bd-trust-card__icon">{{ card_4_icon | escape }}</span>{%- endif -%}
+                {%- if icon_position == 'before' and card_4_icon != blank -%}<span class="bd-trust-card__icon">{{ card_4_icon | escape }}</span>{%- endif -%}
                 <span>{{ card_4_text | escape }}</span>
+                {%- if icon_position == 'after' and card_4_icon != blank -%}<span class="bd-trust-card__icon">{{ card_4_icon | escape }}</span>{%- endif -%}
               </span>
             </a>
           {%- else -%}
             <span class="bd-trust-card__content">
-              {%- if card_4_icon != blank -%}<span class="bd-trust-card__icon">{{ card_4_icon | escape }}</span>{%- endif -%}
+              {%- if icon_position == 'before' and card_4_icon != blank -%}<span class="bd-trust-card__icon">{{ card_4_icon | escape }}</span>{%- endif -%}
               <span>{{ card_4_text | escape }}</span>
+              {%- if icon_position == 'after' and card_4_icon != blank -%}<span class="bd-trust-card__icon">{{ card_4_icon | escape }}</span>{%- endif -%}
             </span>
           {%- endif -%}
         </div>
@@ -290,14 +305,16 @@
           {%- if section.settings.card_5_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_5_link }}">
               <span class="bd-trust-card__content">
-                {%- if card_5_icon != blank -%}<span class="bd-trust-card__icon">{{ card_5_icon | escape }}</span>{%- endif -%}
+                {%- if icon_position == 'before' and card_5_icon != blank -%}<span class="bd-trust-card__icon">{{ card_5_icon | escape }}</span>{%- endif -%}
                 <span>{{ card_5_text | escape }}</span>
+                {%- if icon_position == 'after' and card_5_icon != blank -%}<span class="bd-trust-card__icon">{{ card_5_icon | escape }}</span>{%- endif -%}
               </span>
             </a>
           {%- else -%}
             <span class="bd-trust-card__content">
-              {%- if card_5_icon != blank -%}<span class="bd-trust-card__icon">{{ card_5_icon | escape }}</span>{%- endif -%}
+              {%- if icon_position == 'before' and card_5_icon != blank -%}<span class="bd-trust-card__icon">{{ card_5_icon | escape }}</span>{%- endif -%}
               <span>{{ card_5_text | escape }}</span>
+              {%- if icon_position == 'after' and card_5_icon != blank -%}<span class="bd-trust-card__icon">{{ card_5_icon | escape }}</span>{%- endif -%}
             </span>
           {%- endif -%}
         </div>
@@ -408,6 +425,27 @@
       "id": "show_fifth_card",
       "label": "Show fifth card",
       "default": true
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Card content alignment",
+      "default": "center",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "Icon position",
+      "default": "before",
+      "options": [
+        { "value": "before", "label": "Before text" },
+        { "value": "after", "label": "After text" }
+      ]
     },
     {
       "type": "text",
