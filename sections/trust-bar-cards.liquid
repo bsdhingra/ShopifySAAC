@@ -1,6 +1,10 @@
 {%- liquid
   assign trust_enabled = section.settings.enable_section
   assign mobile_behavior = section.settings.mobile_behavior | default: 'scroll'
+  assign show_card_1 = section.settings.show_card_1
+  assign show_card_2 = section.settings.show_card_2
+  assign show_card_3 = section.settings.show_card_3
+  assign show_card_4 = section.settings.show_card_4
   assign show_fifth_card = section.settings.show_fifth_card
   assign card_radius = section.settings.card_radius | default: 'pill'
   assign content_alignment = section.settings.content_alignment | default: 'center'
@@ -259,7 +263,7 @@
     >
     <div class="bd-trust-bar-cards__inner">
       <div class="bd-trust-bar-cards__track">
-      {%- if card_1_text != blank -%}
+      {%- if show_card_1 and card_1_text != blank -%}
         <div class="bd-trust-card{% if section.settings.card_1_link != blank %} bd-trust-card--linked{% endif %}{% if mobile_behavior == 'rotate' %} is-active{% endif %}">
           {%- if section.settings.card_1_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_1_link }}">
@@ -279,7 +283,7 @@
         </div>
       {%- endif -%}
 
-      {%- if card_2_text != blank -%}
+      {%- if show_card_2 and card_2_text != blank -%}
         <div class="bd-trust-card{% if section.settings.card_2_link != blank %} bd-trust-card--linked{% endif %}">
           {%- if section.settings.card_2_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_2_link }}">
@@ -299,7 +303,7 @@
         </div>
       {%- endif -%}
 
-      {%- if card_3_text != blank -%}
+      {%- if show_card_3 and card_3_text != blank -%}
         <div class="bd-trust-card{% if section.settings.card_3_link != blank %} bd-trust-card--linked{% endif %}">
           {%- if section.settings.card_3_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_3_link }}">
@@ -319,7 +323,7 @@
         </div>
       {%- endif -%}
 
-      {%- if card_4_text != blank -%}
+      {%- if show_card_4 and card_4_text != blank -%}
         <div class="bd-trust-card{% if section.settings.card_4_link != blank %} bd-trust-card--linked{% endif %}">
           {%- if section.settings.card_4_link != blank -%}
             <a class="bd-trust-card__link" href="{{ section.settings.card_4_link }}">
@@ -461,8 +465,32 @@
     },
     {
       "type": "checkbox",
+      "id": "show_card_1",
+      "label": "Show card 1",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_card_2",
+      "label": "Show card 2",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_card_3",
+      "label": "Show card 3",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_card_4",
+      "label": "Show card 4",
+      "default": true
+    },
+    {
+      "type": "checkbox",
       "id": "show_fifth_card",
-      "label": "Show fifth card",
+      "label": "Show card 5",
       "default": true
     },
     {
