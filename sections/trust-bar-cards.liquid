@@ -5,6 +5,10 @@
   assign text_size = section.settings.text_size | default: 'small'
   assign card_radius = section.settings.card_radius | default: 'pill'
   assign use_theme_font = section.settings.use_theme_font
+  assign width_mode = section.settings.width_mode | default: 'page'
+  assign rotate_interval = section.settings.rotate_interval | default: 4
+  assign custom_width_desktop = section.settings.custom_width_desktop | default: 1320
+  assign custom_width_mobile = section.settings.custom_width_mobile | default: 360
 
   assign card_1_text = section.settings.card_1_text | strip
   assign card_2_text = section.settings.card_2_text | strip
@@ -40,14 +44,24 @@
       z-index: 0;
     }
 
+    #shopify-section-{{ section.id }} .bd-trust-bar-cards__inner {
+      margin: 0 auto;
+      width: 100%;
+      {% if width_mode == 'custom' %}
+        max-width: {{ custom_width_desktop }}px;
+      {% elsif width_mode == 'full' %}
+        max-width: none;
+      {% endif %}
+    }
+
     #shopify-section-{{ section.id }} .bd-trust-bar-cards__track {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.7rem;
       flex-wrap: nowrap;
-      margin: 0 auto;
-      max-width: 132rem;
+      margin: 0;
+      max-width: 100%;
       overflow: hidden;
     }
 
@@ -114,6 +128,14 @@
         padding: 0.4rem 0;
       }
 
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards__inner {
+        {% if width_mode == 'custom' %}
+          max-width: {{ custom_width_mobile }}px;
+        {% elsif width_mode == 'full' %}
+          max-width: none;
+        {% endif %}
+      }
+
       #shopify-section-{{ section.id }} .bd-trust-bar-cards__track {
         justify-content: flex-start;
       }
@@ -162,7 +184,8 @@
     data-section-id="{{ section.id }}"
     data-mobile-behavior="{{ mobile_behavior }}"
   >
-    <div class="bd-trust-bar-cards__track">
+    <div class="bd-trust-bar-cards__inner{% if width_mode == 'page' %} page-width{% endif %}">
+      <div class="bd-trust-bar-cards__track">
       {%- if card_1_text != blank -%}
         <div class="bd-trust-card{% if section.settings.card_1_link != blank %} bd-trust-card--linked{% endif %}{% if mobile_behavior == 'rotate' %} is-active{% endif %}">
           {%- if section.settings.card_1_link != blank -%}
@@ -252,6 +275,7 @@
           {%- endif -%}
         </div>
       {%- endif -%}
+      </div>
     </div>
   </div>
 
@@ -284,7 +308,7 @@
           if (!window.matchMedia('(max-width: 749px)').matches) return;
           index = (index + 1) % cards.length;
           setActive(index);
-        }, 3800);
+        }, {{ rotate_interval | times: 1000 }});
       })();
     </script>
   {%- endif -%}
@@ -310,6 +334,47 @@
         { "value": "scroll", "label": "Scroll" },
         { "value": "rotate", "label": "Rotate" }
       ]
+    },
+    {
+      "type": "range",
+      "id": "rotate_interval",
+      "label": "Rotate interval",
+      "min": 3,
+      "max": 8,
+      "step": 1,
+      "unit": "s",
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "width_mode",
+      "label": "Width",
+      "default": "page",
+      "options": [
+        { "value": "page", "label": "Page width" },
+        { "value": "full", "label": "Full width" },
+        { "value": "custom", "label": "Custom width" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "custom_width_desktop",
+      "label": "Custom desktop width",
+      "min": 960,
+      "max": 1800,
+      "step": 2,
+      "unit": "px",
+      "default": 1320
+    },
+    {
+      "type": "range",
+      "id": "custom_width_mobile",
+      "label": "Custom mobile width",
+      "min": 280,
+      "max": 750,
+      "step": 2,
+      "unit": "px",
+      "default": 360
     },
     {
       "type": "checkbox",
