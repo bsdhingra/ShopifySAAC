@@ -36,17 +36,20 @@
       --bd-trust-card-radius: {% case card_radius %}{% when 'soft' %}0.8rem{% when 'rounded' %}1.15rem{% else %}999px{% endcase %};
       --bd-trust-font-size: {% if text_size == 'medium' %}1.35rem{% else %}1.15rem{% endif %};
       --bd-trust-line-height: 1.2;
-      background: var(--bd-trust-section-bg, rgb(var(--color-background)));
       color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
       margin: 0;
-      padding: 0.4rem 0.6rem;
+      padding: 0.35rem 0;
       position: relative;
-      border-radius: 1.2rem;
-      overflow: hidden;
       z-index: 0;
     }
 
     #shopify-section-{{ section.id }} .bd-trust-bar-cards__inner {
+      background: var(--bd-trust-section-bg, rgb(var(--color-background)));
+      border-radius: 1.2rem;
+      box-sizing: border-box;
+      margin: 0 auto;
+      overflow: hidden;
+      padding: 0.4rem 0.6rem;
       margin: 0 auto;
       width: 100%;
       {% if width_mode == 'custom' %}
@@ -142,11 +145,12 @@
 
     @media screen and (max-width: 749px) {
       #shopify-section-{{ section.id }} .bd-trust-bar-cards {
-        padding: 0.4rem 0.45rem;
-        border-radius: 1rem;
+        padding: 0.35rem 0;
       }
 
       #shopify-section-{{ section.id }} .bd-trust-bar-cards__inner {
+        border-radius: 1rem;
+        padding: 0.4rem 0.45rem;
         {% if width_mode == 'custom' %}
           width: min(100%, {{ custom_width_mobile }}px);
           max-width: {{ custom_width_mobile }}px;
