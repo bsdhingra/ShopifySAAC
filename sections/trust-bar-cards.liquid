@@ -39,8 +39,10 @@
       background: var(--bd-trust-section-bg, rgb(var(--color-background)));
       color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
       margin: 0;
-      padding: 0.45rem 1.5rem;
+      padding: 0.4rem 0.6rem;
       position: relative;
+      border-radius: 1.2rem;
+      overflow: hidden;
       z-index: 0;
     }
 
@@ -48,7 +50,10 @@
       margin: 0 auto;
       width: 100%;
       {% if width_mode == 'custom' %}
+        width: min(calc(100% - 2rem), {{ custom_width_desktop }}px);
         max-width: {{ custom_width_desktop }}px;
+      {% elsif width_mode == 'page' %}
+        max-width: var(--page-width);
       {% elsif width_mode == 'full' %}
         max-width: none;
       {% endif %}
@@ -58,7 +63,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.7rem;
+      gap: 0.5rem;
       flex-wrap: nowrap;
       margin: 0;
       max-width: 100%;
@@ -73,7 +78,7 @@
       box-shadow: 0 1px 2px rgba(var(--color-foreground), 0.03);
       color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
       display: inline-flex;
-      flex: 0 0 auto;
+      flex: 1 1 0;
       font-size: var(--bd-trust-font-size);
       {% if use_theme_font %}
         font-family: var(--font-body-family);
@@ -83,8 +88,9 @@
       line-height: var(--bd-trust-line-height);
       letter-spacing: 0;
       margin: 0;
+      min-width: 0;
       min-height: 3.3rem;
-      padding: 0.55rem 1rem;
+      padding: 0.5rem 0.85rem;
       text-decoration: none;
       transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, background-color 150ms ease;
       white-space: nowrap;
@@ -103,15 +109,26 @@
       align-items: center;
       display: inline-flex;
       gap: 0.55rem;
+      justify-content: center;
+      max-width: 100%;
+      min-width: 0;
+      overflow: hidden;
     }
 
     #shopify-section-{{ section.id }} .bd-trust-card__icon {
+      flex: 0 0 auto;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       font-size: 1em;
       line-height: 1;
       transform: translateY(-0.02em);
+    }
+
+    #shopify-section-{{ section.id }} .bd-trust-card__content > span:last-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     #shopify-section-{{ section.id }} .bd-trust-card.bd-trust-card--linked:hover,
@@ -125,12 +142,16 @@
 
     @media screen and (max-width: 749px) {
       #shopify-section-{{ section.id }} .bd-trust-bar-cards {
-        padding: 0.4rem 0;
+        padding: 0.4rem 0.45rem;
+        border-radius: 1rem;
       }
 
       #shopify-section-{{ section.id }} .bd-trust-bar-cards__inner {
         {% if width_mode == 'custom' %}
+          width: min(100%, {{ custom_width_mobile }}px);
           max-width: {{ custom_width_mobile }}px;
+        {% elsif width_mode == 'page' %}
+          max-width: 100%;
         {% elsif width_mode == 'full' %}
           max-width: none;
         {% endif %}
@@ -143,7 +164,7 @@
       #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="scroll"] .bd-trust-bar-cards__track {
         overflow-x: auto;
         overflow-y: hidden;
-        padding: 0 1.2rem;
+        padding: 0;
         scroll-behavior: smooth;
         scroll-snap-type: x proximity;
         -ms-overflow-style: none;
@@ -156,17 +177,19 @@
       }
 
       #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="scroll"] .bd-trust-card {
+        flex: 0 0 auto;
         scroll-snap-align: start;
       }
 
       #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="rotate"] .bd-trust-bar-cards__track {
         display: block;
         overflow: hidden;
-        padding: 0 1.2rem;
+        padding: 0;
       }
 
       #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="rotate"] .bd-trust-card {
         display: none;
+        flex: 0 0 auto;
         justify-content: center;
         margin: 0 auto;
         max-width: max-content;
@@ -184,7 +207,7 @@
     data-section-id="{{ section.id }}"
     data-mobile-behavior="{{ mobile_behavior }}"
   >
-    <div class="bd-trust-bar-cards__inner{% if width_mode == 'page' %} page-width{% endif %}">
+    <div class="bd-trust-bar-cards__inner">
       <div class="bd-trust-bar-cards__track">
       {%- if card_1_text != blank -%}
         <div class="bd-trust-card{% if section.settings.card_1_link != blank %} bd-trust-card--linked{% endif %}{% if mobile_behavior == 'rotate' %} is-active{% endif %}">
