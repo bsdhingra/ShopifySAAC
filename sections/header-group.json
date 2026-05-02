@@ -41,6 +41,7 @@
         "announcement_KU66py",
         "announcement_9gQgnm"
       ],
+      "disabled": true,
       "settings": {
         "auto_rotate": true,
         "change_slides_speed": 3,
@@ -49,6 +50,49 @@
         "show_social": false,
         "enable_country_selector": false,
         "enable_language_selector": false
+      }
+    },
+    "trust_bar_cards_pTagiB": {
+      "type": "trust-bar-cards",
+      "name": "Trust Bar Cards",
+      "settings": {
+        "enable_section": true,
+        "mobile_behavior": "rotate",
+        "rotate_interval": 5,
+        "width_mode": "custom",
+        "custom_width_desktop": 1600,
+        "custom_width_mobile": 360,
+        "show_card_1": true,
+        "show_card_2": true,
+        "show_card_3": true,
+        "show_card_4": false,
+        "show_fifth_card": true,
+        "content_alignment": "center",
+        "icon_position": "before",
+        "card_1_icon": "❤️",
+        "card_1_text": "Crafted In-House — Never Drop Shipped",
+        "card_1_link": "",
+        "card_2_icon": "✨",
+        "card_2_text": "Custom Designs Made Just for You",
+        "card_2_link": "",
+        "card_3_icon": "🔒",
+        "card_3_text": "Secure Checkout — Safe Payments",
+        "card_3_link": "",
+        "card_4_icon": "🚚",
+        "card_4_text": "Ships in 48–72 hrs",
+        "card_4_link": "",
+        "card_5_icon": "💼",
+        "card_5_text": "Bulk Order Discounts Available",
+        "card_5_link": "",
+        "section_bg_color": "#fcfbf5",
+        "card_bg_color": "#fcfbf5",
+        "card_border_color": "#fcfbf5",
+        "text_color": "#000000",
+        "font_size_desktop": 14,
+        "font_size_mobile": 14,
+        "font_weight": "500",
+        "card_radius": "soft",
+        "use_theme_font": true
       }
     },
     "header": {
@@ -80,6 +124,7 @@
   },
   "order": [
     "announcement-bar",
+    "trust_bar_cards_pTagiB",
     "header",
     "175730116463dbe06b"
   ]
