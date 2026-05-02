@@ -1,0 +1,466 @@
+{%- liquid
+  assign trust_enabled = section.settings.enable_section
+  assign mobile_behavior = section.settings.mobile_behavior | default: 'scroll'
+  assign show_fifth_card = section.settings.show_fifth_card
+  assign text_size = section.settings.text_size | default: 'small'
+  assign card_radius = section.settings.card_radius | default: 'pill'
+  assign use_theme_font = section.settings.use_theme_font
+
+  assign card_1_text = section.settings.card_1_text | strip
+  assign card_2_text = section.settings.card_2_text | strip
+  assign card_3_text = section.settings.card_3_text | strip
+  assign card_4_text = section.settings.card_4_text | strip
+  assign card_5_text = section.settings.card_5_text | strip
+  assign card_1_icon = section.settings.card_1_icon | strip
+  assign card_2_icon = section.settings.card_2_icon | strip
+  assign card_3_icon = section.settings.card_3_icon | strip
+  assign card_4_icon = section.settings.card_4_icon | strip
+  assign card_5_icon = section.settings.card_5_icon | strip
+-%}
+
+{%- if trust_enabled -%}
+  {%- style -%}
+    #shopify-section-{{ section.id }} {
+      margin: 0;
+    }
+
+    #shopify-section-{{ section.id }} .bd-trust-bar-cards {
+      --bd-trust-section-bg: {{ section.settings.section_bg_color }};
+      --bd-trust-card-bg: {{ section.settings.card_bg_color }};
+      --bd-trust-card-border: {{ section.settings.card_border_color }};
+      --bd-trust-text-color: {{ section.settings.text_color }};
+      --bd-trust-card-radius: {% case card_radius %}{% when 'soft' %}0.8rem{% when 'rounded' %}1.15rem{% else %}999px{% endcase %};
+      --bd-trust-font-size: {% if text_size == 'medium' %}1.35rem{% else %}1.15rem{% endif %};
+      --bd-trust-line-height: 1.2;
+      background: var(--bd-trust-section-bg, rgb(var(--color-background)));
+      color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
+      margin: 0;
+      padding: 0.45rem 1.5rem;
+      position: relative;
+      z-index: 0;
+    }
+
+    #shopify-section-{{ section.id }} .bd-trust-bar-cards__track {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      flex-wrap: nowrap;
+      margin: 0 auto;
+      max-width: 132rem;
+      overflow: hidden;
+    }
+
+    #shopify-section-{{ section.id }} .bd-trust-card {
+      align-items: center;
+      background: var(--bd-trust-card-bg, rgb(var(--color-background)));
+      border: 1px solid var(--bd-trust-card-border, rgba(var(--color-foreground), 0.08));
+      border-radius: var(--bd-trust-card-radius);
+      box-shadow: 0 1px 2px rgba(var(--color-foreground), 0.03);
+      color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: var(--bd-trust-font-size);
+      {% if use_theme_font %}
+        font-family: var(--font-body-family);
+        font-style: var(--font-body-style);
+        font-weight: var(--font-body-weight);
+      {% endif %}
+      line-height: var(--bd-trust-line-height);
+      letter-spacing: 0;
+      margin: 0;
+      min-height: 3.3rem;
+      padding: 0.55rem 1rem;
+      text-decoration: none;
+      transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, background-color 150ms ease;
+      white-space: nowrap;
+    }
+
+    #shopify-section-{{ section.id }} .bd-trust-card__link {
+      color: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      text-decoration: none;
+    }
+
+    #shopify-section-{{ section.id }} .bd-trust-card__content {
+      align-items: center;
+      display: inline-flex;
+      gap: 0.55rem;
+    }
+
+    #shopify-section-{{ section.id }} .bd-trust-card__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1em;
+      line-height: 1;
+      transform: translateY(-0.02em);
+    }
+
+    #shopify-section-{{ section.id }} .bd-trust-card.bd-trust-card--linked:hover,
+    #shopify-section-{{ section.id }} .bd-trust-card.bd-trust-card--linked:focus-within {
+      border-color: rgba(var(--color-foreground), 0.12);
+      box-shadow: 0 3px 10px rgba(var(--color-foreground), 0.05);
+      color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    @media screen and (max-width: 749px) {
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards {
+        padding: 0.4rem 0;
+      }
+
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards__track {
+        justify-content: flex-start;
+      }
+
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="scroll"] .bd-trust-bar-cards__track {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0 1.2rem;
+        scroll-behavior: smooth;
+        scroll-snap-type: x proximity;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="scroll"] .bd-trust-bar-cards__track::-webkit-scrollbar {
+        display: none;
+      }
+
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="scroll"] .bd-trust-card {
+        scroll-snap-align: start;
+      }
+
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="rotate"] .bd-trust-bar-cards__track {
+        display: block;
+        overflow: hidden;
+        padding: 0 1.2rem;
+      }
+
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="rotate"] .bd-trust-card {
+        display: none;
+        justify-content: center;
+        margin: 0 auto;
+        max-width: max-content;
+        min-width: min(100%, 28rem);
+      }
+
+      #shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="rotate"] .bd-trust-card.is-active {
+        display: inline-flex;
+      }
+    }
+  {%- endstyle -%}
+
+  <div
+    class="bd-trust-bar-cards"
+    data-section-id="{{ section.id }}"
+    data-mobile-behavior="{{ mobile_behavior }}"
+  >
+    <div class="bd-trust-bar-cards__track">
+      {%- if card_1_text != blank -%}
+        <div class="bd-trust-card{% if section.settings.card_1_link != blank %} bd-trust-card--linked{% endif %}{% if mobile_behavior == 'rotate' %} is-active{% endif %}">
+          {%- if section.settings.card_1_link != blank -%}
+            <a class="bd-trust-card__link" href="{{ section.settings.card_1_link }}">
+              <span class="bd-trust-card__content">
+                {%- if card_1_icon != blank -%}<span class="bd-trust-card__icon">{{ card_1_icon | escape }}</span>{%- endif -%}
+                <span>{{ card_1_text | escape }}</span>
+              </span>
+            </a>
+          {%- else -%}
+            <span class="bd-trust-card__content">
+              {%- if card_1_icon != blank -%}<span class="bd-trust-card__icon">{{ card_1_icon | escape }}</span>{%- endif -%}
+              <span>{{ card_1_text | escape }}</span>
+            </span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if card_2_text != blank -%}
+        <div class="bd-trust-card{% if section.settings.card_2_link != blank %} bd-trust-card--linked{% endif %}">
+          {%- if section.settings.card_2_link != blank -%}
+            <a class="bd-trust-card__link" href="{{ section.settings.card_2_link }}">
+              <span class="bd-trust-card__content">
+                {%- if card_2_icon != blank -%}<span class="bd-trust-card__icon">{{ card_2_icon | escape }}</span>{%- endif -%}
+                <span>{{ card_2_text | escape }}</span>
+              </span>
+            </a>
+          {%- else -%}
+            <span class="bd-trust-card__content">
+              {%- if card_2_icon != blank -%}<span class="bd-trust-card__icon">{{ card_2_icon | escape }}</span>{%- endif -%}
+              <span>{{ card_2_text | escape }}</span>
+            </span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if card_3_text != blank -%}
+        <div class="bd-trust-card{% if section.settings.card_3_link != blank %} bd-trust-card--linked{% endif %}">
+          {%- if section.settings.card_3_link != blank -%}
+            <a class="bd-trust-card__link" href="{{ section.settings.card_3_link }}">
+              <span class="bd-trust-card__content">
+                {%- if card_3_icon != blank -%}<span class="bd-trust-card__icon">{{ card_3_icon | escape }}</span>{%- endif -%}
+                <span>{{ card_3_text | escape }}</span>
+              </span>
+            </a>
+          {%- else -%}
+            <span class="bd-trust-card__content">
+              {%- if card_3_icon != blank -%}<span class="bd-trust-card__icon">{{ card_3_icon | escape }}</span>{%- endif -%}
+              <span>{{ card_3_text | escape }}</span>
+            </span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if card_4_text != blank -%}
+        <div class="bd-trust-card{% if section.settings.card_4_link != blank %} bd-trust-card--linked{% endif %}">
+          {%- if section.settings.card_4_link != blank -%}
+            <a class="bd-trust-card__link" href="{{ section.settings.card_4_link }}">
+              <span class="bd-trust-card__content">
+                {%- if card_4_icon != blank -%}<span class="bd-trust-card__icon">{{ card_4_icon | escape }}</span>{%- endif -%}
+                <span>{{ card_4_text | escape }}</span>
+              </span>
+            </a>
+          {%- else -%}
+            <span class="bd-trust-card__content">
+              {%- if card_4_icon != blank -%}<span class="bd-trust-card__icon">{{ card_4_icon | escape }}</span>{%- endif -%}
+              <span>{{ card_4_text | escape }}</span>
+            </span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if show_fifth_card and card_5_text != blank -%}
+        <div class="bd-trust-card{% if section.settings.card_5_link != blank %} bd-trust-card--linked{% endif %}">
+          {%- if section.settings.card_5_link != blank -%}
+            <a class="bd-trust-card__link" href="{{ section.settings.card_5_link }}">
+              <span class="bd-trust-card__content">
+                {%- if card_5_icon != blank -%}<span class="bd-trust-card__icon">{{ card_5_icon | escape }}</span>{%- endif -%}
+                <span>{{ card_5_text | escape }}</span>
+              </span>
+            </a>
+          {%- else -%}
+            <span class="bd-trust-card__content">
+              {%- if card_5_icon != blank -%}<span class="bd-trust-card__icon">{{ card_5_icon | escape }}</span>{%- endif -%}
+              <span>{{ card_5_text | escape }}</span>
+            </span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if mobile_behavior == 'rotate' -%}
+    <script>
+      (() => {
+        const sectionRoot = document.querySelector('#shopify-section-{{ section.id }} .bd-trust-bar-cards[data-mobile-behavior="rotate"]');
+        if (!sectionRoot) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        const cards = Array.from(sectionRoot.querySelectorAll('.bd-trust-card'));
+        if (cards.length < 2) return;
+
+        let index = cards.findIndex((card) => card.classList.contains('is-active'));
+        if (index < 0) index = 0;
+
+        const setActive = (nextIndex) => {
+          cards.forEach((card, cardIndex) => {
+            card.classList.toggle('is-active', cardIndex === nextIndex);
+            card.setAttribute('aria-hidden', cardIndex === nextIndex ? 'false' : 'true');
+          });
+        };
+
+        setActive(index);
+
+        if (window.matchMedia('(min-width: 750px)').matches) return;
+
+        window.setInterval(() => {
+          if (!document.body.contains(sectionRoot)) return;
+          if (!window.matchMedia('(max-width: 749px)').matches) return;
+          index = (index + 1) % cards.length;
+          setActive(index);
+        }, 3800);
+      })();
+    </script>
+  {%- endif -%}
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Trust Bar Cards",
+  "class": "bd-trust-bar-cards-section",
+  "enabled_on": {
+    "groups": ["header"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_section",
+      "label": "Enable trust bar",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "mobile_behavior",
+      "label": "Mobile behavior",
+      "default": "scroll",
+      "options": [
+        { "value": "scroll", "label": "Scroll" },
+        { "value": "rotate", "label": "Rotate" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_fifth_card",
+      "label": "Show fifth card",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "card_1_icon",
+      "label": "Card 1 icon",
+      "default": "❤️"
+    },
+    {
+      "type": "text",
+      "id": "card_1_text",
+      "label": "Card 1 text",
+      "default": "Crafted In-House — Never Drop Shipped"
+    },
+    {
+      "type": "url",
+      "id": "card_1_link",
+      "label": "Card 1 link"
+    },
+    {
+      "type": "text",
+      "id": "card_2_icon",
+      "label": "Card 2 icon",
+      "default": "✨"
+    },
+    {
+      "type": "text",
+      "id": "card_2_text",
+      "label": "Card 2 text",
+      "default": "Custom Designs Made Just for You"
+    },
+    {
+      "type": "url",
+      "id": "card_2_link",
+      "label": "Card 2 link"
+    },
+    {
+      "type": "text",
+      "id": "card_3_icon",
+      "label": "Card 3 icon",
+      "default": "🔒"
+    },
+    {
+      "type": "text",
+      "id": "card_3_text",
+      "label": "Card 3 text",
+      "default": "Secure Checkout — Safe Payments"
+    },
+    {
+      "type": "url",
+      "id": "card_3_link",
+      "label": "Card 3 link"
+    },
+    {
+      "type": "text",
+      "id": "card_4_icon",
+      "label": "Card 4 icon",
+      "default": "🚚"
+    },
+    {
+      "type": "text",
+      "id": "card_4_text",
+      "label": "Card 4 text",
+      "default": "Ships in 48–72 hrs"
+    },
+    {
+      "type": "url",
+      "id": "card_4_link",
+      "label": "Card 4 link"
+    },
+    {
+      "type": "text",
+      "id": "card_5_icon",
+      "label": "Card 5 icon",
+      "default": "💼"
+    },
+    {
+      "type": "text",
+      "id": "card_5_text",
+      "label": "Card 5 text",
+      "default": "Bulk Order Discounts Available"
+    },
+    {
+      "type": "url",
+      "id": "card_5_link",
+      "label": "Card 5 link"
+    },
+    {
+      "type": "color",
+      "id": "section_bg_color",
+      "label": "Section background color",
+      "default": "#f7f3ec"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_border_color",
+      "label": "Card border color",
+      "default": "#d9d5cf"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#1f2937"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Text size",
+      "default": "small",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "card_radius",
+      "label": "Card radius",
+      "default": "pill",
+      "options": [
+        { "value": "soft", "label": "Soft" },
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "pill", "label": "Pill" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "use_theme_font",
+      "label": "Use theme font",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Trust Bar Cards"
+    }
+  ]
+}
+{% endschema %}
