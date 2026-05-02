@@ -40,6 +40,41 @@
         "padding_bottom": 12
       }
     },
+    "trust_bar_cards_yiUVm7": {
+      "type": "trust-bar-cards",
+      "disabled": true,
+      "name": "Trust Bar Cards",
+      "settings": {
+        "enable_section": true,
+        "mobile_behavior": "rotate",
+        "rotate_interval": 5,
+        "width_mode": "custom",
+        "custom_width_desktop": 1600,
+        "custom_width_mobile": 360,
+        "show_fifth_card": true,
+        "card_1_icon": "❤️",
+        "card_1_text": "Crafted In-House — Never Drop Shipped",
+        "card_1_link": "",
+        "card_2_icon": "✨",
+        "card_2_text": "Custom Designs Made Just for You",
+        "card_2_link": "",
+        "card_3_icon": "🔒",
+        "card_3_text": "Secure Checkout — Safe Payments",
+        "card_3_link": "",
+        "card_4_icon": "🚚",
+        "card_4_text": "Ships in 5-7 days",
+        "card_4_link": "",
+        "card_5_icon": "💼",
+        "card_5_text": "Bulk Order Discounts Available",
+        "card_5_link": "",
+        "section_bg_color": "#f7f3ec",
+        "card_bg_color": "#ffffff",
+        "card_border_color": "#d9d5cf",
+        "text_color": "#1f2937",
+        "card_radius": "pill",
+        "use_theme_font": true
+      }
+    },
     "custom_premium_carousel_home": {
       "type": "custom-premium-carousel",
       "blocks": {
@@ -641,19 +676,20 @@
       "name": "Collections Carousel",
       "settings": {
         "collection_list": [
-          "tumblers",
+          "tumblers-custom-and-predesigned",
           "t-shirts",
-          "sweatshirts-and-hoodies",
+          "sweatshirts-and-hoodies-pre-designed",
           "personalized-photo-gifts",
-          "hoodies",
-          "custom-made-items",
-          "door-signs",
+          "mugs-custom-and-pre-designed",
+          "custom-apparel",
+          "custom-predesigned-home-decor",
           "baby-stuff",
           "sips-and-sacks",
           "bookmarks",
-          "brand-and-event-displays",
+          "custom-promo-and-event-essentials",
           "magnets",
-          "cutting-boards"
+          "custom-made-kitchen-items",
+          "laser-engraved-items"
         ],
         "collections_show": 21,
         "show_count": true,
@@ -811,6 +847,7 @@
   },
   "order": [
     "rich_text_TEVXgm",
+    "trust_bar_cards_yiUVm7",
     "custom_premium_carousel_home",
     "slideshow_JYz3Gj",
     "slideshow_6QVLK4",
