@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "Playwright smoke tests for the ShopifySAAC theme",
   "scripts": {
+    "reviews:sync": "powershell -ExecutionPolicy Bypass -File scripts/sync-manual-reviews.ps1",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
