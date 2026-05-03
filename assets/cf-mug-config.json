@@ -89,8 +89,8 @@
       "stageAspectRatio": 2.6,
       "defaultFitWidth": 0.82,
       "defaultFitHeight": 0.86,
-      "maxWidth": 1.5,
-      "maxHeight": 1.5
+      "maxWidth": 0,
+      "maxHeight": 0
     }
   }
 }

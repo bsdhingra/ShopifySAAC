@@ -1638,12 +1638,12 @@
 
   const getPlacementMaxWidth = () => {
     const configured = Number(config && config.editor && config.editor.maxWidth);
-    return configured > 0 ? configured : 1;
+    return configured > 0 ? configured : Number.POSITIVE_INFINITY;
   };
 
   const getPlacementMaxHeight = () => {
     const configured = Number(config && config.editor && config.editor.maxHeight);
-    return configured > 0 ? configured : 1;
+    return configured > 0 ? configured : Number.POSITIVE_INFINITY;
   };
 
   const buildEditorZones = () => {
