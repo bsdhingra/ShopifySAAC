@@ -3719,8 +3719,39 @@ details-disclosure > details {
 
 /* Rich Text: per-section spacing control
    Use Theme Editor -> Custom CSS class = tight-spacing */
-.rich-text.tight-spacing .rich-text__heading { margin-bottom: 0.4rem; }
-.rich-text.tight-spacing .rich-text__text { margin-top: 0; }
+.rich-text.tight-spacing .rich-text__wrapper {
+  max-width: var(--saac-copy-max);
+  margin-inline: auto;
+}
+
+.rich-text.tight-spacing .rich-text__blocks {
+  gap: 0;
+}
+
+.rich-text.tight-spacing .rich-text__heading {
+  margin-bottom: 0.4rem;
+  color: var(--saac-brand-ink);
+}
+
+.rich-text.tight-spacing .rich-text__text {
+  max-width: 64rem;
+  margin: 0 auto;
+  color: var(--saac-text-secondary);
+}
+
+.rich-text.tight-spacing .rich-text__text h1,
+.rich-text.tight-spacing .rich-text__text h2,
+.rich-text.tight-spacing .rich-text__text h3,
+.rich-text.tight-spacing .rich-text__text p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+@media screen and (min-width: 750px) {
+  .rich-text.tight-spacing .rich-text__heading {
+    margin-bottom: 0.8rem;
+  }
+}
 
 /* Optional: extra tight */
 .rich-text.compact-spacing .rich-text__heading { margin-bottom: 0.25rem; }
@@ -4196,17 +4227,19 @@ details-disclosure > details {
 #cf-tshirt-preview-container[data-cf-start-gate="1"] .cf-start-btn,
 #cf-tshirt-preview-container[data-cf-start-gate="1"] .cf-close-btn {
   appearance: none;
-  border: 1px solid rgba(0,0,0,.18);
-  background: transparent;
-  border-radius: 12px;
-  padding: 10px 12px;
+  border: 1px solid var(--saac-customizer-primary-border);
+  background: var(--saac-customizer-primary-bg);
+  color: var(--saac-customizer-primary-text);
+  border-radius: var(--saac-customizer-cta-radius);
+  padding: 10px 16px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--saac-customizer-cta-font-size);
   line-height: 1;
+  min-height: var(--saac-customizer-cta-height-mobile);
 }
 
 #cf-tshirt-preview-container[data-cf-start-gate="1"] .cf-start-btn {
-  font-weight: 600;
+  font-weight: var(--saac-customizer-cta-font-weight);
 }
 
 #cf-tshirt-preview-container[data-cf-start-gate="1"] .cf-close-btn {
@@ -4215,7 +4248,169 @@ details-disclosure > details {
 
 #cf-tshirt-preview-container[data-cf-start-gate="1"] .cf-start-hint {
   font-size: 13px;
-  opacity: 0.85;
+  color: var(--saac-customizer-muted-text);
+}
+
+#cf-tshirt-preview-container .cf-start-row,
+#cf-tumbler-preview-container .cf-start-row,
+#cf-mug-preview-container .cf-start-row,
+#cf-circle-preview-container .cf-start-row {
+  background: var(--saac-customizer-surface-bg);
+  border: 1px solid var(--saac-customizer-surface-border);
+  border-radius: 1.2rem;
+  padding: 1.2rem;
+}
+
+#cf-tshirt-preview-container .cf-start-btn,
+#cf-tumbler-preview-container .cf-start-btn,
+#cf-mug-preview-container .cf-start-btn,
+#cf-circle-preview-container .cf-start-btn,
+#cf-tumbler-preview-container .cf-tumbler-upload-btn,
+#cf-mug-preview-container .cf-tumbler-upload-btn,
+#cf-circle-preview-container .cf-circle-upload-btn,
+#cf-circle-preview-container .cf-circle-reset-btn,
+#cf-tshirt-preview-container [data-bd-inline-actions="1"] .button,
+#cf-tumbler-preview-container .cf-tumbler-toolbar .button,
+#cf-mug-preview-container .cf-tumbler-toolbar .button,
+#cf-circle-preview-container .cf-circle-action-row .button {
+  min-height: var(--saac-customizer-cta-height-mobile);
+  padding-inline: var(--saac-customizer-cta-padding-inline-mobile);
+  border-radius: var(--saac-customizer-cta-radius);
+  border-style: solid;
+  border-width: 1px;
+  font-size: var(--saac-customizer-cta-font-size);
+  font-weight: var(--saac-customizer-cta-font-weight);
+}
+
+#cf-tumbler-preview-container .cf-tumbler-load-original-btn,
+#cf-mug-preview-container .cf-tumbler-load-original-btn,
+#cf-circle-preview-container .cf-circle-load-original-btn {
+  min-width: fit-content;
+  white-space: nowrap;
+}
+
+#cf-tshirt-preview-container .cf-start-btn,
+#cf-tumbler-preview-container .cf-start-btn,
+#cf-mug-preview-container .cf-start-btn,
+#cf-circle-preview-container .cf-start-btn {
+  background: var(--saac-customizer-primary-bg);
+  color: var(--saac-customizer-primary-text);
+  border: 1px solid var(--saac-customizer-primary-border);
+}
+
+#cf-tshirt-preview-container .cf-start-btn:hover,
+#cf-tumbler-preview-container .cf-start-btn:hover,
+#cf-mug-preview-container .cf-start-btn:hover,
+#cf-circle-preview-container .cf-start-btn:hover {
+  background: var(--saac-customizer-primary-hover-bg);
+  color: var(--saac-customizer-primary-hover-text);
+  border-color: var(--saac-customizer-primary-hover-border);
+}
+
+#cf-tshirt-preview-container [data-bd-inline-actions="1"] .button--secondary,
+#cf-tumbler-preview-container .cf-tumbler-upload-btn,
+#cf-mug-preview-container .cf-tumbler-upload-btn,
+#cf-tumbler-preview-container .cf-tumbler-toolbar .button--secondary,
+#cf-mug-preview-container .cf-tumbler-toolbar .button--secondary,
+#cf-circle-preview-container .cf-circle-upload-btn,
+#cf-circle-preview-container .cf-circle-reset-btn,
+#cf-circle-preview-container .cf-circle-action-row .button--secondary {
+  background: var(--saac-customizer-secondary-bg);
+  color: var(--saac-customizer-secondary-text);
+  border: 1px solid var(--saac-customizer-secondary-border);
+}
+
+#cf-tshirt-preview-container [data-bd-inline-actions="1"] .button--secondary:hover,
+#cf-tumbler-preview-container .cf-tumbler-upload-btn:hover,
+#cf-mug-preview-container .cf-tumbler-upload-btn:hover,
+#cf-tumbler-preview-container .cf-tumbler-toolbar .button--secondary:hover,
+#cf-mug-preview-container .cf-tumbler-toolbar .button--secondary:hover,
+#cf-circle-preview-container .cf-circle-upload-btn:hover,
+#cf-circle-preview-container .cf-circle-reset-btn:hover,
+#cf-circle-preview-container .cf-circle-action-row .button--secondary:hover {
+  background: var(--saac-customizer-secondary-hover-bg);
+  color: var(--saac-customizer-secondary-hover-text);
+  border-color: var(--saac-customizer-secondary-hover-border);
+}
+
+#cf-tshirt-preview-container .cf-start-btn::before,
+#cf-tshirt-preview-container .cf-start-btn::after,
+#cf-tshirt-preview-container [data-bd-inline-actions="1"] .button::before,
+#cf-tshirt-preview-container [data-bd-inline-actions="1"] .button::after,
+#cf-tumbler-preview-container .cf-start-btn::before,
+#cf-tumbler-preview-container .cf-start-btn::after,
+#cf-tumbler-preview-container .cf-tumbler-upload-btn::before,
+#cf-tumbler-preview-container .cf-tumbler-upload-btn::after,
+#cf-tumbler-preview-container .cf-tumbler-toolbar .button::before,
+#cf-tumbler-preview-container .cf-tumbler-toolbar .button::after,
+#cf-mug-preview-container .cf-start-btn::before,
+#cf-mug-preview-container .cf-start-btn::after,
+#cf-mug-preview-container .cf-tumbler-upload-btn::before,
+#cf-mug-preview-container .cf-tumbler-upload-btn::after,
+#cf-mug-preview-container .cf-tumbler-toolbar .button::before,
+#cf-mug-preview-container .cf-tumbler-toolbar .button::after,
+#cf-circle-preview-container .cf-start-btn::before,
+#cf-circle-preview-container .cf-start-btn::after,
+#cf-circle-preview-container .cf-circle-upload-btn::before,
+#cf-circle-preview-container .cf-circle-upload-btn::after,
+#cf-circle-preview-container .cf-circle-reset-btn::before,
+#cf-circle-preview-container .cf-circle-reset-btn::after,
+#cf-circle-preview-container .cf-circle-action-row .button::before,
+#cf-circle-preview-container .cf-circle-action-row .button::after {
+  content: none;
+  box-shadow: none;
+}
+
+#cf-tshirt-preview-container [data-bd-inline-actions="1"] .button--primary,
+#cf-tumbler-preview-container .cf-tumbler-toolbar .button--primary,
+#cf-mug-preview-container .cf-tumbler-toolbar .button--primary,
+#cf-circle-preview-container .cf-circle-action-row .button--primary {
+  background: var(--saac-customizer-primary-bg);
+  color: var(--saac-customizer-primary-text);
+  border: 1px solid var(--saac-customizer-primary-border);
+}
+
+#cf-tshirt-preview-container [data-bd-inline-actions="1"] .button--primary:hover,
+#cf-tumbler-preview-container .cf-tumbler-toolbar .button--primary:hover,
+#cf-mug-preview-container .cf-tumbler-toolbar .button--primary:hover,
+#cf-circle-preview-container .cf-circle-action-row .button--primary:hover {
+  background: var(--saac-customizer-primary-hover-bg);
+  color: var(--saac-customizer-primary-hover-text);
+  border-color: var(--saac-customizer-primary-hover-border);
+}
+
+#cf-tshirt-preview-container .cf-start-hint,
+#cf-tumbler-preview-container .cf-start-hint,
+#cf-mug-preview-container .cf-start-hint,
+#cf-circle-preview-container .cf-start-hint,
+#cf-tumbler-preview-container .cf-tumbler-upload-hint,
+#cf-mug-preview-container .cf-tumbler-upload-hint,
+#cf-circle-preview-container .cf-circle-editor-helper,
+#cf-circle-preview-container .cf-circle-status,
+#cf-circle-preview-container .cf-circle-meta,
+#cf-tumbler-preview-container .cf-tumbler-status,
+#cf-mug-preview-container .cf-tumbler-status,
+#cf-tumbler-preview-container .cf-tumbler-meta,
+#cf-mug-preview-container .cf-tumbler-meta {
+  color: var(--saac-customizer-muted-text);
+}
+
+@media screen and (min-width: 750px) {
+  #cf-tshirt-preview-container .cf-start-btn,
+  #cf-tumbler-preview-container .cf-start-btn,
+  #cf-mug-preview-container .cf-start-btn,
+  #cf-circle-preview-container .cf-start-btn,
+  #cf-tumbler-preview-container .cf-tumbler-upload-btn,
+  #cf-mug-preview-container .cf-tumbler-upload-btn,
+  #cf-circle-preview-container .cf-circle-upload-btn,
+  #cf-circle-preview-container .cf-circle-reset-btn,
+  #cf-tshirt-preview-container [data-bd-inline-actions="1"] .button,
+  #cf-tumbler-preview-container .cf-tumbler-toolbar .button,
+  #cf-mug-preview-container .cf-tumbler-toolbar .button,
+  #cf-circle-preview-container .cf-circle-action-row .button {
+    min-height: var(--saac-customizer-cta-height-desktop);
+    padding-inline: var(--saac-customizer-cta-padding-inline-desktop);
+  }
 }
 /* Only hide designer body when Start Gate is enabled */
 #cf-tshirt-preview-container[data-cf-start-gate="1"] .cf-designer-body[hidden] {

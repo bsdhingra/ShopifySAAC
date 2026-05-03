@@ -1,0 +1,48 @@
+:root {
+  --saac-brand-ink: #1f4f5f;
+  --saac-brand-ink-soft: #5f7f88;
+  --saac-brand-sage: #55624f;
+  --saac-brand-ivory: #f7f3eb;
+  --saac-brand-sand: #e6ddd0;
+  --saac-brand-line: #d7d0c4;
+  --saac-text-primary: #2f312d;
+  --saac-text-secondary: #66685f;
+  --saac-surface-soft: #fcfbf5;
+  --saac-copy-max: 74rem;
+  --saac-home-cta-font-weight: 600;
+  --saac-home-cta-min-height-desktop: 4.8rem;
+  --saac-home-cta-min-height-mobile: 4.4rem;
+  --saac-home-cta-padding-inline-desktop: 3rem;
+  --saac-home-cta-padding-inline-mobile: 2.4rem;
+
+  --saac-customizer-cta-font-size: 1.5rem;
+  --saac-customizer-cta-font-weight: 600;
+  --saac-customizer-cta-radius: 1.2rem;
+  --saac-customizer-cta-height-desktop: 4.8rem;
+  --saac-customizer-cta-height-mobile: 4.4rem;
+  --saac-customizer-cta-padding-inline-desktop: 2.4rem;
+  --saac-customizer-cta-padding-inline-mobile: 1.8rem;
+
+  --saac-customizer-primary-bg: #55624f;
+  --saac-customizer-primary-text: #ffffff;
+  --saac-customizer-primary-border: #55624f;
+  --saac-customizer-primary-hover-bg: #404b3b;
+  --saac-customizer-primary-hover-text: #ffffff;
+  --saac-customizer-primary-hover-border: #404b3b;
+
+  --saac-customizer-secondary-bg: #fcfbf5;
+  --saac-customizer-secondary-text: #1f4f5f;
+  --saac-customizer-secondary-border: #d7d0c4;
+  --saac-customizer-secondary-hover-bg: #ffffff;
+  --saac-customizer-secondary-hover-text: #404b3b;
+  --saac-customizer-secondary-hover-border: #404b3b;
+
+  --saac-customizer-surface-bg: #fcfbf5;
+  --saac-customizer-surface-border: #d7d0c4;
+  --saac-customizer-muted-text: #66685f;
+  --saac-customizer-strong-text: #2f312d;
+  --saac-customizer-status-success-bg: #e7f2ea;
+  --saac-customizer-status-warning-bg: #f7efe0;
+  --saac-customizer-status-danger-bg: #f6e3e3;
+  --saac-customizer-status-border: #d7d0c4;
+}

@@ -1802,12 +1802,6 @@
       guide.style.height = `${zone.heightPx}px`;
       guide.style.border = "none";
       guide.style.background = "transparent";
-      guide.style.setProperty("--cf-guide-color", String(zone.color || "rgba(71, 85, 105, 0.8)"));
-      guide.style.setProperty("--cf-guide-fill", setRgbaAlpha(zone.color, 0.12));
-      guide.style.setProperty("--cf-guide-border", setRgbaAlpha(zone.color, 0.82));
-      guide.style.setProperty("--cf-guide-glow", setRgbaAlpha(zone.color, 0.14));
-      guide.style.setProperty("--cf-guide-label-bg", setRgbaAlpha(zone.color, 0.14));
-      guide.style.setProperty("--cf-guide-label-border", setRgbaAlpha(zone.color, 0.28));
       guide.style.setProperty("--cf-guide-curve", `${Math.max(18, Math.round(zone.curvePx || 0))}px`);
       guide.classList.toggle("is-guide-edge-left", index === 0);
       guide.classList.toggle("is-guide-edge-right", index === overlayZones.length - 1);
@@ -1974,7 +1968,11 @@
     const heightPx = Math.round(state.placement.h * rect.height);
     designWrap.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
     if (resizeHandle) {
-      resizeHandle.style.transform = `translate3d(${translateX + widthPx - 11}px, ${translateY + heightPx - 11}px, 0)`;
+      const rawHandleX = translateX + widthPx - 8;
+      const rawHandleY = translateY + heightPx - 8;
+      const clampedHandleX = clamp(rawHandleX, 0, Math.max(0, rect.width - 18));
+      const clampedHandleY = clamp(rawHandleY, 0, Math.max(0, rect.height - 18));
+      resizeHandle.style.transform = `translate3d(${clampedHandleX}px, ${clampedHandleY}px, 0)`;
     }
   };
 
