@@ -14,6 +14,7 @@
   const cropApplyBtn = root.querySelector("[data-cf-tumbler-crop-apply-btn]");
   const stage = root.querySelector("[data-cf-tumbler-stage]");
   const editorCanvas = root.querySelector("[data-cf-tumbler-editor-canvas]");
+  const designViewport = root.querySelector("[data-cf-tumbler-design-viewport]");
   const designWrap = root.querySelector("[data-cf-tumbler-design-wrap]");
   const designEditImg = root.querySelector("[data-cf-tumbler-design-edit]");
   const resizeHandle = root.querySelector("[data-cf-tumbler-handle]");
@@ -36,9 +37,32 @@
   const configKey = root.dataset.configKey || "";
   const configUrl = root.dataset.configUrl || "";
 
-  if (!stage || !editorCanvas || !designWrap || !designEditImg || !compositeCanvas || !uploadInput) return;
+  if (!stage || !editorCanvas || !designViewport || !designWrap || !designEditImg || !compositeCanvas || !uploadInput) return;
 
   const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+  const setRgbaAlpha = (color, alpha) => {
+    const raw = String(color || "").trim();
+    if (!raw) return `rgba(15, 23, 42, ${alpha})`;
+    const rgbaMatch = raw.match(/^rgba?\(([^)]+)\)$/i);
+    if (rgbaMatch) {
+      const parts = rgbaMatch[1].split(",").map((part) => part.trim());
+      if (parts.length >= 3) {
+        return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
+      }
+    }
+    const hexMatch = raw.match(/^#([0-9a-f]{6}|[0-9a-f]{3})$/i);
+    if (hexMatch) {
+      const hex = hexMatch[1];
+      const normalized = hex.length === 3
+        ? hex.split("").map((char) => char + char).join("")
+        : hex;
+      const red = parseInt(normalized.slice(0, 2), 16);
+      const green = parseInt(normalized.slice(2, 4), 16);
+      const blue = parseInt(normalized.slice(4, 6), 16);
+      return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+    }
+    return raw;
+  };
   const isMobileViewport = () => window.matchMedia && window.matchMedia("(max-width: 749px)").matches;
   const isLargeUploadMessage = (text) => {
     const value = String(text || "").trim();
@@ -1612,6 +1636,16 @@
     return size.height ? size.width / size.height : 1.13;
   };
 
+  const getPlacementMaxWidth = () => {
+    const configured = Number(config && config.editor && config.editor.maxWidth);
+    return configured > 0 ? configured : 1;
+  };
+
+  const getPlacementMaxHeight = () => {
+    const configured = Number(config && config.editor && config.editor.maxHeight);
+    return configured > 0 ? configured : 1;
+  };
+
   const buildEditorZones = () => {
     if (!spec) return [];
     const zones = spec.order.map((key) => spec.nativeZones[key]).filter(Boolean);
@@ -1691,9 +1725,14 @@
     );
     const groupWidth = Math.max(1, groupRight - groupLeft);
     const groupHeight = Math.max(1, groupBottom - groupTop);
-    const scale = Math.min(rect.width / groupWidth, rect.height / groupHeight);
-    const offsetX = (rect.width - groupWidth * scale) / 2 - groupLeft * scale;
-    const offsetY = (rect.height - groupHeight * scale) / 2 - groupTop * scale;
+    const insetX = 0;
+    const insetTop = 0;
+    const insetBottom = 0;
+    const availableWidth = Math.max(1, rect.width - insetX * 2);
+    const availableHeight = Math.max(1, rect.height - insetTop - insetBottom);
+    const scale = Math.min(availableWidth / groupWidth, availableHeight / groupHeight);
+    const offsetX = insetX + (availableWidth - groupWidth * scale) / 2 - groupLeft * scale;
+    const offsetY = insetTop + (availableHeight - groupHeight * scale) / 2 - groupTop * scale;
 
     return previewZones.map((zone) => ({
       key: zone.key,
@@ -1708,18 +1747,70 @@
     }));
   };
 
+  const getNormalizedEditorBounds = () => {
+    const rect = stageRect();
+    if (!rect.width || !rect.height) return null;
+    const zones = buildTopOverlayZones(rect);
+    if (!zones.length) return null;
+    const leftPx = Math.min.apply(null, zones.map((zone) => zone.leftPx));
+    const topPx = Math.min.apply(null, zones.map((zone) => zone.topPx));
+    const rightPx = Math.max.apply(null, zones.map((zone) => zone.leftPx + zone.widthPx));
+    const bottomPx = Math.max.apply(null, zones.map((zone) => zone.topPx + zone.heightPx));
+    const widthPx = Math.max(1, rightPx - leftPx);
+    const heightPx = Math.max(1, bottomPx - topPx);
+    return {
+      x: leftPx / rect.width,
+      y: topPx / rect.height,
+      w: widthPx / rect.width,
+      h: heightPx / rect.height
+    };
+  };
+
+  const buildOverlayClipPath = (zones) => {
+    if (!zones || !zones.length) return "";
+    return zones
+      .map((zone) => {
+        const left = zone.leftPx;
+        const right = zone.leftPx + zone.widthPx;
+        const top = zone.topPx;
+        const bottom = zone.topPx + zone.heightPx;
+        const curveY = bottom - zone.curvePx;
+        const centerX = zone.centerPx;
+        return `M ${left} ${top} L ${right} ${top} L ${right} ${curveY} Q ${centerX} ${bottom} ${left} ${curveY} Z`;
+      })
+      .join(" ");
+  };
+
   const applyStageSpec = () => {
     const overlayZones = buildTopOverlayZones(stageRect());
-    guideEls.forEach((guide) => {
+    const clipPath = buildOverlayClipPath(overlayZones);
+    if (designViewport) {
+      designViewport.style.clipPath = clipPath ? `path('${clipPath}')` : "";
+      designViewport.style.webkitClipPath = clipPath ? `path('${clipPath}')` : "";
+    }
+    guideEls.forEach((guide, index) => {
       const key = guide.getAttribute("data-cf-guide");
       const zone = overlayZones.find((item) => item.key === key);
-      if (!zone) return;
+      if (!zone) {
+        guide.hidden = true;
+        return;
+      }
+      guide.hidden = false;
       guide.style.left = `${zone.leftPx}px`;
       guide.style.width = `${zone.widthPx}px`;
       guide.style.top = `${zone.topPx}px`;
       guide.style.height = `${zone.heightPx}px`;
       guide.style.border = "none";
       guide.style.background = "transparent";
+      guide.style.setProperty("--cf-guide-color", String(zone.color || "rgba(71, 85, 105, 0.8)"));
+      guide.style.setProperty("--cf-guide-fill", setRgbaAlpha(zone.color, 0.12));
+      guide.style.setProperty("--cf-guide-border", setRgbaAlpha(zone.color, 0.82));
+      guide.style.setProperty("--cf-guide-glow", setRgbaAlpha(zone.color, 0.14));
+      guide.style.setProperty("--cf-guide-label-bg", setRgbaAlpha(zone.color, 0.14));
+      guide.style.setProperty("--cf-guide-label-border", setRgbaAlpha(zone.color, 0.28));
+      guide.style.setProperty("--cf-guide-curve", `${Math.max(18, Math.round(zone.curvePx || 0))}px`);
+      guide.classList.toggle("is-guide-edge-left", index === 0);
+      guide.classList.toggle("is-guide-edge-right", index === overlayZones.length - 1);
       const label = guide.querySelector("span");
       if (label) label.textContent = zone.label;
     });
@@ -1766,14 +1857,30 @@
 
   const normalizePlacement = () => {
     if (!state.placement || !state.aspect) return;
-    state.placement.w = clamp(state.placement.w, 0.05, 1);
+    const editorBounds = getNormalizedEditorBounds();
+    const maxWidth = getPlacementMaxWidth();
+    const maxHeight = getPlacementMaxHeight();
+    state.placement.w = clamp(state.placement.w, 0.05, maxWidth);
     state.placement.h = getNormalizedHeightForWidth(state.placement.w, state.aspect);
-    if (state.placement.h > 1) {
-      state.placement.h = 1;
+    if (state.placement.h > maxHeight) {
+      state.placement.h = maxHeight;
       state.placement.w = getNormalizedWidthForHeight(state.placement.h, state.aspect);
     }
-    state.placement.x = clamp(state.placement.x, 0, 1 - state.placement.w);
-    state.placement.y = clamp(state.placement.y, 0, 1 - state.placement.h);
+    if (editorBounds) {
+      const minX = Math.min(editorBounds.x, editorBounds.x + editorBounds.w - state.placement.w);
+      const maxX = Math.max(editorBounds.x, editorBounds.x + editorBounds.w - state.placement.w);
+      state.placement.x = clamp(state.placement.x, minX, maxX);
+      const minY = state.placement.h > 1 ? -(state.placement.h - 1) : 0;
+      const maxY = state.placement.h > 1 ? 0 : 1 - state.placement.h;
+      state.placement.y = clamp(state.placement.y, minY, maxY);
+      return;
+    }
+    state.placement.x = clamp(state.placement.x, 0, Math.max(0, 1 - state.placement.w));
+    state.placement.y = clamp(
+      state.placement.y,
+      state.placement.h > 1 ? -(state.placement.h - 1) : 0,
+      state.placement.h > 1 ? 0 : 1 - state.placement.h
+    );
   };
 
   const buildWrapCanvas = () => {
@@ -1852,6 +1959,8 @@
 
   const applyDesignWrapUi = (rect) => {
     designWrap.hidden = !state.src || !state.placement;
+    designViewport.hidden = !state.src || !state.placement;
+    if (resizeHandle) resizeHandle.hidden = !state.src || !state.placement;
     resetBtn.hidden = !state.src;
     if (!state.src || !state.placement) return;
     designEditImg.style.opacity = "1";
@@ -1859,7 +1968,14 @@
     designWrap.style.top = "0px";
     designWrap.style.width = `${Math.round(state.placement.w * rect.width)}px`;
     designWrap.style.height = `${Math.round(state.placement.h * rect.height)}px`;
-    designWrap.style.transform = `translate3d(${Math.round(state.placement.x * rect.width)}px, ${Math.round(state.placement.y * rect.height)}px, 0)`;
+    const translateX = Math.round(state.placement.x * rect.width);
+    const translateY = Math.round(state.placement.y * rect.height);
+    const widthPx = Math.round(state.placement.w * rect.width);
+    const heightPx = Math.round(state.placement.h * rect.height);
+    designWrap.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
+    if (resizeHandle) {
+      resizeHandle.style.transform = `translate3d(${translateX + widthPx - 11}px, ${translateY + heightPx - 11}px, 0)`;
+    }
   };
 
   const renderEditor = () => {
@@ -2331,7 +2447,8 @@
       (previewImg && (previewImg.currentSrc || previewImg.getAttribute("src") || previewImg.src)) ||
       ""
     ).trim();
-    const src = String(durableSrc || transientPreviewSrc || "").trim();
+    const workingSrc = String(cropSourceState.currentObjectUrl || "").trim();
+    const src = String(workingSrc || durableSrc || transientPreviewSrc || "").trim();
     if (!src) {
       state.src = "";
       state.placement = null;
@@ -2430,7 +2547,7 @@
     } else {
       const growth = Math.max(dx, (dy * state.aspect) / getWrapAspect());
       let nextW = startPlacement.w + growth;
-      nextW = clamp(nextW, 0.05, 1);
+      nextW = clamp(nextW, 0.05, getPlacementMaxWidth());
       state.placement.w = nextW;
       state.placement.h = getNormalizedHeightForWidth(nextW, state.aspect);
       state.placement.x = startPlacement.x;

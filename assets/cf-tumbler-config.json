@@ -89,8 +89,8 @@
       "stageAspectRatio": 3,
       "defaultFitWidth": 0.82,
       "defaultFitHeight": 0.82,
-      "maxWidth": 1,
-      "maxHeight": 1
+      "maxWidth": 1.5,
+      "maxHeight": 1.5
     }
   },
   "custom-tumbler": {
@@ -183,8 +183,8 @@
       "stageAspectRatio": 3,
       "defaultFitWidth": 0.82,
       "defaultFitHeight": 0.82,
-      "maxWidth": 1,
-      "maxHeight": 1
+      "maxWidth": 1.5,
+      "maxHeight": 1.5
     }
   }
 }
