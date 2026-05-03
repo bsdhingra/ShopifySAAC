@@ -831,24 +831,6 @@
         "padding_bottom": 0
       }
     },
-    "17573006044813f168": {
-      "type": "apps",
-      "blocks": {
-        "k_facebook_reviews_app_embeded_wK88F6": {
-          "type": "shopify://apps/k-facebook-reviews/blocks/app-embeded/c22b343a-ed48-43c8-89d2-f79edf7572bc",
-          "disabled": true,
-          "settings": {
-            "popup_embedded_id": "face-id-796"
-          }
-        }
-      },
-      "block_order": [
-        "k_facebook_reviews_app_embeded_wK88F6"
-      ],
-      "settings": {
-        "include_margins": true
-      }
-    },
     "manual_reviews_cards_G7H3EW": {
       "type": "manual-reviews-cards",
       "name": "Manual Reviews Cards",
@@ -953,7 +935,6 @@
     "custom_collections_carousel_CmzRkU",
     "featured_collection",
     "rich_text_azxCtt",
-    "17573006044813f168",
     "manual_reviews_cards_G7H3EW",
     "custom_liquid_UFLKGh"
   ]

@@ -3193,6 +3193,81 @@ details-disclosure > details {
   margin: -0.5rem 0 -0.5rem 0;
 }
 
+/* Legal pages: premium centered card layout on standard page template only */
+body.template-page .rte {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 3rem;
+  background: rgb(var(--color-background));
+  border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  border-radius: 2rem;
+  box-shadow: 0 1.2rem 3.2rem rgba(var(--color-foreground), 0.06);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* Tighten long-form spacing for policy and legal copy */
+body.template-page .rte p,
+body.template-page .rte ul,
+body.template-page .rte ol,
+body.template-page .rte blockquote {
+  margin-top: 0;
+  margin-bottom: 1.4rem;
+}
+
+body.template-page .rte li {
+  margin-bottom: 0.6rem;
+}
+
+body.template-page .rte h1,
+body.template-page .rte h2,
+body.template-page .rte h3,
+body.template-page .rte h4,
+body.template-page .rte h5,
+body.template-page .rte h6 {
+  margin-top: 2.2rem;
+  margin-bottom: 0.9rem;
+  line-height: 1.25;
+  letter-spacing: 0.04rem;
+}
+
+body.template-page .rte h1:first-child,
+body.template-page .rte h2:first-child,
+body.template-page .rte h3:first-child,
+body.template-page .rte h4:first-child,
+body.template-page .rte h5:first-child,
+body.template-page .rte h6:first-child {
+  margin-top: 0;
+}
+
+/* Keep links polished on legal pages without touching button systems */
+body.template-page .rte a {
+  text-underline-offset: 0.22rem;
+  text-decoration-thickness: 0.1rem;
+}
+
+body.template-page .rte a:hover {
+  text-decoration-thickness: 0.18rem;
+}
+
+/* Reduce card padding on smaller screens and prevent cramped overflow */
+@media screen and (max-width: 749px) {
+  body.template-page .rte {
+    padding: 2rem 1.8rem;
+    border-radius: 1.6rem;
+  }
+
+  body.template-page .rte h1,
+  body.template-page .rte h2,
+  body.template-page .rte h3,
+  body.template-page .rte h4,
+  body.template-page .rte h5,
+  body.template-page .rte h6 {
+    margin-top: 1.8rem;
+    margin-bottom: 0.8rem;
+  }
+}
+
 /* Image mask global styles */
 
 .shape--mask {

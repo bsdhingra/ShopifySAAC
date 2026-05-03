@@ -381,49 +381,6 @@
       <script src="{{ 'cart-drawer.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
     
-    <!-- === SociableKIT Reviews Auto Scroll (FREE) === -->
-      {% if template == 'index' %}
-      {% comment %} theme-check-disable RemoteAsset {% endcomment %}
-      <script src="https://widgets.sociablekit.com/facebook-page-reviews/widget.js" defer></script>
-      {% comment %} theme-check-enable RemoteAsset {% endcomment %}
-    {% endif %}
-
-<script>
-(() => {
-  const SPEED = 0.35; // smooth speed (lower = slower)
-  let pos = 0;
-
-  function startScroll() {
-    const root = document.querySelector('.sk-ww-fb-page-reviews');
-    if (!root) return false;
-
-    // IMPORTANT: scroll the FIRST child (this is what actually overflows)
-    const scroller = root.firstElementChild;
-    if (!scroller || scroller.scrollHeight <= root.clientHeight) return false;
-
-    function tick() {
-      pos += SPEED;
-      scroller.style.transform = `translateY(-${pos}px)`;
-
-      // reset when bottom reached
-      if (pos >= scroller.scrollHeight - root.clientHeight) {
-        pos = 0;
-      }
-      requestAnimationFrame(tick);
-    }
-
-    tick();
-    return true;
-  }
-
-  // wait for SociableKIT async render
-  let tries = 0;
-  const wait = setInterval(() => {
-    tries++;
-    if (startScroll() || tries > 60) clearInterval(wait);
-  }, 300);
-})();
-</script>
 <script src="{{ 'custom-fields-uploader.js' | asset_url }}" defer></script>
   </body>
 </html>

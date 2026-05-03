@@ -42,10 +42,6 @@
           "type": "description",
           "settings": {}
         },
-        "px_variants_product_options_product_options_3jrgim": {
-          "type": "shopify://apps/px-variants-product-options/blocks/product-options/adcb2ee7-d6be-4cab-a265-4399ccd2ae3a",
-          "settings": {}
-        },
         "share": {
           "type": "share",
           "settings": {
@@ -60,7 +56,6 @@
         "quantity_selector",
         "buy_buttons",
         "description",
-        "px_variants_product_options_product_options_3jrgim",
         "share"
       ],
       "settings": {
