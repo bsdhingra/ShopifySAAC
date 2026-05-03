@@ -509,72 +509,65 @@
       assign schema_product_image_url = blank
     endif
   -%}
+  {%- liquid
+    assign schema_selected_variant = product.selected_or_first_available_variant
+    assign schema_selected_variant_url = request.origin | append: schema_selected_variant.url
+    assign schema_selected_variant_price = schema_selected_variant.price | divided_by: 100.0
+  -%}
   <script type="application/ld+json">
     {
-      "@context": "http://schema.org/",
+      "@context": "https://schema.org/",
       "@type": "Product",
       "name": {{ product.title | json }},
       "description": {{ schema_description_json }},
-      "image": {{ schema_product_image_url | json }},
+      {%- if schema_product_image_url != blank -%}
+        "image": {{ schema_product_image_url | json }},
+      {%- endif -%}
+      {%- if schema_selected_variant.sku != blank -%}
+        "sku": {{ schema_selected_variant.sku | json }},
+      {%- endif -%}
       "brand": {
         "@type": "Brand",
         "name": {{ schema_brand_name | json }}
       },
-      "category": {{ schema_category | json }},
+      {%- if schema_category != blank -%}
+        "category": {{ schema_category | json }},
+      {%- endif -%}
       "url": {{ schema_product_url | json }},
-      "productGroupID": {{ product.id | json }},
-      "hasVariant": [
-        {%- for variant in product.variants -%}
-          {%- liquid
-            assign schema_variant_url = request.origin | append: variant.url
-            assign schema_variant_price = variant.price | divided_by: 100.0
-            assign schema_variant_name = product.title | append: ' - ' | append: variant.title
-            assign schema_variant_media = variant.featured_media | default: seo_media
-            if schema_variant_media
-              assign schema_variant_image_url = schema_variant_media | image_url: width: 1920 | prepend: 'https:'
-            else
-              assign schema_variant_image_url = blank
-            endif
-          -%}
-          {
-            "@id": {{ schema_variant_url | append: '#variant' | json }},
-            "@type": "Product",
-            "description": {{ schema_description_json }},
-            "image": {{ schema_variant_image_url | json }},
-            "name": {{ schema_variant_name | json }},
-            "offers": {
-              "@id": {{ schema_variant_url | append: '#offer' | json }},
-              "@type": "Offer",
-              "availability": {% if variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
-              "price": {{ schema_variant_price | json }},
-              "priceValidUntil": {{ schema_price_valid_until | json }},
-              "shippingDetails": {
-                "@type": "OfferShippingDetails",
-                "shippingDestination": {
-                  "@type": "DefinedRegion",
-                  "addressCountry": "US"
-                },
-                "deliveryTime": {
-                  "@type": "ShippingDeliveryTime",
-                  "transitTime": {
-                    "@type": "QuantitativeValue",
-                    "minValue": 5,
-                    "maxValue": 7,
-                    "unitCode": "DAY"
-                  }
-                }
-              },
-              "hasMerchantReturnPolicy": {
-                "@type": "MerchantReturnPolicy",
-                "applicableCountry": "US",
-                "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
-              },
-              "priceCurrency": "USD",
-              "url": {{ schema_variant_url | json }}
+      "offers": {
+        "@id": {{ schema_selected_variant_url | append: '#offer' | json }},
+        "@type": "Offer",
+        "availability": {% if schema_selected_variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
+        "price": {{ schema_selected_variant_price | json }},
+        "priceValidUntil": {{ schema_price_valid_until | json }},
+        "seller": {
+          "@type": "Organization",
+          "name": "Sarv's Arts and Crafts"
+        },
+        "shippingDetails": {
+          "@type": "OfferShippingDetails",
+          "shippingDestination": {
+            "@type": "DefinedRegion",
+            "addressCountry": "US"
+          },
+          "deliveryTime": {
+            "@type": "ShippingDeliveryTime",
+            "transitTime": {
+              "@type": "QuantitativeValue",
+              "minValue": 5,
+              "maxValue": 7,
+              "unitCode": "DAY"
             }
-          }{%- unless forloop.last -%},{%- endunless -%}
-        {%- endfor -%}
-      ]
+          }
+        },
+        "hasMerchantReturnPolicy": {
+          "@type": "MerchantReturnPolicy",
+          "applicableCountry": "US",
+          "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
+        },
+        "priceCurrency": "USD",
+        "url": {{ schema_selected_variant_url | json }}
+      }
     }
   </script>
 

@@ -42,7 +42,7 @@
   <script src="{{ 'product-info.js' | asset_url }}" defer="defer"></script>
   <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
 
-{% if product.tags contains 'cf-tshirt-preview' %}
+{% if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' %}
   {{ 'cf-tshirt-preview-lite.css' | asset_url | stylesheet_tag }}
   <script src="{{ 'cf-tshirt-preview-lite.js' | asset_url }}" defer></script>
 {% endif %}
@@ -55,12 +55,17 @@
   {{ 'cf-mug-preview.css' | asset_url | stylesheet_tag }}
   <script src="{{ 'cf-mug-preview.js' | asset_url }}" defer></script>
 {% endif %}
-{% if product.tags contains 'cf-circle-preview' %}
+{% assign bd_is_doorsign_circle_fallback = false %}
+{% if product.handle == 'custom-made-wooden-door-sign' %}
+  {% assign bd_is_doorsign_circle_fallback = true %}
+{% endif %}
+
+{% if product.tags contains 'cf-circle-preview' or product.tags contains 'cf-doorsign-preview' or bd_is_doorsign_circle_fallback %}
   {{ 'cf-circle-preview.css' | asset_url | stylesheet_tag }}
   <script src="{{ 'cf-circle-preview.js' | asset_url }}" defer></script>
 {% endif %}
 
-{% if product.tags contains 'cf-tshirt-preview' %}
+{% if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' %}
   <script>document.documentElement.classList.add('bd-tshirt-preview-required');</script>
 {% endif %}
 
@@ -476,7 +481,7 @@
                   {%- endif -%}
                 </div>
 
-{%- if product.tags contains 'cf-tshirt-preview' -%}
+{%- if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' -%}
 
   {%- comment -%}
     Hidden mockup registry for T-shirt preview
@@ -534,6 +539,8 @@
   {%- assign bd_preview_config_id = 'boys-onesies-shared-basic' -%}
 {%- elsif bd_preview_config_id == blank and product.tags contains 'cf-garment-hoodie' -%}
   {%- assign bd_preview_config_id = 'hoodie-shared-basic' -%}
+{%- elsif bd_preview_config_id == blank and product.tags contains 'cf-tote-preview' -%}
+  {%- assign bd_preview_config_id = 'tote-bag-shared-basic' -%}
 {%- elsif bd_preview_config_id == blank and product.tags contains 'cf-tshirt-preview' -%}
   {%- assign bd_preview_config_id = 'tshirt-shared-basic' -%}
 {%- endif -%}
@@ -547,6 +554,8 @@
   {%- assign bd_preview_config_file = 'cf-onesies-config.json' -%}
 {%- elsif bd_preview_config_file == blank and product.tags contains 'cf-garment-hoodie' -%}
   {%- assign bd_preview_config_file = 'cf-hoodie-config.json' -%}
+{%- elsif bd_preview_config_file == blank and product.tags contains 'cf-tote-preview' -%}
+  {%- assign bd_preview_config_file = 'cf-tote-bag-config.json' -%}
 {%- elsif bd_preview_config_file == blank and product.tags contains 'cf-tshirt-preview' -%}
   {%- assign bd_preview_config_file = 'cf-tshirt-config.json' -%}
 {%- endif -%}
@@ -563,6 +572,8 @@
   {%- assign bd_safe_print_garment = 'boys-onesies' -%}
 {%- elsif product.tags contains 'cf-garment-hoodie' -%}
   {%- assign bd_safe_print_garment = 'hoodie' -%}
+{%- elsif product.tags contains 'cf-tote-preview' -%}
+  {%- assign bd_safe_print_garment = 'tote' -%}
 {%- elsif product.tags contains 'cf-garment-tshirt' -%}
   {%- assign bd_safe_print_garment = 'tshirt' -%}
 {%- endif -%}
@@ -578,10 +589,21 @@
   {%- assign bd_first_variant_src = product.selected_or_first_available_variant.featured_media | image_url: width: 900 -%}
 {%- endif -%}
 
+{%- if product.tags contains 'cf-tote-preview' -%}
+  <script id="bd-variant-title-map" type="application/json">
+    {
+      {%- for variant in product.variants -%}
+        "{{ variant.id }}": {{ variant.title | json }}{%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+    }
+  </script>
+{%- endif -%}
+
 <div id="cf-tshirt-preview-container"
      class="cf-preview-box is-hidden"
      data-cf-start-gate="1"
      data-cf-preview="tshirt"
+     data-cf-product-family="{% if product.tags contains 'cf-tote-preview' %}tote{% else %}apparel{% endif %}"
      data-first-variant-src="{{ bd_first_variant_src }}"
      data-cf-config="{{ bd_preview_config }}"
      data-config-id="{{ bd_preview_config_id }}"
@@ -674,7 +696,7 @@
 {%- if product.tags contains 'cf-mug-preview' -%}
   {% render 'cf-mug-preview', product: product %}
 {%- endif -%}
-{%- if product.tags contains 'cf-circle-preview' -%}
+{%- if product.tags contains 'cf-circle-preview' or product.tags contains 'cf-doorsign-preview' or bd_is_doorsign_circle_fallback -%}
   {% render 'cf-circle-preview', product: product %}
 {%- endif -%}
 
@@ -978,72 +1000,65 @@
         assign schema_product_image_url = blank
       endif
     -%}
+    {%- liquid
+      assign schema_selected_variant = product.selected_or_first_available_variant
+      assign schema_selected_variant_url = request.origin | append: schema_selected_variant.url
+      assign schema_selected_variant_price = schema_selected_variant.price | divided_by: 100.0
+    -%}
     <script type="application/ld+json">
       {
-        "@context": "http://schema.org/",
+        "@context": "https://schema.org/",
         "@type": "Product",
         "name": {{ product.title | json }},
         "description": {{ schema_description_json }},
-        "image": {{ schema_product_image_url | json }},
+        {%- if schema_product_image_url != blank -%}
+          "image": {{ schema_product_image_url | json }},
+        {%- endif -%}
+        {%- if schema_selected_variant.sku != blank -%}
+          "sku": {{ schema_selected_variant.sku | json }},
+        {%- endif -%}
         "brand": {
           "@type": "Brand",
           "name": {{ schema_brand_name | json }}
         },
-        "category": {{ schema_category | json }},
+        {%- if schema_category != blank -%}
+          "category": {{ schema_category | json }},
+        {%- endif -%}
         "url": {{ schema_product_url | json }},
-        "productGroupID": {{ product.id | json }},
-        "hasVariant": [
-          {%- for variant in product.variants -%}
-            {%- liquid
-              assign schema_variant_url = request.origin | append: variant.url
-              assign schema_variant_price = variant.price | divided_by: 100.0
-              assign schema_variant_name = product.title | append: ' - ' | append: variant.title
-              assign schema_variant_media = variant.featured_media | default: seo_media
-              if schema_variant_media
-                assign schema_variant_image_url = schema_variant_media | image_url: width: 1920 | prepend: 'https:'
-              else
-                assign schema_variant_image_url = blank
-              endif
-            -%}
-            {
-              "@id": {{ schema_variant_url | append: '#variant' | json }},
-              "@type": "Product",
-              "description": {{ schema_description_json }},
-              "image": {{ schema_variant_image_url | json }},
-              "name": {{ schema_variant_name | json }},
-              "offers": {
-                "@id": {{ schema_variant_url | append: '#offer' | json }},
-                "@type": "Offer",
-                "availability": {% if variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
-                "price": {{ schema_variant_price | json }},
-                "priceValidUntil": {{ schema_price_valid_until | json }},
-                "shippingDetails": {
-                  "@type": "OfferShippingDetails",
-                  "shippingDestination": {
-                    "@type": "DefinedRegion",
-                    "addressCountry": "US"
-                  },
-                  "deliveryTime": {
-                    "@type": "ShippingDeliveryTime",
-                    "transitTime": {
-                      "@type": "QuantitativeValue",
-                      "minValue": 5,
-                      "maxValue": 7,
-                      "unitCode": "DAY"
-                    }
-                  }
-                },
-                "hasMerchantReturnPolicy": {
-                  "@type": "MerchantReturnPolicy",
-                  "applicableCountry": "US",
-                  "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
-                },
-                "priceCurrency": "USD",
-                "url": {{ schema_variant_url | json }}
+        "offers": {
+          "@id": {{ schema_selected_variant_url | append: '#offer' | json }},
+          "@type": "Offer",
+          "availability": {% if schema_selected_variant.available %}"https://schema.org/InStock"{% else %}"https://schema.org/OutOfStock"{% endif %},
+          "price": {{ schema_selected_variant_price | json }},
+          "priceValidUntil": {{ schema_price_valid_until | json }},
+          "seller": {
+            "@type": "Organization",
+            "name": "Sarv's Arts and Crafts"
+          },
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": "US"
+            },
+            "deliveryTime": {
+              "@type": "ShippingDeliveryTime",
+              "transitTime": {
+                "@type": "QuantitativeValue",
+                "minValue": 5,
+                "maxValue": 7,
+                "unitCode": "DAY"
               }
-            }{%- unless forloop.last -%},{%- endunless -%}
-          {%- endfor -%}
-        ]
+            }
+          },
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "US",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
+          },
+          "priceCurrency": "USD",
+          "url": {{ schema_selected_variant_url | json }}
+        }
       }
     </script>
   </div>
