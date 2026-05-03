@@ -169,6 +169,32 @@
   transition: none !important;
 }
 
+media-gallery.bd-apparel-thumbs-locked .thumbnail-list__item button.thumbnail.is-apparel-thumb-locked {
+  opacity: 0.42;
+  cursor: not-allowed;
+  filter: grayscale(0.18);
+}
+
+media-gallery.bd-apparel-thumbs-locked .thumbnail-list__item button.thumbnail.is-apparel-thumb-locked img {
+  opacity: 0.92;
+}
+
+media-gallery.bd-apparel-thumbs-locked .thumbnail-list__item button.thumbnail.is-apparel-thumb-locked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+}
+
+.bd-apparel-thumbnail-lock-note {
+  margin: 0.65rem 0 0;
+  color: rgba(var(--color-foreground), 0.76);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 .bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit:hover,
 .bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit:focus,
 .bd-preview-gated-buttons.is-preview-blocked .bd-preview-gated-submit:active,

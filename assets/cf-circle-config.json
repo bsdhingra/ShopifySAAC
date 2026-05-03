@@ -74,5 +74,55 @@
         "stepPct": 0.005
       }
     }
+  },
+  "cf-doorsign-preview": {
+    "default": {
+      "frame": {
+        "cxPct": 0.5038,
+        "cyPct": 0.55,
+        "radiusPct": 0.457
+      },
+      "editor": {
+        "minScale": 1,
+        "maxScale": 3.5
+      },
+      "slider": {
+        "enabled": true,
+        "minRadiusPct": 0.22,
+        "maxRadiusPct": 0.457,
+        "defaultRadiusPct": 0.4,
+        "stepPct": 0.005
+      }
+    },
+    "sizeVariants": {
+      "15": {
+        "frame": {
+          "cxPct": 0.5038,
+          "cyPct": 0.55,
+          "radiusPct": 0.476
+        },
+        "slider": {
+          "enabled": true,
+          "minRadiusPct": 0.24,
+          "maxRadiusPct": 0.476,
+          "defaultRadiusPct": 0.425,
+          "stepPct": 0.005
+        }
+      },
+      "18": {
+        "frame": {
+          "cxPct": 0.5038,
+          "cyPct": 0.55,
+          "radiusPct": 0.495
+        },
+        "slider": {
+          "enabled": true,
+          "minRadiusPct": 0.26,
+          "maxRadiusPct": 0.495,
+          "defaultRadiusPct": 0.45,
+          "stepPct": 0.005
+        }
+      }
+    }
   }
 }
