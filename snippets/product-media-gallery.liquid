@@ -47,9 +47,9 @@
   # ✅ Always show PRODUCT featured image first (fallback: selected variant featured media)
   assign default_featured_media = product.featured_media | default: product.selected_or_first_available_variant.featured_media
 
-  # ✅ Hide mockup images everywhere (gallery + thumbnails) for tshirt preview products
+  # ✅ Hide mockup images everywhere (gallery + thumbnails) for custom preview products
   assign cf_hide_mockups = false
-  if product.tags contains 'cf-tshirt-preview'
+  if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview'
     assign cf_hide_mockups = true
   endif
 
@@ -244,7 +244,7 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
       {%- assign featured_media = default_featured_media -%}
       {%- assign media_position = 0 -%}
 
-      {%- if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-circle-preview' -%}
+      {%- if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' or product.tags contains 'cf-circle-preview' or product.tags contains 'cf-doorsign-preview' or product.handle == 'custom-made-wooden-door-sign' -%}
         <li
           id="Slide-{{ section.id }}-bd-design-preview"
           class="product__media-item grid__item slider__slide bd-design-preview-slide{% if single_media_visible %} product__media-item--single{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
@@ -309,7 +309,7 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
       {%- endif -%}
 
       {%- assign cf_hide_mockups = false -%}
-      {%- if product.tags contains 'cf-tshirt-preview' -%}
+      {%- if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' -%}
       {%- assign cf_hide_mockups = true -%}
       {%- endif -%}
 
@@ -361,22 +361,6 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
       {%- endfor -%}
     </ul>
 
-    <div class="slider-buttons quick-add-hidden{% if hide_mobile_slider %} small-hide{% endif %}">
-      <button type="button" class="slider-button slider-button--prev" name="previous" aria-label="{{ 'general.slider.previous_slide' | t }}">
-        <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
-      </button>
-
-      <div class="slider-counter caption">
-        <span class="slider-counter--current">1</span>
-        <span aria-hidden="true"> / </span>
-        <span class="visually-hidden">{{ 'general.slider.of' | t }}</span>
-        <span class="slider-counter--total">{{ base_media_count }}</span>
-      </div>
-
-      <button type="button" class="slider-button slider-button--next" name="next" aria-label="{{ 'general.slider.next_slide' | t }}">
-        <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
-      </button>
-    </div>
   </slider-component>
 
   {%- liquid
@@ -464,6 +448,23 @@ html:not(.variant-interacted) #ProductInfo-{{ section.id }} .product-form__input
       </button>
     </slider-component>
   {%- endif -%}
+
+  <div class="slider-buttons quick-add-hidden{% if hide_mobile_slider %} small-hide{% endif %}">
+    <button type="button" class="slider-button slider-button--prev" name="previous" aria-label="{{ 'general.slider.previous_slide' | t }}">
+      <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
+    </button>
+
+    <div class="slider-counter caption">
+      <span class="slider-counter--current">1</span>
+      <span aria-hidden="true"> / </span>
+      <span class="visually-hidden">{{ 'general.slider.of' | t }}</span>
+      <span class="slider-counter--total">{{ base_media_count }}</span>
+    </div>
+
+    <button type="button" class="slider-button slider-button--next" name="next" aria-label="{{ 'general.slider.next_slide' | t }}">
+      <span class="svg-wrapper">{{- 'icon-caret.svg' | inline_asset_content -}}</span>
+    </button>
+  </div>
 </media-gallery>
 
 <script>
