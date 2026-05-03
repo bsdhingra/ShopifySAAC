@@ -1,6 +1,8 @@
 (function () {
-  const ALLOWED = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
+  const ALLOWED = ["image/png", "image/jpeg", "image/svg+xml"];
+  const SVG_ONLY_ALLOWED = ["image/svg+xml"];
   const MAX_MB = 10;
+  const LARGE_UPLOAD_NOTICE_TEXT = "Your image is over 10MB. You can still preview your design-after ordering, email the original file to info@sarvsartsandcrafts.com and we'll handle the proof and printing.";
 
   function qs(root, sel) {
     return root.querySelector(sel);
@@ -18,6 +20,193 @@
 
   function getSlotPrimaryField(root, attr, idx) {
     return root.querySelector(`[${attr}="${idx}"]`);
+  }
+
+  function getMasterOriginalUrl(root, idx) {
+    return String(root.querySelector(`[data-master-url="${idx}"]`)?.value || "").trim();
+  }
+
+  const MASTER_ORIGINAL_DB = "bd-customizer-master-originals";
+  const MASTER_ORIGINAL_STORE = "files";
+
+  const openMasterOriginalDb = (() => {
+    let dbPromise = null;
+    return () => {
+      if (dbPromise) return dbPromise;
+      if (!window.indexedDB) return Promise.resolve(null);
+      dbPromise = new Promise((resolve) => {
+        try {
+          const request = window.indexedDB.open(MASTER_ORIGINAL_DB, 1);
+          request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(MASTER_ORIGINAL_STORE)) {
+              db.createObjectStore(MASTER_ORIGINAL_STORE, { keyPath: "key" });
+            }
+          };
+          request.onsuccess = () => resolve(request.result || null);
+          request.onerror = () => resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+      return dbPromise;
+    };
+  })();
+
+  async function withMasterOriginalStore(mode, runner) {
+    const db = await openMasterOriginalDb();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(MASTER_ORIGINAL_STORE, mode);
+        const store = tx.objectStore(MASTER_ORIGINAL_STORE);
+        let settled = false;
+        const finish = (value) => {
+          if (settled) return;
+          settled = true;
+          resolve(value);
+        };
+        tx.oncomplete = () => finish(null);
+        tx.onerror = () => finish(null);
+        tx.onabort = () => finish(null);
+        runner(store, finish);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  }
+
+  function getMasterOriginalStorageScope(root) {
+    const explicitScope = String(root?.dataset?.masterOriginalScope || "").trim();
+    if (explicitScope) return explicitScope;
+    const sectionScope = String(root?.closest?.(".shopify-section")?.id || "").trim();
+    if (sectionScope) return `${window.location.pathname}:${sectionScope}`;
+    return window.location.pathname;
+  }
+
+  function getMasterOriginalStorageKey(root, idx) {
+    const slot = String(idx || "").trim() || "1";
+    return `master-original:${getMasterOriginalStorageScope(root)}:${slot}`;
+  }
+
+  function getWorkingUploadStorageKey(root, idx) {
+    const slot = String(idx || "").trim() || "1";
+    return `working-upload:${getMasterOriginalStorageScope(root)}:${slot}`;
+  }
+
+  async function persistMasterOriginalUpload(root, idx, file, options = {}) {
+    const key = getMasterOriginalStorageKey(root, idx);
+    const overwrite = !!(options && options.overwrite);
+    if (!key) return false;
+    if (!file || !(file instanceof Blob)) {
+      return withMasterOriginalStore("readwrite", (store, finish) => {
+        const req = store.delete(key);
+        req.onsuccess = () => finish(true);
+        req.onerror = () => finish(false);
+      }).then((result) => result === true);
+    }
+    if (!overwrite) {
+      const existing = await withMasterOriginalStore("readonly", (store, finish) => {
+        const req = store.get(key);
+        req.onsuccess = () => finish(req.result || null);
+        req.onerror = () => finish(null);
+      });
+      if (existing && existing.buffer) return true;
+    }
+    try {
+      const buffer = await file.arrayBuffer();
+      return withMasterOriginalStore("readwrite", (store, finish) => {
+        const req = store.put({
+          key,
+          savedAt: Date.now(),
+          name: String(file.name || `upload-${idx}.bin`),
+          type: String(file.type || "application/octet-stream"),
+          lastModified: Number(file.lastModified || Date.now()),
+          buffer
+        });
+        req.onsuccess = () => finish(true);
+        req.onerror = () => finish(false);
+      }).then((result) => result === true);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function persistWorkingUpload(root, idx, file) {
+    const key = getWorkingUploadStorageKey(root, idx);
+    if (!key) return false;
+    if (!file || !(file instanceof Blob)) {
+      return withMasterOriginalStore("readwrite", (store, finish) => {
+        const req = store.delete(key);
+        req.onsuccess = () => finish(true);
+        req.onerror = () => finish(false);
+      }).then((result) => result === true);
+    }
+    try {
+      const buffer = await file.arrayBuffer();
+      return withMasterOriginalStore("readwrite", (store, finish) => {
+        const req = store.put({
+          key,
+          savedAt: Date.now(),
+          name: String(file.name || `upload-${idx}.bin`),
+          type: String(file.type || "application/octet-stream"),
+          lastModified: Number(file.lastModified || Date.now()),
+          buffer
+        });
+        req.onsuccess = () => finish(true);
+        req.onerror = () => finish(false);
+      }).then((result) => result === true);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function readMasterOriginalUpload(root, idx) {
+    const key = getMasterOriginalStorageKey(root, idx);
+    if (!key) return Promise.resolve(null);
+    return withMasterOriginalStore("readonly", (store, finish) => {
+      const req = store.get(key);
+      req.onsuccess = () => finish(req.result || null);
+      req.onerror = () => finish(null);
+    }).then((record) => {
+      if (!record || !record.buffer) return null;
+      try {
+        return new File(
+          [record.buffer],
+          String(record.name || `upload-${idx}.bin`),
+          {
+            type: String(record.type || "application/octet-stream"),
+            lastModified: Number(record.lastModified || Date.now())
+          }
+        );
+      } catch (e) {
+        return null;
+      }
+    });
+  }
+
+  function readWorkingUpload(root, idx) {
+    const key = getWorkingUploadStorageKey(root, idx);
+    if (!key) return Promise.resolve(null);
+    return withMasterOriginalStore("readonly", (store, finish) => {
+      const req = store.get(key);
+      req.onsuccess = () => finish(req.result || null);
+      req.onerror = () => finish(null);
+    }).then((record) => {
+      if (!record || !record.buffer) return null;
+      try {
+        return new File(
+          [record.buffer],
+          String(record.name || `upload-${idx}.bin`),
+          {
+            type: String(record.type || "application/octet-stream"),
+            lastModified: Number(record.lastModified || Date.now())
+          }
+        );
+      } catch (e) {
+        return null;
+      }
+    });
   }
 
   function setStatus(root, idx, msg, type) {
@@ -117,6 +306,72 @@
     return Number(root.__cfUploadSeq[String(idx)] || 0) === Number(seq || 0);
   }
 
+  function getUploadGuards(root) {
+    if (!root) return {};
+    root.__cfUploadGuards = root.__cfUploadGuards || {};
+    return root.__cfUploadGuards;
+  }
+
+  function getUploadGuard(root, idx) {
+    const guards = getUploadGuards(root);
+    const key = String(idx);
+    if (!guards[key]) {
+      guards[key] = {
+        inFlight: false,
+        signature: "",
+        startedAt: 0
+      };
+    }
+    return guards[key];
+  }
+
+  function getFileSignature(file) {
+    if (!file) return "";
+    return [
+      String(file.name || "").trim(),
+      Number(file.size || 0),
+      Number(file.lastModified || 0)
+    ].join("::");
+  }
+
+  function dispatchUploadSlotUpdated(idx, payload = {}) {
+    try {
+      document.dispatchEvent(
+        new CustomEvent("bd:upload-slot-updated", {
+          detail: {
+            slot: String(idx || "").trim(),
+            url: String(payload.url || "").trim(),
+            filename: String(payload.filename || "").trim()
+          }
+        })
+      );
+    } catch (e) {}
+  }
+
+  function shouldSkipDuplicateUpload(root, idx, fileSignature) {
+    if (!fileSignature) return false;
+    const guard = getUploadGuard(root, idx);
+    if (!guard.signature || guard.signature !== fileSignature) return false;
+
+    const elapsed = Date.now() - Number(guard.startedAt || 0);
+    if (guard.inFlight) return true;
+    return elapsed >= 0 && elapsed < 400;
+  }
+
+  function lockUploadGuard(root, idx, fileSignature) {
+    const guard = getUploadGuard(root, idx);
+    guard.inFlight = true;
+    guard.signature = fileSignature || "";
+    guard.startedAt = Date.now();
+    return guard;
+  }
+
+  function unlockUploadGuard(root, idx, fileSignature) {
+    const guard = getUploadGuard(root, idx);
+    if (fileSignature && guard.signature && guard.signature !== fileSignature) return;
+    guard.inFlight = false;
+  }
+
   function getSideUploadState(root, idx) {
     const attempted = hasUploadAttemptedFlag(root, idx);
     const url = String(root.querySelector(`[data-url="${idx}"]`)?.value || "").trim();
@@ -154,8 +409,12 @@
     return root.dataset[`uploadLarge${idx}`] === "true";
   }
 
+  const DEFAULT_R2_UPLOAD_ENDPOINT = "https://saac-r2-upload.bs-dhingra.workers.dev";
+  const DEFAULT_R2_PUBLIC_BASE_URL = "https://cdn.sarvsartsandcrafts.com";
+
   const DEFAULT_UPLOAD_PROVIDER_CONFIG = {
-    activeProvider: "uploadcare",
+    activeProvider: "r2",
+    originalUploadProvider: "r2",
     providers: {
       cloudinary: {
         enabled: true,
@@ -171,6 +430,11 @@
         cdnBase: "https://1wa89vtiok.ucarecd.net",
         uploadFolder: "Customer Uploads",
         proofFolder: "proofs"
+      },
+      r2: {
+        enabled: true,
+        endpoint: DEFAULT_R2_UPLOAD_ENDPOINT,
+        publicBaseUrl: DEFAULT_R2_PUBLIC_BASE_URL
       }
     }
   };
@@ -178,14 +442,20 @@
   function mergeUploadProviderConfig(base, override) {
     const next = {
       activeProvider: base.activeProvider,
+      originalUploadProvider: base.originalUploadProvider,
       providers: {
         cloudinary: { ...base.providers.cloudinary },
-        uploadcare: { ...base.providers.uploadcare }
+        uploadcare: { ...base.providers.uploadcare },
+        r2: { ...base.providers.r2 }
       }
     };
     if (!override || typeof override !== "object") return next;
     if (typeof override.activeProvider === "string" && override.activeProvider.trim()) {
       next.activeProvider = override.activeProvider.trim();
+    }
+    if (override.originalUploadProvider === null || typeof override.originalUploadProvider === "string") {
+      const provider = String(override.originalUploadProvider || "").trim();
+      next.originalUploadProvider = provider || null;
     }
     if (override.providers && typeof override.providers === "object") {
       if (override.providers.cloudinary && typeof override.providers.cloudinary === "object") {
@@ -193,6 +463,9 @@
       }
       if (override.providers.uploadcare && typeof override.providers.uploadcare === "object") {
         Object.assign(next.providers.uploadcare, override.providers.uploadcare);
+      }
+      if (override.providers.r2 && typeof override.providers.r2 === "object") {
+        Object.assign(next.providers.r2, override.providers.r2);
       }
     }
     return next;
@@ -228,12 +501,7 @@
   }
 
   function uploadFormData({ url, formData, onProgress }) {
-    const fd = new FormData();
-    if (formData instanceof FormData) {
-      for (const [key, value] of formData.entries()) {
-        fd.append(key, value);
-      }
-    }
+    const fd = formData instanceof FormData ? formData : new FormData();
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -470,22 +738,192 @@
     });
   }
 
-  window.bdGetUploadProviderConfig = ensureUploadProviderConfig;
-  window.bdPatchUploadProviderConfig = patchUploadProviderConfig;
-  window.bdUploadAsset = function (fileOrBlob, options = {}) {
-    const config = ensureUploadProviderConfig();
-    const activeProvider = String(config.activeProvider || "cloudinary").trim() || "cloudinary";
-    const providerConfig = config.providers && config.providers[activeProvider];
+  function normalizeR2PublicBaseUrl(baseUrl) {
+    const base = String(baseUrl || "").trim();
+    if (!base) return "";
+    const withProtocol = /^https?:\/\//i.test(base) ? base : `https://${base}`;
+    return withProtocol.replace(/\/+$/, "");
+  }
+
+  function normalizeR2DeliveryKey(key) {
+    const safeKey = String(key || "").trim().replace(/^\/+/, "");
+    if (!safeKey) return "";
+    if (safeKey.startsWith("uploads/")) return safeKey;
+    return `uploads/${safeKey}`;
+  }
+
+  function buildR2DeliveryUrl(key, providerConfig) {
+    const normalizedBase = normalizeR2PublicBaseUrl(
+      (providerConfig && providerConfig.publicBaseUrl) ||
+      (providerConfig && providerConfig.endpoint) ||
+      ""
+    );
+    const safeKey = normalizeR2DeliveryKey(key);
+    if (!normalizedBase || !safeKey) return "";
+    return `${normalizedBase}/${safeKey}`;
+  }
+
+  function normalizeR2UploadResponse(raw, fileOrBlob, fallbackFilename, providerConfig) {
+    const key = String(raw && (raw.key || raw.id || raw.public_id) || "").trim();
+    const fileUrl = String(raw && (raw.fileUrl || raw.secure_url || raw.url) || "").trim();
+    const filename = String(
+      fallbackFilename ||
+      (raw && (raw.filename || raw.originalFilename || raw.original_filename)) ||
+      (fileOrBlob && fileOrBlob.name) ||
+      ""
+    ).trim();
+    const workerUrl = buildR2DeliveryUrl(key, providerConfig);
+    const secureUrl = workerUrl || fileUrl;
+    return {
+      provider: "r2",
+      url: secureUrl,
+      secureUrl,
+      id: key,
+      publicId: key,
+      filename,
+      width: null,
+      height: null,
+      raw
+    };
+  }
+
+  function uploadAssetViaR2(fileOrBlob, options, providerConfig) {
+    const endpoint = String(providerConfig.endpoint || "").trim();
+    if (!endpoint) {
+      return Promise.reject(new Error("R2 upload endpoint is not configured."));
+    }
+    const filename = String(options.filename || (fileOrBlob && fileOrBlob.name) || "upload").trim() || "upload";
+    const uploadFile =
+      typeof File === "function" &&
+      fileOrBlob instanceof Blob &&
+      !(fileOrBlob instanceof File)
+        ? new File([fileOrBlob], filename, {
+            type: String(fileOrBlob.type || "application/octet-stream").trim() || "application/octet-stream"
+          })
+        : fileOrBlob;
+    const formData = new FormData();
+    formData.append("file", uploadFile, filename);
+
+    return uploadFormData({
+      url: endpoint,
+      formData,
+      onProgress: options.onProgress
+    }).then((raw) => normalizeR2UploadResponse(raw, uploadFile, filename, providerConfig));
+  }
+
+  function normalizeProviderName(providerName, fallback = "cloudinary") {
+    const normalized = String(providerName || "").trim().toLowerCase();
+    if (normalized === "uploadcare" || normalized === "cloudinary" || normalized === "r2") {
+      return normalized;
+    }
+    return fallback;
+  }
+
+  function getOriginalUploadProviderName(config) {
+    const originalUploadProvider = String(config.originalUploadProvider || "").trim();
+    if (originalUploadProvider) {
+      return normalizeProviderName(originalUploadProvider, "cloudinary");
+    }
+    return normalizeProviderName(config.activeProvider, "cloudinary");
+  }
+
+  function getProofUploadProviderName(config) {
+    return normalizeProviderName(config.activeProvider, "cloudinary");
+  }
+
+  function getProviderConfig(config, providerName) {
+    const normalizedProvider = normalizeProviderName(providerName, "cloudinary");
+    const providerConfig = config.providers && config.providers[normalizedProvider];
     if (!providerConfig) {
-      return Promise.reject(new Error(`Upload provider "${activeProvider}" is not configured.`));
+      throw new Error(`Upload provider "${normalizedProvider}" is not configured.`);
     }
     if (!providerConfig.enabled) {
-      return Promise.reject(new Error(`Upload provider "${activeProvider}" is disabled.`));
+      throw new Error(`Upload provider "${normalizedProvider}" is disabled.`);
     }
-    if (activeProvider === "uploadcare") {
-      return uploadAssetViaUploadcare(fileOrBlob, options, providerConfig);
+    return {
+      providerName: normalizedProvider,
+      providerConfig
+    };
+  }
+
+  function uploadAssetViaProvider(fileOrBlob, options, providerName, config) {
+    const resolved = getProviderConfig(config, providerName);
+    if (resolved.providerName === "uploadcare") {
+      return uploadAssetViaUploadcare(fileOrBlob, options, resolved.providerConfig);
     }
-    return uploadAssetViaCloudinary(fileOrBlob, options, providerConfig);
+    if (resolved.providerName === "r2") {
+      return uploadAssetViaR2(fileOrBlob, options, resolved.providerConfig);
+    }
+    return uploadAssetViaCloudinary(fileOrBlob, options, resolved.providerConfig);
+  }
+
+  function recordUploadTrace(entry) {
+    const traceEntry = {
+      ts: Date.now(),
+      ...entry
+    };
+    const trace = Array.isArray(window.__BD_UPLOAD_TRACE__) ? window.__BD_UPLOAD_TRACE__ : [];
+    trace.push(traceEntry);
+    window.__BD_UPLOAD_TRACE__ = trace.slice(-25);
+    window.__BD_UPLOAD_TRACE_LAST__ = traceEntry;
+    if (window.__BD_UPLOAD_PROVIDER_TRACE__) {
+      const method = traceEntry.fallbackUsed ? "warn" : "info";
+      console[method]("[bdUploadAsset]", traceEntry);
+    }
+  }
+
+  window.bdGetUploadProviderConfig = ensureUploadProviderConfig;
+  window.bdPatchUploadProviderConfig = patchUploadProviderConfig;
+  window.bdPersistMasterOriginalUpload = persistMasterOriginalUpload;
+  window.bdReadMasterOriginalUpload = readMasterOriginalUpload;
+  window.bdPersistWorkingUpload = persistWorkingUpload;
+  window.bdReadWorkingUpload = readWorkingUpload;
+  window.bdUploadAsset = function (fileOrBlob, options = {}) {
+    const config = ensureUploadProviderConfig();
+    const kind = options.kind === "proof" ? "proof" : "original";
+    const primaryProvider = kind === "original"
+      ? getOriginalUploadProviderName(config)
+      : getProofUploadProviderName(config);
+
+    const attemptPrimary = () => uploadAssetViaProvider(fileOrBlob, options, primaryProvider, config);
+    if (primaryProvider !== "r2") {
+      return attemptPrimary().then((result) => {
+        recordUploadTrace({
+          kind,
+          provider: result && result.provider ? result.provider : primaryProvider,
+          primaryProvider,
+          fallbackUsed: false,
+          filename: String(options.filename || (fileOrBlob && fileOrBlob.name) || "").trim()
+        });
+        return result;
+      });
+    }
+
+    return attemptPrimary()
+      .then((result) => {
+        recordUploadTrace({
+          kind,
+          provider: result && result.provider ? result.provider : primaryProvider,
+          primaryProvider,
+          fallbackUsed: false,
+          filename: String(options.filename || (fileOrBlob && fileOrBlob.name) || "").trim()
+        });
+        return result;
+      })
+      .catch((primaryError) =>
+        uploadAssetViaProvider(fileOrBlob, options, "cloudinary", config).then((result) => {
+          recordUploadTrace({
+            kind,
+            provider: result && result.provider ? result.provider : "cloudinary",
+            primaryProvider,
+            fallbackUsed: true,
+            fallbackProvider: "cloudinary",
+            primaryError: String((primaryError && primaryError.message) || primaryError || "").trim(),
+            filename: String(options.filename || (fileOrBlob && fileOrBlob.name) || "").trim()
+          });
+          return result;
+        })
+      );
   };
 
   function init(root) {
@@ -508,6 +946,11 @@
 
     const minWidth = parseInt(root.dataset.minWidth || "2000", 10);
     const qualityMode = (root.dataset.qualityMode || "warn").toLowerCase();
+    const uploadMode = (root.dataset.uploadMode || "default").toLowerCase();
+    const allowedTypes = uploadMode === "svg-only" ? SVG_ONLY_ALLOWED : ALLOWED;
+    const invalidTypeMessage = uploadMode === "svg-only"
+      ? "Please upload an SVG file."
+      : "Please upload PNG, JPG, or SVG.";
 
     const form = getForm(root);
     const shouldBlock = enforcement === "strict";
@@ -535,8 +978,14 @@
       return { ok: true };
     }
 
-    async function handleFile(idx, file) {
+    async function handleFile(idx, file, options = {}) {
       if (!file) return;
+      const preserveMasterOriginal = !!(options && options.preserveMasterOriginal);
+      const fileSignature = getFileSignature(file);
+      if (shouldSkipDuplicateUpload(root, idx, fileSignature)) {
+        return;
+      }
+      lockUploadGuard(root, idx, fileSignature);
       const uploadSeq = nextUploadSeq(root, idx);
       setUploadAttemptedFlag(root, idx, true);
       syncSideUploadStateInputs(root, form);
@@ -547,6 +996,7 @@
       setSlotFieldValues(root, "data-width", idx, "");
       setSlotFieldValues(root, "data-height", idx, "");
       setSlotFieldValues(root, "data-filename", idx, file?.name || "");
+      dispatchUploadSlotUpdated(idx, { url: "", filename: file?.name || "" });
 
       const previewWrap = root.querySelector(`[data-preview-wrap="${idx}"]`);
       const previewImg = root.querySelector(`[data-preview-img="${idx}"]`);
@@ -556,9 +1006,11 @@
       setStatus(root, idx, "", "");
       setLargeUploadFlag(root, idx, false);
 
-      if (!ALLOWED.includes(file.type)) {
-        setStatus(root, idx, "Please upload PNG, JPG, SVG, or WEBP.", "error");
+      if (!allowedTypes.includes(file.type)) {
+        setStatus(root, idx, invalidTypeMessage, "error");
+        setUploadNotice(form, upload1Missing || upload2Missing ? LARGE_UPLOAD_NOTICE_TEXT : "");
         syncSideUploadStateInputs(root, form);
+        unlockUploadGuard(root, idx, fileSignature);
         return;
       }
 
@@ -605,10 +1057,12 @@
           if (qualityMode === "block" && shouldBlock) {
             setStatus(root, idx, `${lowResBlockMsg} Please upload a higher-resolution image.`, "error");
             syncSideUploadStateInputs(root, form);
+            unlockUploadGuard(root, idx, fileSignature);
             return;
           }
 
-          setStatus(root, idx, lowResMsg, "warn");
+          const combinedWarnMsg = `${lowResMsg} ${largeFileMsg}`;
+          setStatus(root, idx, exceedsSizeLimit ? combinedWarnMsg : lowResMsg, "warn");
         } else {
           setStatus(root, idx, exceedsSizeLimit ? largeFileMsg : "Uploading...", exceedsSizeLimit ? "warn" : "ok");
         }
@@ -627,17 +1081,25 @@
           if (!isLatestUploadSeq(root, idx, uploadSeq)) return;
 
           const secureUrl = res.secureUrl || res.url || "";
+          const shouldUpdateMasterOriginal = !preserveMasterOriginal || !getMasterOriginalUrl(root, idx);
           setSlotFieldValues(root, "data-url", idx, secureUrl);
+          window.bdPersistWorkingUpload?.(root, idx, file);
+          if (shouldUpdateMasterOriginal) {
+            setSlotFieldValues(root, "data-master-url", idx, secureUrl);
+            window.bdPersistMasterOriginalUpload?.(root, idx, file, { overwrite: true });
+          }
           setSlotFieldValues(root, "data-publicid", idx, res.publicId || res.id || "");
+          dispatchUploadSlotUpdated(idx, { url: secureUrl, filename: file?.name || "" });
 
-          if (lowResWarn) {
+          if (lowResWarn && exceedsSizeLimit) {
+            setStatus(root, idx, `${lowResMsg} ${largeFileMsg}`, "warn");
+          } else if (lowResWarn) {
             setStatus(root, idx, lowResMsg, "warn");
           } else if (exceedsSizeLimit) {
             setStatus(root, idx, largeFileMsg, "warn");
           } else {
             setStatus(root, idx, "Upload complete.", "ok");
           }
-          setLargeUploadFlag(root, idx, false);
 
           if (meta && previewMode === "on") {
             meta.textContent =
@@ -659,7 +1121,9 @@
           );
           setSlotFieldValues(root, "data-url", idx, "");
           setSlotFieldValues(root, "data-publicid", idx, "");
+          dispatchUploadSlotUpdated(idx, { url: "", filename: file?.name || "" });
         } finally {
+          unlockUploadGuard(root, idx, fileSignature);
           if (isLatestUploadSeq(root, idx, uploadSeq)) {
             syncSideUploadStateInputs(root, form);
           }
@@ -670,6 +1134,7 @@
         setStatus(root, idx, "Could not read this image. Try another file.", "error");
         URL.revokeObjectURL(objectUrl);
         syncSideUploadStateInputs(root, form);
+        unlockUploadGuard(root, idx, fileSignature);
       };
 
       img.src = objectUrl;
@@ -679,15 +1144,24 @@
       input.addEventListener("change", () => {
         const idx = input.getAttribute("data-upload-input");
         const file = input.files && input.files[0];
-        handleFile(idx, file);
+        const preserveMasterOriginal =
+          Number(input.__bdPreserveMasterOriginal || 0) > 0 ||
+          Number(input.__bdCropBypassCount || 0) > 0;
+        handleFile(idx, file, { preserveMasterOriginal });
+        input.__bdPreserveMasterOriginal = 0;
+        window.setTimeout(() => {
+          try {
+            input.value = "";
+          } catch (e) {}
+        }, 0);
       });
     });
 
     if (form) {
       syncSideUploadStateInputs(root, form);
       form.addEventListener("submit", (e) => {
-        const upload1Missing = hasLargeUploadFlag(root, 1) && !String(root.querySelector('[data-url="1"]')?.value || "").trim();
-        const upload2Missing = hasLargeUploadFlag(root, 2) && !String(root.querySelector('[data-url="2"]')?.value || "").trim();
+        const upload1Missing = hasLargeUploadFlag(root, 1);
+        const upload2Missing = hasLargeUploadFlag(root, 2);
         setUploadNotice(form, upload1Missing || upload2Missing ? "Your image is over 10MB. You can still preview your design—after ordering, email the original file to info@sarvsartsandcrafts.com and we’ll handle the proof and printing." : "");
         syncSideUploadStateInputs(root, form);
 

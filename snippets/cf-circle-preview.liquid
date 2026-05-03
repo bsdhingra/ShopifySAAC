@@ -1,9 +1,16 @@
+{%- assign cf_circle_svg_only = false -%}
+{% if product.tags contains 'cf-upload-svg-only' %}
+  {%- assign cf_circle_svg_only = true -%}
+{% endif %}
+
 <div
   id="cf-circle-preview-container"
   class="cf-circle-preview-box"
   data-cf-preview="circle"
   data-cf-circle
   data-product-handle="{{ product.handle }}"
+  data-config-key="{% if product.tags contains 'cf-doorsign-preview' %}cf-doorsign-preview{% endif %}"
+  data-upload-mode="{% if cf_circle_svg_only %}svg-only{% else %}default{% endif %}"
   data-config-url="{{ 'cf-circle-config.json' | asset_url }}"
   {% if product.selected_or_first_available_variant.featured_media and product.selected_or_first_available_variant.featured_media.media_type == 'image' %}
     data-default-mockup-src="{{ product.selected_or_first_available_variant.featured_media | image_url: width: 1440 }}"
@@ -15,6 +22,13 @@
     {
       {%- for variant in product.variants -%}
         "{{ variant.id }}": {% if variant.featured_media and variant.featured_media.media_type == 'image' %}{{ variant.featured_media | image_url: width: 1440 | json }}{% elsif variant.featured_image %}{{ variant.featured_image | image_url: width: 1440 | json }}{% else %}""{% endif %}{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    }
+  </script>
+  <script type="application/json" data-cf-circle-variant-labels>
+    {
+      {%- for variant in product.variants -%}
+        "{{ variant.id }}": {{ variant.title | json }}{% unless forloop.last %},{% endunless %}
       {%- endfor -%}
     }
   </script>
@@ -37,7 +51,10 @@
                 Upload Design
               </button>
               <button type="button" class="button button--secondary cf-circle-reset-btn" data-cf-circle-reset-btn hidden>
-                Reset Crop
+                Reset image
+              </button>
+              <button type="button" class="button button--secondary cf-circle-load-original-btn" data-cf-circle-load-original-btn hidden>
+                Load original image
               </button>
             </div>
             <div class="cf-uploader__notice cf-circle-inline-notice">
@@ -59,9 +76,14 @@
                   >
                     You must have the legal right to use any image you upload. Do not upload copyrighted or trademarked content without authorization.
                 </span>
-              </span>
-            </p>
+                </span>
+              </p>
             </div>
+            {% if cf_circle_svg_only %}
+              <div class="cf-circle-status">
+                Accepted format: SVG only.
+              </div>
+            {% endif %}
             <div class="cf-circle-frame-slider-row" data-cf-circle-frame-slider-row hidden>
               <span class="cf-circle-frame-slider-label">Frame size</span>
               <button
@@ -92,7 +114,7 @@
               </button>
             </div>
             <div class="cf-circle-status" data-cf-circle-status>
-              Upload one design to start the circular preview.
+              {% if cf_circle_svg_only %}Upload your SVG design to get started.{% else %}Upload one design to start the circular preview.{% endif %}
             </div>
             <div class="cf-circle-meta" data-cf-circle-meta></div>
           </div>
@@ -104,7 +126,7 @@
               <div class="cf-circle-placeholder__inner">
                 <span class="cf-circle-placeholder__eyebrow" data-cf-circle-placeholder-eyebrow>Circular photo area</span>
                 <span class="cf-circle-placeholder__title" data-cf-circle-placeholder-title>Uploaded photo will appear in this area</span>
-                <span class="cf-circle-placeholder__hint" data-cf-circle-placeholder-hint>Upload your image to preview it within the circle.</span>
+                <span class="cf-circle-placeholder__hint" data-cf-circle-placeholder-hint>{% if cf_circle_svg_only %}Upload your SVG design to preview it within the circle.{% else %}Upload your image to preview it within the circle.{% endif %}</span>
               </div>
             </div>
             <div class="cf-circle-frame-label" data-cf-circle-frame-label aria-hidden="true">Design area</div>

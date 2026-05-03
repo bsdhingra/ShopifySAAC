@@ -7,6 +7,7 @@
   const body = root.querySelector(".cf-circle-designer-body");
   const uploadBtn = root.querySelector("[data-cf-circle-upload-btn]");
   const resetBtn = root.querySelector("[data-cf-circle-reset-btn]");
+  const loadOriginalBtn = root.querySelector("[data-cf-circle-load-original-btn]");
   const stage = root.querySelector("[data-cf-circle-stage]");
   const previewStage = root.querySelector("[data-cf-circle-preview-stage]");
   const mockupImg = root.querySelector("[data-cf-circle-mockup]");
@@ -30,22 +31,32 @@
   const statusEl = root.querySelector("[data-cf-circle-status]");
   const metaEl = root.querySelector("[data-cf-circle-meta]");
   const variantMediaMapScript = root.querySelector("[data-cf-circle-variant-media]");
+  const variantLabelMapScript = root.querySelector("[data-cf-circle-variant-labels]");
 
   const uploader = document.querySelector("[data-cf-uploader]");
   const uploadInput = uploader ? uploader.querySelector('[data-upload-input="1"]') : null;
   const previewImg = uploader ? uploader.querySelector('[data-preview-img="1"]') : null;
   const statusSource = uploader ? uploader.querySelector('[data-status="1"]') : null;
   const designUrlInput = uploader ? uploader.querySelector('[data-url="1"]') : null;
+  const masterOriginalUrlInput = uploader ? uploader.querySelector('[data-master-url="1"]') : null;
   const previewWrap = uploader ? uploader.querySelector('[data-preview-wrap="1"]') : null;
   const productInfo = root.closest("product-info");
   const configUrl = root.dataset.configUrl || "";
   const productHandle = root.dataset.productHandle || "";
+  const configKey = root.dataset.configKey || "";
+  const uploadMode = (root.dataset.uploadMode || "default").toLowerCase();
   const defaultMockupSrc = root.dataset.defaultMockupSrc || "";
 
   if (!stage || !previewStage || !mockupImg || !placeholderEl || !placeholderEyebrowEl || !placeholderTitleEl || !placeholderHintEl || !frameLabelEl || !frameEl || !previewMaskEl || !previewFrameEl || !designWrap || !previewDesignWrap || !designEditImg || !previewDesignImg || !resizeHandle || !uploadInput) return;
 
   const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
   const round = (n) => Math.round(n * 10000) / 10000;
+  const canUseLocalUploadFile = (file) => {
+    if (!file) return false;
+    const type = String(file.type || "").trim().toLowerCase();
+    if (uploadMode === "svg-only") return type === "image/svg+xml";
+    return type === "image/png" || type === "image/jpeg" || type === "image/svg+xml";
+  };
   const isLargeUploadMessage = (text) => {
     const value = String(text || "").trim();
     if (!value) return false;
@@ -56,6 +67,13 @@
     if (!value) return "";
     if (value.startsWith("//")) return `${window.location.protocol}${value}`;
     return value;
+  };
+  const getMasterOriginalUrl = () => String((masterOriginalUrlInput && masterOriginalUrlInput.value) || "").trim();
+  const readMasterOriginalFile = () => {
+    if (typeof window.bdReadMasterOriginalUpload !== "function" || !uploader) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(window.bdReadMasterOriginalUpload(uploader, "1")).catch(() => null);
   };
 
   const state = {
@@ -83,6 +101,7 @@
   let productConfig = null;
   let configPromise = null;
   let variantMediaMap = {};
+  let variantLabelMap = {};
   let currentVariantId = "";
   let lastVariantId = "";
   let objectUrl = "";
@@ -117,8 +136,17 @@
       variantMediaMap = {};
     }
   }
+  if (variantLabelMapScript) {
+    try {
+      variantLabelMap = JSON.parse(variantLabelMapScript.textContent || "{}") || {};
+    } catch (e) {
+      variantLabelMap = {};
+    }
+  }
 
   const getScopedRoot = () => productInfo || root.closest(".shopify-section") || document;
+  const getMediaGallery = () => root.closest(".shopify-section")?.querySelector("media-gallery") || document.querySelector("media-gallery");
+  const getThumbnailSlider = () => getMediaGallery()?.querySelector('[id^="GalleryThumbnails-"]') || null;
   const getDraftSessionKey = () =>
     `cf-customizer-draft:circle:${productHandle || window.location.pathname}`;
 
@@ -127,6 +155,44 @@
       return productInfo.querySelector('form[data-type="add-to-cart-form"]');
     }
     return document.querySelector('form[data-type="add-to-cart-form"]');
+  };
+
+  const ensureThumbnailLockNotice = () => {
+    const slider = getThumbnailSlider();
+    if (!slider) return null;
+    let notice = slider.parentElement ? slider.parentElement.querySelector("[data-cf-circle-thumb-lock-note]") : null;
+    if (notice) return notice;
+    notice = document.createElement("p");
+    notice.setAttribute("data-cf-circle-thumb-lock-note", "");
+    notice.className = "cf-circle-thumbnail-lock-note";
+    notice.hidden = true;
+    notice.textContent = "While editing, the design stays on the active preview mockup.";
+    slider.insertAdjacentElement("afterend", notice);
+    return notice;
+  };
+
+  const syncThumbnailLockState = () => {
+    const gallery = getMediaGallery();
+    if (!gallery) return;
+    const isLocked = !!state.design.src;
+    gallery.classList.toggle("bd-circle-thumbs-locked", isLocked);
+
+    const notice = ensureThumbnailLockNotice();
+    if (notice) {
+      notice.hidden = !isLocked;
+    }
+
+    gallery.querySelectorAll("button.thumbnail").forEach((button) => {
+      const isBlockedThumb = isLocked && !!String(button.getAttribute("data-target") || "").trim();
+      button.classList.toggle("is-circle-thumb-locked", isBlockedThumb);
+      button.setAttribute("aria-disabled", isBlockedThumb ? "true" : "false");
+      button.disabled = isBlockedThumb;
+      if (isBlockedThumb) {
+        button.setAttribute("title", "Finish reviewing the active design preview before browsing other product images.");
+      } else {
+        button.removeAttribute("title");
+      }
+    });
   };
 
   const buildDraftSessionSnapshot = () => {
@@ -284,6 +350,16 @@
     if (input) input.value = String(url || "").trim();
   };
 
+  const rehydrateProofStateFromInputs = () => {
+    const proofInput = ensureProofInput();
+    const currentUrl = proofInput ? String(proofInput.value || "").trim() : "";
+    const currentKey = getProofStateKey();
+    if (!currentUrl || !currentKey) return;
+    proofLastUrl = currentUrl;
+    proofLastKey = currentKey;
+    setProofNotice("");
+  };
+
   const setProofNotice = (message) => {
     const input = ensureProofNoticeInput();
     if (input) input.value = String(message || "").trim();
@@ -309,7 +385,7 @@
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         configJson = json || {};
-        productConfig = configJson[productHandle] || null;
+        productConfig = configJson[configKey] || configJson[productHandle] || null;
         return configJson;
       })
       .catch(() => null);
@@ -336,35 +412,54 @@
     }, 320);
   };
 
+  const getCurrentVariantLabel = () => String(variantLabelMap[String(currentVariantId)] || "").trim();
+
+  const getDoorSignSizeKey = () => {
+    if (configKey !== "cf-doorsign-preview") return "";
+    const label = getCurrentVariantLabel().toLowerCase();
+    if (!label) return "";
+    if (/\b18\b/.test(label)) return "18";
+    if (/\b15\b/.test(label)) return "15";
+    if (/\b12\b/.test(label)) return "12";
+    return "";
+  };
+
   const getResolvedConfig = () => {
     const globalDefault = (configJson && configJson.__default__) || {};
     const productDefault = (productConfig && productConfig.default) || {};
     const variantMap = (productConfig && productConfig.variants) || {};
     const variantConfig = (currentVariantId && variantMap[currentVariantId]) || {};
+    const sizeVariantMap = (productConfig && productConfig.sizeVariants) || {};
+    const sizeVariantKey = getDoorSignSizeKey();
+    const sizeVariantConfig = (sizeVariantKey && sizeVariantMap[sizeVariantKey]) || {};
     return {
       frame: Object.assign(
         {},
         globalDefault.frame || {},
         productDefault.frame || {},
-        variantConfig.frame || {}
+        variantConfig.frame || {},
+        sizeVariantConfig.frame || {}
       ),
       editor: Object.assign(
         {},
         globalDefault.editor || {},
         productDefault.editor || {},
-        variantConfig.editor || {}
+        variantConfig.editor || {},
+        sizeVariantConfig.editor || {}
       ),
       mockup: Object.assign(
         {},
         globalDefault.mockup || {},
         productDefault.mockup || {},
-        variantConfig.mockup || {}
+        variantConfig.mockup || {},
+        sizeVariantConfig.mockup || {}
       ),
       slider: Object.assign(
         {},
         globalDefault.slider || {},
         productDefault.slider || {},
-        variantConfig.slider || {}
+        variantConfig.slider || {},
+        sizeVariantConfig.slider || {}
       )
     };
   };
@@ -920,8 +1015,9 @@
     if (!statusEl || !metaEl) return;
     const hiddenStatus = statusSource ? String(statusSource.textContent || "").trim() : "";
     if (!state.design.src) {
-      statusEl.textContent = hiddenStatus || "Upload one design to start the circular preview.";
+      statusEl.textContent = hiddenStatus || (uploadMode === "svg-only" ? "Upload your SVG design to get started." : "Upload your design to get started.");
       metaEl.textContent = "";
+      syncThumbnailLockState();
       return;
     }
 
@@ -933,6 +1029,7 @@
         ? "If the upload and preview look correct, add to cart."
         : proofNotice || PROOF_NOTICE_TEXT;
     metaEl.textContent = "";
+    syncThumbnailLockState();
   };
 
   const updatePlaceholderCopy = (frame) => {
@@ -941,14 +1038,18 @@
       placeholderEl.dataset.size = "small";
       placeholderEyebrowEl.textContent = "Photo area";
       placeholderTitleEl.textContent = "Uploaded photo will appear in this area";
-      placeholderHintEl.textContent = "Upload your image to preview it within the circle.";
+      placeholderHintEl.textContent = uploadMode === "svg-only"
+        ? "Upload your SVG design to preview it within the circle."
+        : "Upload your image to preview it within the circle.";
       return;
     }
     if (diameter <= 220) {
       placeholderEl.dataset.size = "medium";
       placeholderEyebrowEl.textContent = "Circular photo area";
       placeholderTitleEl.textContent = "Uploaded photo will appear in this area";
-      placeholderHintEl.textContent = "Upload your image to preview it within the circle.";
+      placeholderHintEl.textContent = uploadMode === "svg-only"
+        ? "Upload your SVG design to preview it within the circle."
+        : "Upload your image to preview it within the circle.";
       return;
     }
     placeholderEl.dataset.size = "large";
@@ -1018,6 +1119,7 @@
       }
       resizeHandle.hidden = true;
       resetBtn.hidden = true;
+      if (loadOriginalBtn) loadOriginalBtn.hidden = true;
       updateStatus();
       syncHiddenState();
       return;
@@ -1114,6 +1216,7 @@
     resizeHandle.style.left = `${editorFrame.x + editorFrame.diameter - resizeHandle.offsetWidth * 0.7}px`;
     resizeHandle.style.top = `${editorFrame.y + editorFrame.diameter - resizeHandle.offsetHeight * 0.7}px`;
     resetBtn.hidden = false;
+    if (loadOriginalBtn) loadOriginalBtn.hidden = false;
 
     updateStatus();
     syncHiddenState();
@@ -1192,6 +1295,7 @@
       setRestoreMode(false);
       restoreCompleted = true;
       setBodyOpen();
+      rehydrateProofStateFromInputs();
       render();
       activateHeroPreviewSlide();
       window.requestAnimationFrame(() => render());
@@ -1282,6 +1386,7 @@
   const syncFromLocalUpload = () => {
     const file = uploadInput.files && uploadInput.files[0];
     if (!file) return;
+    if (!canUseLocalUploadFile(file)) return;
     if (designUrlInput) {
       designUrlInput.value = "";
     }
@@ -1320,6 +1425,7 @@
       setRestoreMode(false);
       restoreCompleted = true;
       setBodyOpen();
+      rehydrateProofStateFromInputs();
       activateHeroPreviewSlide();
       requestRender();
       return;
@@ -1356,6 +1462,20 @@
     state.placement = getDefaultPlacement();
     resetFrameRadiusSelection();
     requestRender();
+  });
+  loadOriginalBtn?.addEventListener("click", async () => {
+    const file = await readMasterOriginalFile();
+    if (!file) {
+      if (statusEl) {
+        statusEl.textContent = "Original image is not available on this device anymore. Please upload it again to restore it.";
+      }
+      return;
+    }
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    uploadInput.files = dt.files;
+    uploadInput.__bdPreserveMasterOriginal = 1;
+    uploadInput.dispatchEvent(new Event("change", { bubbles: true }));
   });
 
   frameSliderInput?.addEventListener("input", () => {
@@ -1426,6 +1546,51 @@
   window.addEventListener("pointermove", handlePointerMove, { passive: false });
   window.addEventListener("pointerup", endPointer);
   window.addEventListener("pointercancel", endPointer);
+
+  const mediaGallery = getMediaGallery();
+  mediaGallery?.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!state.design.src) return;
+
+    const thumbButton = target.closest("button.thumbnail");
+    if (!thumbButton) return;
+
+    const thumbItem = thumbButton.closest("li[data-target]");
+    const targetMediaId = String(
+      thumbButton.getAttribute("data-target") ||
+      (thumbItem ? thumbItem.getAttribute("data-target") : "") ||
+      ""
+    ).trim();
+    if (!targetMediaId) return;
+
+    const heroPack = ensureHeroPreviewSlide();
+    const previewMediaId = heroPack ? String(heroPack.slide.getAttribute("data-media-id") || "").trim() : "";
+    if (!previewMediaId || targetMediaId === previewMediaId) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    activateHeroPreviewSlide();
+    if (statusEl) {
+      statusEl.textContent = "Design preview stays on the active mockup while editing.";
+    }
+  }, true);
+  mediaGallery?.addEventListener("keydown", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (!state.design.src) return;
+
+    const thumbButton = target.closest("button.thumbnail");
+    if (!thumbButton) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    activateHeroPreviewSlide();
+    if (statusEl) {
+      statusEl.textContent = "Design preview stays on the active mockup while editing.";
+    }
+  }, true);
 
   ["variant:change", "variantChange", "product:variant-change", "product-info:loaded"].forEach((eventName) => {
     document.addEventListener(eventName, handleVariantEvent);
@@ -1500,6 +1665,7 @@
       syncFromUploaderPreview({ useDraftSnapshot: true });
     }
     syncHiddenState();
+    syncThumbnailLockState();
   });
 
   window.addEventListener("pageshow", (event) => {
@@ -1513,6 +1679,7 @@
     updateMockupFromCurrentState(null, { forceConfigReload: true });
     if (!restoreInProgress) {
       syncHiddenState();
+      syncThumbnailLockState();
       return;
     }
     const runRestorePass = () => {

@@ -6,7 +6,12 @@
   const startBtn = root.querySelector("[data-cf-start-btn]");
   const body = root.querySelector(".cf-tumbler-designer-body");
   const uploadBtn = root.querySelector("[data-cf-tumbler-upload-btn]");
+  const cropBtn = root.querySelector("[data-cf-tumbler-crop-btn]");
   const resetBtn = root.querySelector("[data-cf-tumbler-reset-btn]");
+  const cropCancelBtn = root.querySelector("[data-cf-tumbler-crop-cancel-btn]");
+  const cropOriginalBtn = root.querySelector("[data-cf-tumbler-crop-original-btn]");
+  const loadOriginalBtn = root.querySelector("[data-cf-tumbler-load-original-btn]");
+  const cropApplyBtn = root.querySelector("[data-cf-tumbler-crop-apply-btn]");
   const stage = root.querySelector("[data-cf-tumbler-stage]");
   const editorCanvas = root.querySelector("[data-cf-tumbler-editor-canvas]");
   const designWrap = root.querySelector("[data-cf-tumbler-design-wrap]");
@@ -16,6 +21,7 @@
   const guideEls = Array.from(root.querySelectorAll("[data-cf-guide]"));
   const statusEl = root.querySelector("[data-cf-tumbler-status]");
   const metaEl = root.querySelector("[data-cf-tumbler-meta]");
+  const uploadHintEl = root.querySelector(".cf-tumbler-upload-hint");
 
   const uploader = document.querySelector("[data-cf-uploader]");
   const uploadInput = uploader ? uploader.querySelector('[data-upload-input="1"]') : null;
@@ -24,6 +30,7 @@
   const statusSource = uploader ? uploader.querySelector('[data-status="1"]') : null;
   const metaSource = uploader ? uploader.querySelector('[data-meta="1"]') : null;
   const designUrlInput = uploader ? uploader.querySelector('[data-url="1"]') : null;
+  const masterOriginalUrlInput = uploader ? uploader.querySelector('[data-master-url="1"]') : null;
   const productInfo = root.closest("product-info");
   const productHandle = root.dataset.productHandle || "";
   const configKey = root.dataset.configKey || "";
@@ -46,6 +53,28 @@
     placement: null,
     initialPlacement: null
   };
+  const CROP_MIN_SIZE = 20;
+  const cropSourceState = {
+    originalFile: null,
+    originalObjectUrl: "",
+    currentFile: null,
+    currentObjectUrl: "",
+    crop: null
+  };
+  const cropState = {
+    isOpen: false,
+    file: null,
+    objectUrl: "",
+    loadedImage: null,
+    naturalWidth: 0,
+    naturalHeight: 0,
+    stage: { x: 0, y: 0, w: 0, h: 0 },
+    image: { x: 0, y: 0, w: 0, h: 0, scale: 1 },
+    cropRect: { x: 0, y: 0, w: 0, h: 0 },
+    pointerMode: null,
+    pointerId: null,
+    pointerStart: null
+  };
 
   let config = null;
   let configPromise = null;
@@ -65,7 +94,11 @@
   let wrapCtx = null;
   let finalizeTimer = null;
   let draftPersistFrame = 0;
+  let draftEditableSourceSnapshot = null;
+  let draftEditableSourceSeq = 0;
+  let cropApplyInFlight = false;
   const MOBILE_PROOF_WAIT_MS = 1200;
+  const MAX_DRAFT_EDITABLE_SOURCE_BYTES = 1800000;
   const PROOF_NOTICE_TEXT = "Proof size is greater than 10MB. Our team will send you the proof before printing.";
   const UPLOAD_NOTICE_TEXT = "Your image is larger than 10MB, but no worries-you can still edit and preview your design. After placing your order, just email your image to info@sarvsartsandcrafts.com, and we'll handle the proof for you.";
   const BOTH_NOTICE_TEXT = "Uploaded file size and proof size are greater than 10MB. Please send your image by email at info@sarvsartsandcrafts.com, and our team will send you the proof before printing.";
@@ -73,14 +106,154 @@
     productInfo ||
     root.closest(".shopify-section") ||
     document;
+  const getMediaGallery = () =>
+    root.closest(".shopify-section")?.querySelector("media-gallery") ||
+    document.querySelector("media-gallery");
+  const getThumbnailSlider = () => getMediaGallery()?.querySelector('[id^="GalleryThumbnails-"]') || null;
   const getDraftSessionKey = () =>
     `cf-customizer-draft:mug:${configKey || productHandle || window.location.pathname}`;
+  const DRAFT_EDITABLE_SOURCE_DB = "bd-customizer-drafts";
+  const DRAFT_EDITABLE_SOURCE_STORE = "editable-sources";
+
+  const openDraftEditableSourceDb = (() => {
+    let dbPromise = null;
+    return () => {
+      if (dbPromise) return dbPromise;
+      if (!window.indexedDB) return Promise.resolve(null);
+      dbPromise = new Promise((resolve) => {
+        try {
+          const request = window.indexedDB.open(DRAFT_EDITABLE_SOURCE_DB, 1);
+          request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(DRAFT_EDITABLE_SOURCE_STORE)) {
+              db.createObjectStore(DRAFT_EDITABLE_SOURCE_STORE, { keyPath: "key" });
+            }
+          };
+          request.onsuccess = () => resolve(request.result || null);
+          request.onerror = () => resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+      return dbPromise;
+    };
+  })();
+
+  const withDraftEditableSourceStore = async (mode, runner) => {
+    const db = await openDraftEditableSourceDb();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(DRAFT_EDITABLE_SOURCE_STORE, mode);
+        const store = tx.objectStore(DRAFT_EDITABLE_SOURCE_STORE);
+        let settled = false;
+        const finish = (value) => {
+          if (settled) return;
+          settled = true;
+          resolve(value);
+        };
+        tx.oncomplete = () => finish(null);
+        tx.onerror = () => finish(null);
+        tx.onabort = () => finish(null);
+        runner(store, finish);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  };
+
+  const persistDraftEditableSource = (file) => {
+    const draftKey = getDraftSessionKey();
+    if (!draftKey) return Promise.resolve(false);
+    if (!file || !canCropFile(file)) {
+      return withDraftEditableSourceStore("readwrite", (store, finish) => {
+        const req = store.delete(draftKey);
+        req.onsuccess = () => finish(true);
+        req.onerror = () => finish(false);
+      }).then((result) => result === true);
+    }
+    return file.arrayBuffer()
+      .then((buffer) =>
+        withDraftEditableSourceStore("readwrite", (store, finish) => {
+          const req = store.put({
+            key: draftKey,
+            savedAt: Date.now(),
+            name: String(file.name || "mug-design.png"),
+            type: String(file.type || "image/png"),
+            lastModified: Number(file.lastModified || Date.now()),
+            buffer
+          });
+          req.onsuccess = () => finish(true);
+          req.onerror = () => finish(false);
+        })
+      )
+      .then((result) => result === true)
+      .catch(() => false);
+  };
+
+  const readDraftEditableSource = () => {
+    const draftKey = getDraftSessionKey();
+    if (!draftKey) return Promise.resolve(null);
+    return withDraftEditableSourceStore("readonly", (store, finish) => {
+      const req = store.get(draftKey);
+      req.onsuccess = () => finish(req.result || null);
+      req.onerror = () => finish(null);
+    });
+  };
+
+  const clearDraftEditableSource = () => persistDraftEditableSource(null);
+  const readFileAsDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      try {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(reader.error || new Error("Failed to read draft editable source"));
+        reader.readAsDataURL(file);
+      } catch (e) {
+        reject(e);
+      }
+    });
 
   const getProductForm = () => {
     if (productInfo) {
       return productInfo.querySelector('form[data-type="add-to-cart-form"]');
     }
     return document.querySelector('form[data-type="add-to-cart-form"]');
+  };
+
+  const ensureThumbnailLockNotice = () => {
+    const slider = getThumbnailSlider();
+    if (!slider) return null;
+    let notice = slider.parentElement ? slider.parentElement.querySelector("[data-cf-mug-thumb-lock-note]") : null;
+    if (notice) return notice;
+    notice = document.createElement("p");
+    notice.setAttribute("data-cf-mug-thumb-lock-note", "");
+    notice.className = "cf-mug-thumbnail-lock-note";
+    notice.hidden = true;
+    notice.textContent = "While editing, product gallery thumbnails are unavailable.";
+    slider.insertAdjacentElement("afterend", notice);
+    return notice;
+  };
+
+  const syncThumbnailLockState = () => {
+    const gallery = getMediaGallery();
+    if (!gallery) return;
+    const isLocked = !!state.src;
+    gallery.classList.toggle("bd-mug-thumbs-locked", isLocked);
+
+    const notice = ensureThumbnailLockNotice();
+    if (notice) notice.hidden = !isLocked;
+
+    gallery.querySelectorAll("button.thumbnail").forEach((button) => {
+      button.classList.toggle("is-mug-thumb-locked", isLocked);
+      button.setAttribute("aria-disabled", isLocked ? "true" : "false");
+      button.disabled = isLocked;
+      if (isLocked) {
+        button.setAttribute("title", "Finish reviewing the active design before browsing other product images.");
+      } else {
+        button.removeAttribute("title");
+      }
+    });
   };
 
   const mountSharedUploadNotice = () => {
@@ -99,15 +272,348 @@
     root.classList.add("is-design-open");
   };
 
-  const buildDraftSessionSnapshot = () => {
-    const designUrl = String(
+  const isSvgFile = (file) => !!(file && file.type === "image/svg+xml");
+  const canCropFile = (file) => !!(file && !isSvgFile(file) && String(file.type || "").startsWith("image/"));
+  const isCropPending = () => !!cropState.isOpen;
+
+  const revokeOriginalObjectUrl = () => {
+    if (!cropSourceState.originalObjectUrl) return;
+    try {
+      URL.revokeObjectURL(cropSourceState.originalObjectUrl);
+    } catch (e) {}
+    cropSourceState.originalObjectUrl = "";
+  };
+
+  const revokeCurrentObjectUrl = () => {
+    if (!cropSourceState.currentObjectUrl) return;
+    try {
+      URL.revokeObjectURL(cropSourceState.currentObjectUrl);
+    } catch (e) {}
+    cropSourceState.currentObjectUrl = "";
+  };
+
+  const setOriginalEditorFile = (file) => {
+    revokeOriginalObjectUrl();
+    revokeCurrentObjectUrl();
+    cropSourceState.originalFile = file || null;
+    cropSourceState.currentFile = file || null;
+    cropSourceState.crop = null;
+    cropSourceState.originalObjectUrl = file ? URL.createObjectURL(file) : "";
+    cropSourceState.currentObjectUrl = file ? URL.createObjectURL(file) : "";
+    persistDraftEditableSource(file);
+    cacheDraftEditableSource(file);
+  };
+
+  const setCurrentEditorFile = (file) => {
+    revokeCurrentObjectUrl();
+    cropSourceState.currentFile = file || null;
+    cropSourceState.currentObjectUrl = file ? URL.createObjectURL(file) : "";
+  };
+
+  const setEditorCropMeta = (cropMeta) => {
+    cropSourceState.crop = cropMeta ? { ...cropMeta } : null;
+  };
+
+  const getMasterOriginalUrl = () => String((masterOriginalUrlInput && masterOriginalUrlInput.value) || "").trim();
+  const readMasterOriginalFile = () => {
+    if (typeof window.bdReadMasterOriginalUpload !== "function" || !uploader) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(window.bdReadMasterOriginalUpload(uploader, "1")).catch(() => null);
+  };
+
+  const syncCropActionButtons = () => {
+    const hasUploadedDesign = !!String(
       (designUrlInput && designUrlInput.value) ||
       state.src ||
       ""
     ).trim();
+    const canRecrop = !!hasUploadedDesign;
+    const shouldShowCropBtn = !cropState.isOpen && canRecrop;
+    const shouldShowResetBtn = !cropState.isOpen && hasUploadedDesign;
+    const shouldShowLoadOriginalBtn = !cropState.isOpen && hasUploadedDesign;
+    const shouldShowCancelBtn = cropState.isOpen;
+    const shouldShowApplyBtn = cropState.isOpen;
+    const shouldShowOriginalBtn = cropState.isOpen && !!cropSourceState.originalFile;
+
+    if (cropBtn) {
+      cropBtn.hidden = !shouldShowCropBtn;
+      cropBtn.style.display = shouldShowCropBtn ? "" : "none";
+    }
+    if (resetBtn) {
+      resetBtn.hidden = !shouldShowResetBtn;
+      resetBtn.style.display = shouldShowResetBtn ? "" : "none";
+    }
+    if (loadOriginalBtn) {
+      loadOriginalBtn.hidden = !shouldShowLoadOriginalBtn;
+      loadOriginalBtn.style.display = shouldShowLoadOriginalBtn ? "" : "none";
+    }
+    if (cropCancelBtn) {
+      cropCancelBtn.hidden = !shouldShowCancelBtn;
+      cropCancelBtn.style.display = shouldShowCancelBtn ? "" : "none";
+    }
+    if (cropApplyBtn) {
+      cropApplyBtn.hidden = !shouldShowApplyBtn;
+      cropApplyBtn.style.display = shouldShowApplyBtn ? "" : "none";
+    }
+    if (cropOriginalBtn) {
+      cropOriginalBtn.hidden = !shouldShowOriginalBtn;
+      cropOriginalBtn.style.display = shouldShowOriginalBtn ? "" : "none";
+    }
+    if (uploadHintEl) {
+      uploadHintEl.hidden = !hasUploadedDesign;
+      uploadHintEl.style.display = hasUploadedDesign ? "" : "none";
+    }
+
+    if (uploadBtn) uploadBtn.disabled = cropState.isOpen;
+    if (resetBtn) resetBtn.disabled = cropState.isOpen;
+    if (cropBtn) cropBtn.disabled = cropState.isOpen;
+    if (loadOriginalBtn) loadOriginalBtn.disabled = cropApplyInFlight;
+    if (cropCancelBtn) cropCancelBtn.disabled = cropApplyInFlight;
+    if (cropOriginalBtn) cropOriginalBtn.disabled = cropApplyInFlight;
+    if (cropApplyBtn) cropApplyBtn.disabled = cropApplyInFlight;
+
+    if (uploadBtn) uploadBtn.style.opacity = cropState.isOpen ? "0.55" : "";
+    if (resetBtn) resetBtn.style.opacity = cropState.isOpen ? "0.55" : "";
+    if (cropBtn) cropBtn.style.opacity = cropState.isOpen ? "0.55" : "";
+  };
+
+  const revokeCropObjectUrl = () => {
+    if (!cropState.objectUrl) return;
+    try {
+      URL.revokeObjectURL(cropState.objectUrl);
+    } catch (e) {}
+    cropState.objectUrl = "";
+  };
+
+  const resetCropState = () => {
+    cropState.isOpen = false;
+    cropState.file = null;
+    cropState.loadedImage = null;
+    cropState.naturalWidth = 0;
+    cropState.naturalHeight = 0;
+    cropState.stage = { x: 0, y: 0, w: 0, h: 0 };
+    cropState.image = { x: 0, y: 0, w: 0, h: 0, scale: 1 };
+    cropState.cropRect = { x: 0, y: 0, w: 0, h: 0 };
+    cropState.pointerMode = null;
+    cropState.pointerId = null;
+    cropState.pointerStart = null;
+    revokeCropObjectUrl();
+  };
+
+  const setCropEditorIsolation = (isOpen) => {
+    if (designWrap) {
+      designWrap.style.pointerEvents = isOpen ? "none" : "";
+    }
+    if (resizeHandle) {
+      resizeHandle.style.pointerEvents = isOpen ? "none" : "";
+    }
+  };
+
+  const resetMainEditorInteraction = () => {
+    pointerMode = null;
+    activePointerId = null;
+    pointerStart = null;
+    startPlacement = null;
+    if (designWrap) {
+      designWrap.classList.remove("is-dragging", "is-resizing");
+    }
+  };
+
+  const isRemoteDesignSrc = (src) => /^(https?:)?\/\//i.test(String(src || "").trim());
+  const isBlobDesignSrc = (src) => /^blob:/i.test(String(src || "").trim());
+  const getDurableDesignUrl = (fallback = "") => {
+    const inputUrl = String((designUrlInput && designUrlInput.value) || "").trim();
+    if (isRemoteDesignSrc(inputUrl)) return inputUrl;
+    const safeFallback = String(fallback || "").trim();
+    return isRemoteDesignSrc(safeFallback) ? safeFallback : "";
+  };
+
+  const inferFilenameFromUrl = (src, fallback = "mug-design.png") => {
+    try {
+      const url = new URL(String(src || "").trim(), window.location.origin);
+      const pathname = String(url.pathname || "").trim();
+      const base = pathname ? pathname.split("/").filter(Boolean).pop() || "" : "";
+      return base || fallback;
+    } catch (e) {
+      return fallback;
+    }
+  };
+
+  const assignRestoredCropFile = (file, options = {}) => {
+    const promoteOriginal = !!(options && options.promoteOriginal);
+    revokeCurrentObjectUrl();
+    cropSourceState.currentFile = file || null;
+    cropSourceState.currentObjectUrl = file ? URL.createObjectURL(file) : "";
+    if (promoteOriginal || !cropSourceState.originalFile) {
+      revokeOriginalObjectUrl();
+      cropSourceState.originalFile = file || null;
+      cropSourceState.originalObjectUrl = file ? URL.createObjectURL(file) : "";
+    }
+  };
+
+  const ensureRemoteCropSourceFile = (() => {
+    let inFlight = null;
+    let lastUrl = "";
+    return async (src, options = {}) => {
+      const designSrc = String(src || "").trim();
+      if (!isRemoteDesignSrc(designSrc)) return null;
+      if (
+        cropSourceState.currentFile &&
+        cropSourceState.currentObjectUrl &&
+        lastUrl === designSrc
+      ) {
+        return cropSourceState.currentFile;
+      }
+      if (inFlight && lastUrl === designSrc) return inFlight;
+      lastUrl = designSrc;
+      inFlight = fetch(designSrc, { credentials: "omit" })
+        .then((response) => {
+          if (!response.ok) throw new Error(`Failed to restore remote crop source (${response.status})`);
+          return response.blob();
+        })
+        .then((blob) => {
+          const blobType = String(blob && blob.type || "").trim();
+          if (!/^image\//i.test(blobType)) return null;
+          const restoredFile = new File(
+            [blob],
+            inferFilenameFromUrl(designSrc, /^image\/png$/i.test(blobType) ? "mug-design.png" : "mug-design.jpg"),
+            {
+              type: blobType || "image/png",
+              lastModified: Date.now()
+            }
+          );
+          assignRestoredCropFile(restoredFile, { promoteOriginal: !!options.promoteOriginal });
+          syncCropActionButtons();
+          return restoredFile;
+        })
+        .catch(() => null)
+        .finally(() => {
+          inFlight = null;
+        });
+      return inFlight;
+    };
+  })();
+
+  const ensureDraftCropSourceFile = (() => {
+    let inFlight = null;
+    return async (snapshot) => {
+      if (cropSourceState.currentFile && canCropFile(cropSourceState.currentFile)) {
+        return cropSourceState.currentFile;
+      }
+      if (inFlight) return inFlight;
+      inFlight = Promise.resolve()
+        .then(() => {
+          const source = snapshot && snapshot.editableSource ? snapshot.editableSource : null;
+          if (!source || !source.dataUrl || !source.type) return null;
+          return new File(
+            [dataUrlToBlob(source.dataUrl)],
+            String(source.name || "mug-design.png"),
+            {
+              type: String(source.type || "image/png"),
+              lastModified: Number(source.lastModified || Date.now())
+            }
+          );
+        })
+        .then((file) => {
+          if (file) return file;
+          return readDraftEditableSource().then((record) => {
+            if (!record || !record.buffer) return null;
+            return new File(
+              [record.buffer],
+              String(record.name || "mug-design.png"),
+              {
+                type: String(record.type || "image/png"),
+                lastModified: Number(record.lastModified || Date.now())
+              }
+            );
+          });
+        })
+        .then((file) => {
+          if (!file || !canCropFile(file)) return null;
+          setOriginalEditorFile(file);
+          syncCropActionButtons();
+          return file;
+        })
+        .catch(() => null)
+        .finally(() => {
+          inFlight = null;
+        });
+      return inFlight;
+    };
+  })();
+
+  const dataUrlToBlob = (dataUrl) => {
+    const raw = String(dataUrl || "");
+    const parts = raw.split(",");
+    if (parts.length < 2) throw new Error("Invalid data URL");
+    const match = /^data:([^;]+);base64$/i.exec(parts[0]);
+    const mimeType = match && match[1] ? match[1] : "application/octet-stream";
+    const binary = window.atob(parts[1]);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new Blob([bytes], { type: mimeType });
+  };
+
+  const cacheDraftEditableSource = (file) => {
+    const nextSeq = ++draftEditableSourceSeq;
+    if (!file || !canCropFile(file) || Number(file.size || 0) > MAX_DRAFT_EDITABLE_SOURCE_BYTES) {
+      draftEditableSourceSnapshot = null;
+      scheduleDraftPersist();
+      return;
+    }
+    readFileAsDataUrl(file)
+      .then((dataUrl) => {
+        if (nextSeq !== draftEditableSourceSeq) return;
+        if (!dataUrl) {
+          draftEditableSourceSnapshot = null;
+          scheduleDraftPersist();
+          return;
+        }
+        draftEditableSourceSnapshot = {
+          name: String(file.name || "mug-design.png"),
+          type: String(file.type || "image/png"),
+          lastModified: Number(file.lastModified || Date.now()),
+          dataUrl
+        };
+        scheduleDraftPersist();
+      })
+      .catch(() => {
+        if (nextSeq !== draftEditableSourceSeq) return;
+        draftEditableSourceSnapshot = null;
+        scheduleDraftPersist();
+      });
+  };
+
+  const loadDesignEditImage = (src, onload) => {
+    const nextSrc = String(src || "").trim();
+    const needsCors = nextSrc && !/^blob:/i.test(nextSrc) && isRemoteDesignSrc(nextSrc);
+    const currentSrc = String(designEditImg.currentSrc || designEditImg.getAttribute("src") || designEditImg.src || "").trim();
+    const corsReady = !needsCors || designEditImg.crossOrigin === "anonymous";
+
+    designEditImg.onload = onload;
+    designEditImg.crossOrigin = needsCors ? "anonymous" : null;
+
+    if (currentSrc === nextSrc && designEditImg.complete && designEditImg.naturalWidth && corsReady) {
+      designEditImg.onload();
+      return;
+    }
+
+    if (currentSrc === nextSrc && needsCors && !corsReady) {
+      designEditImg.removeAttribute("src");
+    }
+
+    designEditImg.src = nextSrc;
+  };
+
+  const buildDraftSessionSnapshot = () => {
+    const designUrl = getDurableDesignUrl(state.src);
     if (!designUrl || !state.placement) return null;
     return {
       designUrl,
+      editableSource: draftEditableSourceSnapshot ? { ...draftEditableSourceSnapshot } : null,
       placement: { ...state.placement },
       initialPlacement: state.initialPlacement ? { ...state.initialPlacement } : null,
       width: Number(state.width || 0),
@@ -123,6 +629,8 @@
       const snapshot = buildDraftSessionSnapshot();
       if (!snapshot) {
         window.sessionStorage.removeItem(key);
+        clearDraftEditableSource();
+        draftEditableSourceSnapshot = null;
         return false;
       }
       window.sessionStorage.setItem(key, JSON.stringify(snapshot));
@@ -153,6 +661,8 @@
     try {
       window.sessionStorage.removeItem(getDraftSessionKey());
     } catch (e) {}
+    clearDraftEditableSource();
+    draftEditableSourceSnapshot = null;
   };
 
   const getNavigationType = () => {
@@ -273,13 +783,38 @@
       tick();
     });
 
+  const waitForNextDesignUrlChange = (previousUrl, timeoutMs) =>
+    new Promise((resolve) => {
+      const startValue = String(previousUrl || "").trim();
+      const readValue = () => (designUrlInput ? String(designUrlInput.value || "").trim() : "");
+      const initial = readValue();
+      if (initial && initial !== startValue) {
+        resolve(initial);
+        return;
+      }
+
+      const start = Date.now();
+      const tick = () => {
+        const next = readValue();
+        if (next && next !== startValue) {
+          resolve(next);
+          return;
+        }
+        if (Date.now() - start >= timeoutMs) {
+          resolve("");
+          return;
+        }
+        window.setTimeout(tick, 75);
+      };
+      tick();
+    });
+
   const getProofNotice = () => {
     const productForm = getProductForm();
     if (!productForm) return "";
     const input = productForm.querySelector("#cf_mug_proof_notice");
     return input ? String(input.value || "").trim() : "";
   };
-
 
   const loadConfig = () => {
     if (configPromise) return configPromise;
@@ -364,6 +899,706 @@
   const stageRect = () => {
     const rect = stage.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
+  };
+
+  const ensureCropUi = () => {
+    let cropRoot = root.querySelector("[data-cf-tumbler-crop-inline]");
+    if (cropRoot) return cropRoot;
+
+    cropRoot = document.createElement("div");
+    cropRoot.setAttribute("data-cf-tumbler-crop-inline", "1");
+    cropRoot.hidden = true;
+    cropRoot.style.display = "none";
+    cropRoot.style.position = "fixed";
+    cropRoot.style.inset = "0";
+    cropRoot.style.zIndex = "9999";
+    cropRoot.style.boxSizing = "border-box";
+    cropRoot.style.pointerEvents = "none";
+    cropRoot.innerHTML = `
+      <div class="cf-tumbler-crop-dialog" data-cf-tumbler-crop-dialog="1" role="dialog" aria-modal="true" aria-label="Crop uploaded image"></div>
+      <div class="cf-tumbler-crop-panel" data-cf-tumbler-crop-panel="1">
+        <div class="cf-tumbler-crop-stage" data-cf-tumbler-crop-stage="1">
+          <canvas class="cf-tumbler-crop-stage__img" data-cf-tumbler-crop-canvas="1" hidden aria-hidden="true"></canvas>
+          <div class="cf-tumbler-crop-box" data-cf-tumbler-crop-box="1" hidden>
+            <div class="cf-tumbler-crop-box__drag" data-cf-tumbler-crop-drag="1" aria-hidden="true"></div>
+            <button type="button" class="cf-tumbler-crop-box__handle" data-cf-crop-handle="n" aria-label="Resize crop area from top"></button>
+            <button type="button" class="cf-tumbler-crop-box__handle" data-cf-crop-handle="s" aria-label="Resize crop area from bottom"></button>
+            <button type="button" class="cf-tumbler-crop-box__handle" data-cf-crop-handle="e" aria-label="Resize crop area from right"></button>
+            <button type="button" class="cf-tumbler-crop-box__handle" data-cf-crop-handle="w" aria-label="Resize crop area from left"></button>
+            <button type="button" class="cf-tumbler-crop-box__handle" data-cf-crop-handle="nw" aria-label="Resize crop area from top left"></button>
+            <button type="button" class="cf-tumbler-crop-box__handle" data-cf-crop-handle="ne" aria-label="Resize crop area from top right"></button>
+            <button type="button" class="cf-tumbler-crop-box__handle" data-cf-crop-handle="sw" aria-label="Resize crop area from bottom left"></button>
+            <button type="button" class="cf-tumbler-crop-box__handle" data-cf-crop-handle="se" aria-label="Resize crop area from bottom right"></button>
+          </div>
+          <div class="cf-tumbler-crop-stage__placeholder" data-cf-tumbler-crop-placeholder="1">
+            Crop preview will appear here.
+          </div>
+        </div>
+      </div>
+    `;
+    root.appendChild(cropRoot);
+    cropRoot.style.display = "none";
+
+    const backdrop = cropRoot.querySelector("[data-cf-tumbler-crop-dialog='1']");
+    const cropPanel = cropRoot.querySelector("[data-cf-tumbler-crop-panel='1']");
+    const cropStage = cropRoot.querySelector("[data-cf-tumbler-crop-stage='1']");
+    const cropCanvas = cropRoot.querySelector("[data-cf-tumbler-crop-canvas='1']");
+    const cropBox = cropRoot.querySelector("[data-cf-tumbler-crop-box='1']");
+    const cropDrag = cropRoot.querySelector("[data-cf-tumbler-crop-drag='1']");
+    const cropHandles = Array.from(cropRoot.querySelectorAll("[data-cf-crop-handle]"));
+    const placeholder = cropRoot.querySelector("[data-cf-tumbler-crop-placeholder='1']");
+
+    if (backdrop) {
+      backdrop.style.display = "none";
+    }
+    if (cropPanel) {
+      cropPanel.style.position = "fixed";
+      cropPanel.style.background = "transparent";
+      cropPanel.style.borderRadius = "0";
+      cropPanel.style.boxShadow = "none";
+      cropPanel.style.overflow = "hidden";
+      cropPanel.style.pointerEvents = "auto";
+    }
+
+    if (cropStage) {
+      cropStage.style.position = "absolute";
+      cropStage.style.inset = "0";
+      cropStage.style.overflow = "hidden";
+      cropStage.style.touchAction = "none";
+      cropStage.style.background = "transparent";
+    }
+    if (cropCanvas) {
+      cropCanvas.style.position = "absolute";
+      cropCanvas.style.display = "none";
+      cropCanvas.style.pointerEvents = "none";
+      cropCanvas.style.left = "0";
+      cropCanvas.style.top = "0";
+    }
+    if (cropBox) {
+      cropBox.style.position = "absolute";
+      cropBox.style.touchAction = "none";
+      cropBox.style.boxSizing = "border-box";
+      cropBox.style.pointerEvents = "auto";
+    }
+    if (cropDrag) {
+      cropDrag.style.position = "absolute";
+      cropDrag.style.inset = "0";
+      cropDrag.style.cursor = "move";
+      cropDrag.style.touchAction = "none";
+    }
+    cropHandles.forEach((handleEl) => {
+      handleEl.style.position = "absolute";
+      handleEl.style.touchAction = "none";
+    });
+    const handleMap = {
+      nw: { top: "-11px", left: "-11px", cursor: "nwse-resize" },
+      ne: { top: "-11px", right: "-11px", cursor: "nesw-resize" },
+      sw: { bottom: "-11px", left: "-11px", cursor: "nesw-resize" },
+      se: { bottom: "-11px", right: "-11px", cursor: "nwse-resize" },
+      n: { top: "-11px", left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
+      s: { bottom: "-11px", left: "50%", transform: "translateX(-50%)", cursor: "ns-resize" },
+      e: { right: "-11px", top: "50%", transform: "translateY(-50%)", cursor: "ew-resize" },
+      w: { left: "-11px", top: "50%", transform: "translateY(-50%)", cursor: "ew-resize" }
+    };
+    cropHandles.forEach((handleEl) => {
+      const cfg = handleMap[handleEl.getAttribute("data-cf-crop-handle")] || {};
+      Object.keys(cfg).forEach((key) => {
+        handleEl.style[key] = cfg[key];
+      });
+    });
+    if (placeholder) {
+      placeholder.style.position = "absolute";
+      placeholder.style.inset = "0";
+      placeholder.style.display = "grid";
+      placeholder.style.placeItems = "center";
+      placeholder.style.padding = "20px";
+      placeholder.style.textAlign = "center";
+      placeholder.style.color = "rgba(15,23,42,0.56)";
+      placeholder.style.fontSize = "1.3rem";
+      placeholder.style.background = "rgba(255,255,255,0.78)";
+    }
+
+    if (cropBox) {
+      let activeTouchId = null;
+      let activePointerId = null;
+
+      const startInteraction = (clientX, clientY, handle, pointerId) => {
+        if (!cropState.isOpen) return;
+        cropState.pointerMode = handle ? "resize" : "drag-crop";
+        cropState.pointerId = pointerId != null ? pointerId : null;
+        cropState.pointerStart = {
+          x: clientX,
+          y: clientY,
+          handle: handle || "",
+          cropRect: { ...cropState.cropRect }
+        };
+      };
+
+      const updateInteraction = (clientX, clientY) => {
+        if (!cropState.pointerMode || !cropState.pointerStart) return;
+        const image = cropState.image;
+        const cropRect = cropState.cropRect;
+        if (!image.w || !image.h || !cropRect.w || !cropRect.h) return;
+
+        const dx = clientX - cropState.pointerStart.x;
+        const dy = clientY - cropState.pointerStart.y;
+        const startRect = cropState.pointerStart.cropRect;
+        let nextRect = { ...startRect };
+
+        if (cropState.pointerMode === "drag-crop") {
+          nextRect.x = startRect.x + dx;
+          nextRect.y = startRect.y + dy;
+        } else {
+          const handle = cropState.pointerStart.handle || "";
+          const startLeft = startRect.x;
+          const startTop = startRect.y;
+          const startRight = startRect.x + startRect.w;
+          const startBottom = startRect.y + startRect.h;
+
+          let nextLeft = startLeft;
+          let nextTop = startTop;
+          let nextRight = startRight;
+          let nextBottom = startBottom;
+
+          if (handle.indexOf("w") !== -1) nextLeft = startLeft + dx;
+          if (handle.indexOf("e") !== -1) nextRight = startRight + dx;
+          if (handle.indexOf("n") !== -1) nextTop = startTop + dy;
+          if (handle.indexOf("s") !== -1) nextBottom = startBottom + dy;
+
+          nextRect = {
+            x: nextLeft,
+            y: nextTop,
+            w: nextRight - nextLeft,
+            h: nextBottom - nextTop
+          };
+        }
+
+        cropState.cropRect = clampCropRectToImage(nextRect);
+        syncCropBoxUi();
+      };
+
+      const endInteraction = () => {
+        cropState.pointerMode = null;
+        cropState.pointerId = null;
+        cropState.pointerStart = null;
+      };
+
+      const detachWindowPointerListeners = () => {
+        window.removeEventListener("pointermove", handleWindowPointerMove);
+        window.removeEventListener("pointerup", handleWindowPointerEnd);
+        window.removeEventListener("pointercancel", handleWindowPointerEnd);
+      };
+
+      const detachWindowTouchListeners = () => {
+        window.removeEventListener("touchmove", handleWindowTouchMove);
+        window.removeEventListener("touchend", handleWindowTouchEnd);
+        window.removeEventListener("touchcancel", handleWindowTouchEnd);
+      };
+
+      const handleWindowPointerMove = (e) => {
+        if (!cropState.isOpen || activePointerId == null) return;
+        if (e.pointerId !== activePointerId) return;
+        updateInteraction(e.clientX, e.clientY);
+        e.preventDefault();
+      };
+
+      const handleWindowPointerEnd = (e) => {
+        if (activePointerId == null) return;
+        if (e.pointerId !== activePointerId) return;
+        activePointerId = null;
+        endInteraction();
+        detachWindowPointerListeners();
+      };
+
+      const findTouchById = (touchList, identifier) => {
+        if (!touchList || identifier == null) return null;
+        for (let i = 0; i < touchList.length; i += 1) {
+          if (touchList[i] && touchList[i].identifier === identifier) return touchList[i];
+        }
+        return null;
+      };
+
+      const handleWindowTouchMove = (e) => {
+        if (!cropState.isOpen || activeTouchId == null) return;
+        const touch = findTouchById(e.touches, activeTouchId);
+        if (!touch) return;
+        updateInteraction(touch.clientX, touch.clientY);
+        e.preventDefault();
+      };
+
+      const handleWindowTouchEnd = (e) => {
+        if (activeTouchId == null) return;
+        const activeTouch = findTouchById(e.touches, activeTouchId);
+        if (activeTouch) return;
+        activeTouchId = null;
+        endInteraction();
+        detachWindowTouchListeners();
+      };
+
+      const zoomCropImage = (delta) => {
+        const image = cropState.image;
+        const cropRect = cropState.cropRect;
+        if (!image.w || !image.h || !cropRect.w || !cropRect.h) return;
+
+        const step = delta > 0 ? 0.92 : 1.08;
+        const centerX = cropRect.x + cropRect.w / 2;
+        const centerY = cropRect.y + cropRect.h / 2;
+        let nextW = Math.round(cropRect.w * step);
+        let nextH = Math.round(cropRect.h * step);
+
+        nextW = clamp(nextW, CROP_MIN_SIZE, image.w);
+        nextH = clamp(nextH, CROP_MIN_SIZE, image.h);
+
+        cropState.cropRect = clampCropRectToImage({
+          x: Math.round(centerX - nextW / 2),
+          y: Math.round(centerY - nextH / 2),
+          w: nextW,
+          h: nextH
+        });
+        syncCropBoxUi();
+      };
+
+      const beginPointerCrop = (e, handle) => {
+        if (!cropState.isOpen || cropApplyInFlight) return;
+        activePointerId = e.pointerId;
+        startInteraction(e.clientX, e.clientY, handle || "", e.pointerId);
+        detachWindowPointerListeners();
+        window.addEventListener("pointermove", handleWindowPointerMove, { passive: false });
+        window.addEventListener("pointerup", handleWindowPointerEnd, { passive: false });
+        window.addEventListener("pointercancel", handleWindowPointerEnd, { passive: false });
+        if (cropBox.setPointerCapture) {
+          try { cropBox.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      const beginTouchCrop = (e, handle) => {
+        if (!cropState.isOpen || cropApplyInFlight) return;
+        const touch = e.touches && e.touches[0];
+        if (!touch) return;
+        activeTouchId = touch.identifier;
+        startInteraction(touch.clientX, touch.clientY, handle || "", touch.identifier);
+        detachWindowTouchListeners();
+        window.addEventListener("touchmove", handleWindowTouchMove, { passive: false });
+        window.addEventListener("touchend", handleWindowTouchEnd, { passive: false });
+        window.addEventListener("touchcancel", handleWindowTouchEnd, { passive: false });
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      if (cropBox) {
+        const beginBoxDrag = (e) => {
+          if (e.target && e.target.closest && e.target.closest("[data-cf-crop-handle]")) return;
+          beginPointerCrop(e, "");
+        };
+        const beginBoxTouchDrag = (e) => {
+          if (e.target && e.target.closest && e.target.closest("[data-cf-crop-handle]")) return;
+          beginTouchCrop(e, "");
+        };
+        cropBox.addEventListener("pointerdown", beginBoxDrag);
+        cropBox.addEventListener("touchstart", beginBoxTouchDrag, { passive: false });
+      }
+      if (cropDrag) {
+        cropDrag.addEventListener("pointerdown", (e) => beginPointerCrop(e, ""));
+        cropDrag.addEventListener("touchstart", (e) => beginTouchCrop(e, ""), { passive: false });
+      }
+      cropHandles.forEach((handleEl) => {
+        const handle = handleEl.getAttribute("data-cf-crop-handle") || "";
+        handleEl.addEventListener("pointerdown", (e) => beginPointerCrop(e, handle));
+        handleEl.addEventListener("touchstart", (e) => beginTouchCrop(e, handle), { passive: false });
+      });
+    }
+
+    if (backdrop) {
+      backdrop.addEventListener("click", () => {
+        if (cropApplyInFlight) return;
+        closeCropModal();
+      });
+    }
+
+    if (cropStage) {
+      cropStage.addEventListener(
+        "wheel",
+        (e) => {
+          if (!cropState.isOpen) return;
+          e.preventDefault();
+          zoomCropImage(Math.sign(e.deltaY));
+        },
+        { passive: false }
+      );
+    }
+
+    return cropRoot;
+  };
+
+  const getCropUiElements = () => {
+    const rootEl = root.querySelector("[data-cf-tumbler-crop-inline='1']");
+    return {
+      root: rootEl,
+      panel: rootEl ? rootEl.querySelector("[data-cf-tumbler-crop-panel='1']") : null,
+      stage: rootEl ? rootEl.querySelector("[data-cf-tumbler-crop-stage='1']") : null,
+      canvas: rootEl ? rootEl.querySelector("[data-cf-tumbler-crop-canvas='1']") : null,
+      box: rootEl ? rootEl.querySelector("[data-cf-tumbler-crop-box='1']") : null,
+      placeholder: rootEl ? rootEl.querySelector("[data-cf-tumbler-crop-placeholder='1']") : null
+    };
+  };
+
+  const syncCropOverlayPanelPosition = () => {
+    const { panel } = getCropUiElements();
+    if (!panel) return;
+    const rect = stage.getBoundingClientRect();
+    panel.style.left = `${Math.round(rect.left)}px`;
+    panel.style.top = `${Math.round(rect.top)}px`;
+    panel.style.width = `${Math.round(rect.width)}px`;
+    panel.style.height = `${Math.round(rect.height)}px`;
+  };
+
+  const getCurrentEditorCropImageRect = (cropStageRect) => {
+    if (!cropStageRect || !cropState.naturalWidth || !cropState.naturalHeight) return null;
+
+    const stageBounds = stage.getBoundingClientRect();
+    if (!(stageBounds.width > 1) || !(stageBounds.height > 1)) return null;
+
+    let visibleBounds = null;
+    if (!designWrap.hidden) {
+      const wrapBounds = designWrap.getBoundingClientRect();
+      if (wrapBounds.width > 1 && wrapBounds.height > 1) {
+        visibleBounds = {
+          x: wrapBounds.left - stageBounds.left,
+          y: wrapBounds.top - stageBounds.top,
+          w: wrapBounds.width,
+          h: wrapBounds.height
+        };
+      }
+    }
+
+    if (!visibleBounds && state.placement) {
+      visibleBounds = {
+        x: state.placement.x * cropStageRect.width,
+        y: state.placement.y * cropStageRect.height,
+        w: state.placement.w * cropStageRect.width,
+        h: state.placement.h * cropStageRect.height
+      };
+    }
+
+    if (!visibleBounds || !(visibleBounds.w > 1) || !(visibleBounds.h > 1)) return null;
+
+    const containScale = Math.min(
+      visibleBounds.w / cropState.naturalWidth,
+      visibleBounds.h / cropState.naturalHeight
+    );
+    const scale = Math.max(0.01, containScale);
+    const imageW = Math.max(1, Math.round(cropState.naturalWidth * scale));
+    const imageH = Math.max(1, Math.round(cropState.naturalHeight * scale));
+    const imageX = Math.round(visibleBounds.x + (visibleBounds.w - imageW) / 2);
+    const imageY = Math.round(visibleBounds.y + (visibleBounds.h - imageH) / 2);
+
+    return {
+      x: imageX,
+      y: imageY,
+      w: imageW,
+      h: imageH,
+      scale
+    };
+  };
+
+  const clampCropRectToImage = (rect) => {
+    const image = cropState.image;
+    if (!image.w || !image.h) return { x: 0, y: 0, w: 0, h: 0 };
+
+    let nextW = clamp(rect.w, CROP_MIN_SIZE, image.w);
+    let nextH = clamp(rect.h, CROP_MIN_SIZE, image.h);
+    let nextX = clamp(rect.x, image.x, image.x + image.w - nextW);
+    let nextY = clamp(rect.y, image.y, image.y + image.h - nextH);
+
+    nextW = Math.min(nextW, image.x + image.w - nextX);
+    nextH = Math.min(nextH, image.y + image.h - nextY);
+
+    return {
+      x: Math.round(nextX),
+      y: Math.round(nextY),
+      w: Math.round(nextW),
+      h: Math.round(nextH)
+    };
+  };
+
+  const initCropRect = () => {
+    syncCropOverlayPanelPosition();
+    const { stage: cropStage } = getCropUiElements();
+    if (!cropStage) return;
+    const cropStageRect = cropStage.getBoundingClientRect();
+    if (!cropStageRect.width || !cropStageRect.height || !cropState.naturalWidth || !cropState.naturalHeight) return;
+
+    const currentVisibleRect = getCurrentEditorCropImageRect(cropStageRect);
+    const containScale = Math.min(
+      cropStageRect.width / cropState.naturalWidth,
+      cropStageRect.height / cropState.naturalHeight
+    );
+    const safeScale = currentVisibleRect ? currentVisibleRect.scale : Math.max(0.01, containScale);
+    const imageW = currentVisibleRect ? currentVisibleRect.w : Math.max(1, Math.round(cropState.naturalWidth * safeScale));
+    const imageH = currentVisibleRect ? currentVisibleRect.h : Math.max(1, Math.round(cropState.naturalHeight * safeScale));
+    const imageX = currentVisibleRect ? currentVisibleRect.x : Math.round((cropStageRect.width - imageW) / 2);
+    const imageY = currentVisibleRect ? currentVisibleRect.y : Math.round((cropStageRect.height - imageH) / 2);
+    const existingCrop = cropSourceState.crop;
+
+    let cropW = Math.max(CROP_MIN_SIZE, Math.round(imageW * 0.72));
+    let cropH = Math.max(CROP_MIN_SIZE, Math.round(imageH * 0.72));
+    let cropX = Math.round(imageX + (imageW - cropW) / 2);
+    let cropY = Math.round(imageY + (imageH - cropH) / 2);
+    const isExistingCropForCurrentImage =
+      !!(
+        existingCrop &&
+        existingCrop.w > 0 &&
+        existingCrop.h > 0 &&
+        existingCrop.naturalWidth === Math.round(cropState.naturalWidth || 0) &&
+        existingCrop.naturalHeight === Math.round(cropState.naturalHeight || 0)
+      );
+
+    if (isExistingCropForCurrentImage) {
+      cropX = Math.round(imageX + existingCrop.x * safeScale);
+      cropY = Math.round(imageY + existingCrop.y * safeScale);
+      cropW = Math.max(CROP_MIN_SIZE, Math.round(existingCrop.w * safeScale));
+      cropH = Math.max(CROP_MIN_SIZE, Math.round(existingCrop.h * safeScale));
+    }
+
+    cropState.stage = { x: 0, y: 0, w: cropStageRect.width, h: cropStageRect.height };
+    cropState.image = {
+      x: imageX,
+      y: imageY,
+      w: imageW,
+      h: imageH,
+      scale: safeScale
+    };
+    cropState.cropRect = clampCropRectToImage({
+      x: cropX,
+      y: cropY,
+      w: cropW,
+      h: cropH
+    });
+  };
+
+  const renderCropStageCanvas = () => {
+    const { canvas } = getCropUiElements();
+    const sourceImage = cropState.loadedImage;
+    if (!canvas || !sourceImage || !cropState.image.w || !cropState.image.h) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const drawW = Math.max(1, Math.round(cropState.image.w));
+    const drawH = Math.max(1, Math.round(cropState.image.h));
+    const canvasW = Math.max(1, Math.round(drawW * dpr));
+    const canvasH = Math.max(1, Math.round(drawH * dpr));
+    if (canvas.width !== canvasW) canvas.width = canvasW;
+    if (canvas.height !== canvasH) canvas.height = canvasH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, drawW, drawH);
+    ctx.drawImage(sourceImage, 0, 0, drawW, drawH);
+    canvas.hidden = false;
+    canvas.style.display = "block";
+    canvas.style.left = `${cropState.image.x}px`;
+    canvas.style.top = `${cropState.image.y}px`;
+    canvas.style.width = `${drawW}px`;
+    canvas.style.height = `${drawH}px`;
+  };
+
+  const syncCropBoxUi = () => {
+    const { box: cropBox, canvas } = getCropUiElements();
+    if (!cropBox || !canvas || !cropState.cropRect.w || !cropState.image.w) return;
+
+    cropState.cropRect = clampCropRectToImage(cropState.cropRect);
+    renderCropStageCanvas();
+    cropBox.hidden = false;
+    cropBox.style.display = "block";
+    cropBox.style.left = `${cropState.cropRect.x}px`;
+    cropBox.style.top = `${cropState.cropRect.y}px`;
+    cropBox.style.width = `${cropState.cropRect.w}px`;
+    cropBox.style.height = `${cropState.cropRect.h}px`;
+    cropBox.classList.toggle("is-compact", cropState.cropRect.w <= 84 || cropState.cropRect.h <= 84);
+  };
+
+  const closeCropModal = () => {
+    const { root: cropRoot, panel, canvas, box: cropBox, placeholder } = getCropUiElements();
+    cropApplyInFlight = false;
+    setCropEditorIsolation(false);
+    resetMainEditorInteraction();
+    if (canvas) {
+      canvas.hidden = true;
+      canvas.style.display = "none";
+      canvas.style.left = "";
+      canvas.style.top = "";
+      canvas.style.width = "";
+      canvas.style.height = "";
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    if (cropBox) {
+      cropBox.hidden = true;
+      cropBox.style.display = "none";
+      cropBox.style.left = "";
+      cropBox.style.top = "";
+      cropBox.style.width = "";
+      cropBox.style.height = "";
+    }
+    if (placeholder) {
+      placeholder.hidden = false;
+      placeholder.style.display = "grid";
+      placeholder.textContent = "Crop preview will appear here.";
+    }
+    if (cropRoot) {
+      cropRoot.hidden = true;
+      cropRoot.style.display = "none";
+    }
+    if (panel) {
+      panel.style.left = "";
+      panel.style.top = "";
+      panel.style.width = "";
+      panel.style.height = "";
+    }
+    root.classList.remove("bd-crop-open");
+    resetCropState();
+    syncCropActionButtons();
+    updateStatusAndMeta();
+  };
+
+  const openCropModal = (file) => {
+    if (!file || !canCropFile(file)) return;
+    const cropRoot = ensureCropUi();
+    const { canvas, placeholder, box: cropBox } = getCropUiElements();
+    cropApplyInFlight = false;
+    resetCropState();
+    resetMainEditorInteraction();
+    cropState.isOpen = true;
+    cropState.file = file;
+    cropState.objectUrl = URL.createObjectURL(file);
+    root.classList.add("bd-crop-open");
+    setCropEditorIsolation(true);
+    if (cropRoot) {
+      cropRoot.hidden = false;
+      cropRoot.style.display = "block";
+    }
+    syncCropOverlayPanelPosition();
+    if (placeholder) {
+      placeholder.hidden = false;
+      placeholder.style.display = "grid";
+      placeholder.textContent = "Loading crop preview...";
+    }
+    if (cropBox) {
+      cropBox.hidden = true;
+      cropBox.style.display = "none";
+    }
+    if (canvas) {
+      canvas.hidden = true;
+      canvas.style.display = "none";
+      canvas.style.left = "";
+      canvas.style.top = "";
+      canvas.style.width = "";
+      canvas.style.height = "";
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    if (statusEl) {
+      statusEl.textContent = "Adjust the crop, then apply it.";
+    }
+    syncCropActionButtons();
+    const probeImage = new Image();
+    probeImage.onload = () => {
+      if (!cropState.isOpen || cropState.objectUrl !== probeImage.src) return;
+      cropState.loadedImage = probeImage;
+      cropState.naturalWidth = probeImage.naturalWidth || 0;
+      cropState.naturalHeight = probeImage.naturalHeight || 0;
+      initCropRect();
+      syncCropBoxUi();
+      if (placeholder) placeholder.style.display = "none";
+    };
+    probeImage.onerror = () => {
+      cropApplyInFlight = false;
+      if (statusEl) statusEl.textContent = "We couldn't load that image for cropping. Please try again.";
+      closeCropModal();
+    };
+    probeImage.src = cropState.objectUrl;
+  };
+
+  const getCropExportSpec = () => {
+    const file = cropState.file;
+    const cropRect = cropState.cropRect;
+    const image = cropState.image;
+    if (!file || !cropRect.w || !cropRect.h || !image.w || !image.h) return null;
+
+    const scaleX = cropState.naturalWidth / image.w;
+    const scaleY = cropState.naturalHeight / image.h;
+    const srcX = Math.max(0, Math.round((cropRect.x - image.x) * scaleX));
+    const srcY = Math.max(0, Math.round((cropRect.y - image.y) * scaleY));
+    const srcW = Math.min(cropState.naturalWidth - srcX, Math.max(1, Math.round(cropRect.w * scaleX)));
+    const srcH = Math.min(cropState.naturalHeight - srcY, Math.max(1, Math.round(cropRect.h * scaleY)));
+
+    return {
+      srcX,
+      srcY,
+      srcW,
+      srcH,
+      cropMeta: {
+        x: srcX,
+        y: srcY,
+        w: srcW,
+        h: srcH,
+        naturalWidth: Math.round(cropState.naturalWidth || 0),
+        naturalHeight: Math.round(cropState.naturalHeight || 0)
+      }
+    };
+  };
+
+  const exportCroppedFile = async () => {
+    const file = cropState.file;
+    const spec = getCropExportSpec();
+    const sourceImage = cropState.loadedImage;
+    if (!file || !sourceImage || !spec) throw new Error("Missing crop export state");
+
+    const cropCanvas = document.createElement("canvas");
+    cropCanvas.width = spec.srcW;
+    cropCanvas.height = spec.srcH;
+    const ctx = cropCanvas.getContext("2d");
+    if (!ctx) throw new Error("Missing crop export canvas context");
+    ctx.drawImage(
+      sourceImage,
+      spec.srcX,
+      spec.srcY,
+      spec.srcW,
+      spec.srcH,
+      0,
+      0,
+      spec.srcW,
+      spec.srcH
+    );
+
+    const blob = await canvasToBlob(cropCanvas, "image/png");
+    const baseName = (file.name || "mug-design").replace(/\.[^.]+$/, "");
+    const croppedFile = new File([blob], `${baseName}-cropped.png`, {
+      type: "image/png",
+      lastModified: Date.now()
+    });
+
+    return {
+      file: croppedFile,
+      cropMeta: spec.cropMeta
+    };
+  };
+
+  const pushFileIntoRealInput = (file, options = {}) => {
+    if (!uploadInput || !file) return;
+    const bypassProductState = Object.prototype.hasOwnProperty.call(options, "bypassProductState")
+      ? !!options.bypassProductState
+      : true;
+    const preserveMasterOriginal = Object.prototype.hasOwnProperty.call(options, "preserveMasterOriginal")
+      ? !!options.preserveMasterOriginal
+      : true;
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    uploadInput.files = dt.files;
+    uploadInput.__bdCropBypassCount = bypassProductState ? 1 : 0;
+    uploadInput.__bdPreserveMasterOriginal = preserveMasterOriginal ? 1 : 0;
+    uploadInput.dispatchEvent(new Event("change", { bubbles: true }));
   };
 
   const getWrapCanvasSize = () => {
@@ -500,30 +1735,32 @@
     return (normalizedHeight * imageAspect) / wrapAspect;
   };
 
-  const ensurePlacement = () => {
-    if (state.placement || !state.aspect) return;
-
+  const buildDefaultPlacement = (imageAspect) => {
     let width = 0.82;
-    let height = getNormalizedHeightForWidth(width, state.aspect);
+    let height = getNormalizedHeightForWidth(width, imageAspect);
     if (height > 0.82) {
       height = 0.82;
-      width = getNormalizedWidthForHeight(height, state.aspect);
+      width = getNormalizedWidthForHeight(height, imageAspect);
     }
     if (width > 1) {
       width = 1;
-      height = getNormalizedHeightForWidth(width, state.aspect);
+      height = getNormalizedHeightForWidth(width, imageAspect);
     }
     if (height > 1) {
       height = 1;
-      width = getNormalizedWidthForHeight(height, state.aspect);
+      width = getNormalizedWidthForHeight(height, imageAspect);
     }
-
-    state.initialPlacement = {
+    return {
       x: (1 - width) / 2,
       y: (1 - height) / 2,
       w: width,
       h: height
     };
+  };
+
+  const ensurePlacement = () => {
+    if (state.placement || !state.aspect) return;
+    state.initialPlacement = buildDefaultPlacement(state.aspect);
     state.placement = { ...state.initialPlacement };
   };
 
@@ -590,17 +1827,24 @@
       ctx.setLineDash([]);
 
       ctx.beginPath();
+      ctx.moveTo(leftVisibleX, guideTopY);
+      ctx.lineTo(rightVisibleX, guideTopY);
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.72)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.beginPath();
       ctx.moveTo(centerX, guideTopY);
       ctx.lineTo(centerX, guideBottomY);
-      ctx.strokeStyle = "rgba(220, 38, 38, 0.32)";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(220, 38, 38, 0.72)";
+      ctx.lineWidth = 2;
       ctx.stroke();
 
       ctx.beginPath();
       ctx.moveTo(leftVisibleX, curveY);
       ctx.quadraticCurveTo(centerX, guideBottomY, rightVisibleX, curveY);
-      ctx.strokeStyle = "rgba(71, 85, 105, 0.2)";
-      ctx.lineWidth = 1.1;
+      ctx.strokeStyle = "rgba(234, 88, 12, 0.58)";
+      ctx.lineWidth = 2;
       ctx.stroke();
       ctx.restore();
     });
@@ -623,35 +1867,34 @@
     const dpr = window.devicePixelRatio || 1;
     editorCanvas.width = Math.max(1, Math.round(rect.width * dpr));
     editorCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+    editorCanvas.style.width = `${rect.width}px`;
+    editorCanvas.style.height = `${rect.height}px`;
     const ctx = editorCanvas.getContext("2d");
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = "#f8fafc";
-    ctx.fillRect(0, 0, rect.width, rect.height);
     drawEditorGuides(ctx, rect);
     applyDesignWrapUi(rect);
   };
 
   const getProofCloudConfig = () => {
     const cloud = uploader ? String(uploader.dataset.cloud || "").trim() : "";
-    const preset = uploader ? String(uploader.dataset.preset || "").trim() : "";
-    const folderBase = uploader ? String(uploader.dataset.folder || "").trim() : "";
-    const folder = folderBase ? `${folderBase.replace(/\/+$/, "")}/proofs` : "proofs";
-    return { cloud, preset, folder };
+    const uploadPreset = uploader ? String(uploader.dataset.proofUploadPreset || uploader.dataset.uploadPreset || "").trim() : "";
+    const folder = uploader ? String(uploader.dataset.proofFolder || uploader.dataset.folder || "").trim() : "";
+    if (!cloud || !uploadPreset) return null;
+    return { cloud, uploadPreset, folder };
   };
 
   const ensureProofInput = () => {
     const productForm = getProductForm();
     if (!productForm) return null;
-    let input = productForm.querySelector("#cf_mug_proof_mockup_url");
-    if (!input) {
-      input = document.createElement("input");
-      input.type = "hidden";
-      input.name = "properties[Proof Mockup URL]";
-      input.id = "cf_mug_proof_mockup_url";
-      productForm.appendChild(input);
-    }
+    let input = productForm.querySelector("#cf_mug_proof_url");
+    if (input) return input;
+    input = document.createElement("input");
+    input.type = "hidden";
+    input.id = "cf_mug_proof_url";
+    input.name = "properties[Proof Mockup URL]";
+    productForm.appendChild(input);
     return input;
   };
 
@@ -659,13 +1902,12 @@
     const productForm = getProductForm();
     if (!productForm) return null;
     let input = productForm.querySelector("#cf_mug_proof_notice");
-    if (!input) {
-      input = document.createElement("input");
-      input.type = "hidden";
-      input.name = "properties[_Proof Notice]";
-      input.id = "cf_mug_proof_notice";
-      productForm.appendChild(input);
-    }
+    if (input) return input;
+    input = document.createElement("input");
+    input.type = "hidden";
+    input.id = "cf_mug_proof_notice";
+    input.name = "properties[_Proof Notice]";
+    productForm.appendChild(input);
     return input;
   };
 
@@ -673,129 +1915,108 @@
     const productForm = getProductForm();
     if (!productForm) return null;
     let input = productForm.querySelector("#cf_mug_upload_notice");
-    if (!input) {
-      input = document.createElement("input");
-      input.type = "hidden";
-      input.name = "properties[_Upload Notice]";
-      input.id = "cf_mug_upload_notice";
-      productForm.appendChild(input);
-    }
+    if (input) return input;
+    input = document.createElement("input");
+    input.type = "hidden";
+    input.id = "cf_mug_upload_notice";
+    input.name = "properties[_Upload Notice]";
+    productForm.appendChild(input);
     return input;
   };
 
-  const setProofUrl = (url) => {
+  const setProofUrl = (value) => {
     const input = ensureProofInput();
-    if (input) input.value = String(url || "").trim();
+    if (input) input.value = value || "";
   };
 
-  const setProofNotice = (message) => {
+  const setProofNotice = (value) => {
     const input = ensureProofNoticeInput();
-    if (input) input.value = String(message || "").trim();
+    if (input) input.value = value || "";
   };
 
-  const setUploadNotice = (message) => {
+  const setUploadNotice = (value) => {
     const input = ensureUploadNoticeInput();
-    if (input) input.value = String(message || "").trim();
+    if (input) input.value = value || "";
   };
 
-  const canvasToBlob = (canvas) =>
+  const rehydrateProofStateFromInputs = () => {
+    const proofInput = ensureProofInput();
+    const proofUrl = proofInput ? String(proofInput.value || "").trim() : "";
+    if (!proofUrl) return;
+    const key = getProofStateKey();
+    if (!key) return;
+    proofLastUrl = proofUrl;
+    proofLastKey = key;
+  };
+
+  const uploadProofBlobToCloudinary = async ({ blob }) => {
+    const cfg = getProofCloudConfig();
+    if (!blob) return "";
+    if (typeof window.bdUploadAsset === "function") {
+      const uploaded = await window.bdUploadAsset(blob, {
+        kind: "proof",
+        filename: `mug-proof-${Date.now()}.png`,
+        folder: (cfg && cfg.folder) || ""
+      });
+      const uploadedUrl = uploaded && (uploaded.secureUrl || uploaded.url) ? String(uploaded.secureUrl || uploaded.url).trim() : "";
+      if (uploadedUrl) return uploadedUrl;
+    }
+    if (!cfg) return "";
+
+    const url = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cfg.cloud)}/image/upload`;
+    const fd = new FormData();
+    fd.append("file", blob, `mug-proof-${Date.now()}.png`);
+    fd.append("upload_preset", cfg.uploadPreset);
+    if (cfg.folder) fd.append("folder", cfg.folder);
+    const response = await fetch(url, { method: "POST", body: fd });
+    if (!response.ok) throw new Error(`Cloudinary proof upload failed (${response.status})`);
+    const json = await response.json();
+    return String(json && (json.secure_url || json.url) || "").trim();
+  };
+
+  const canvasToBlob = (canvas, type) =>
     new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-      else reject(new Error("Mug proof export failed"));
-        },
-        "image/png",
-        0.92
-      );
+      if (!canvas || typeof canvas.toBlob !== "function") {
+        reject(new Error("Canvas toBlob is not available"));
+        return;
+      }
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Failed to create blob from canvas"));
+          return;
+        }
+        resolve(blob);
+      }, type || "image/png");
     });
 
-  const uploadProofBlobToCloudinary = ({ blob }) => {
-    const { cloud, preset, folder } = getProofCloudConfig();
-    if (!blob) {
-      return Promise.reject(new Error("Missing proof upload blob"));
-    }
-    if (typeof window.bdPatchUploadProviderConfig === "function") {
-      window.bdPatchUploadProviderConfig({
-        providers: {
-          cloudinary: {
-            cloudName: cloud,
-            uploadPreset: preset,
-            proofFolder: folder || "proofs"
-          }
-        }
-      });
-    }
-    if (typeof window.bdUploadAsset !== "function") {
-      return Promise.reject(new Error("Upload provider is not initialized."));
-    }
-
-    return window.bdUploadAsset(blob, {
-      kind: "proof",
-        filename: `mug-proof-${Date.now()}.png`,
-      folder
-    }).then((result) => String((result && (result.secureUrl || result.url)) || "").trim());
-  };
-
   const tracePreviewZonePath = (ctx, zone) => {
-    const visibleWidth = zone.width * zone.visibleWidthRatio;
-    const visibleInset = (zone.width - visibleWidth) / 2;
-    const leftX = zone.x + visibleInset;
-    const rightX = zone.x + zone.width - visibleInset;
+    const halfVisible = (zone.width * zone.visibleWidthRatio) / 2;
+    const leftVisibleX = zone.centerX - halfVisible;
+    const rightVisibleX = zone.centerX + halfVisible;
     const topY = zone.y + zone.topOffset;
     const bottomY = zone.y + zone.height;
     const curveY = bottomY - zone.bottomCurveDepth;
-    const sideCornerRadius = Math.min(
-      visibleWidth * 0.008,
-      zone.bottomCurveDepth * 0.16,
-      3.5
-    );
 
     ctx.beginPath();
-    ctx.moveTo(leftX, topY);
-    ctx.lineTo(rightX, topY);
-    ctx.quadraticCurveTo(
-      rightX,
-      topY,
-      rightX,
-      topY
-    );
-    ctx.lineTo(rightX, curveY + sideCornerRadius);
-    ctx.quadraticCurveTo(
-      rightX,
-      curveY,
-      rightX - sideCornerRadius,
-      curveY
-    );
-    ctx.quadraticCurveTo(
-      zone.centerX,
-      bottomY,
-      leftX + sideCornerRadius,
-      curveY
-    );
-    ctx.quadraticCurveTo(
-      leftX,
-      curveY,
-      leftX,
-      curveY + sideCornerRadius
-    );
-    ctx.lineTo(leftX, topY);
+    ctx.moveTo(leftVisibleX, topY);
+    ctx.lineTo(rightVisibleX, topY);
+    ctx.lineTo(rightVisibleX, curveY);
+    ctx.quadraticCurveTo(zone.centerX, bottomY, leftVisibleX, curveY);
     ctx.closePath();
   };
 
   const drawMockupContain = (ctx, width, height) => {
-    if (!mockupImage || !spec) return null;
-    const sourceWidth = spec.nativeWidth || mockupImage.width || width;
-    const sourceHeight = spec.nativeHeight || mockupImage.height || height;
+    if (!mockupImage || !mockupImage.naturalWidth || !mockupImage.naturalHeight) return null;
+    const sourceWidth = mockupImage.naturalWidth;
+    const sourceHeight = mockupImage.naturalHeight;
     const sourceAspect = sourceWidth / sourceHeight;
-    const canvasAspect = width / height;
-
+    const targetAspect = width / height;
     let drawWidth = width;
     let drawHeight = height;
     let drawX = 0;
     let drawY = 0;
 
-    if (sourceAspect > canvasAspect) {
+    if (sourceAspect > targetAspect) {
       drawHeight = width / sourceAspect;
       drawY = (height - drawHeight) / 2;
     } else {
@@ -996,7 +2217,7 @@
       return proofLastUrl;
     })()
       .catch((err) => {
-      console.error("Mug proof sync failed", err);
+        console.error("Mug proof sync failed", err);
         setProofNotice(PROOF_NOTICE_TEXT);
         return "";
       })
@@ -1009,6 +2230,7 @@
 
   const scheduleProofSync = () => {
     if (proofSyncTimer) window.clearTimeout(proofSyncTimer);
+    if (isCropPending()) return;
     if (!state.src) {
       setProofUrl("");
       return;
@@ -1021,10 +2243,19 @@
 
   const updateStatusAndMeta = () => {
     if (!statusEl || !metaEl) return;
+    if (isCropPending()) {
+      statusEl.textContent = "Adjust the crop, then apply it.";
+      metaEl.textContent = metaSource && metaSource.textContent
+        ? metaSource.textContent
+        : (state.width && state.height ? `Upload: ${state.width} x ${state.height}px - Aspect ratio ${state.aspect.toFixed(2)}` : "");
+      syncThumbnailLockState();
+      return;
+    }
     if (!state.src) {
       const hiddenStatus = statusSource ? String(statusSource.textContent || "").trim() : "";
-      statusEl.textContent = hiddenStatus || "Upload one design to start the mug preview.";
+      statusEl.textContent = hiddenStatus;
       metaEl.textContent = metaSource && metaSource.textContent ? metaSource.textContent : "";
+      syncThumbnailLockState();
       return;
     }
 
@@ -1039,10 +2270,11 @@
       ? hiddenStatus
       : proofReady
         ? "If the upload and preview look correct, add to cart."
-        : proofNotice || "Preview ready. If the upload looks correct, you can add to cart. Preparing the cart proof image.";
+        : proofNotice || "If the upload and preview look correct, add to cart.";
     metaEl.textContent = metaSource && metaSource.textContent
       ? metaSource.textContent
       : `Upload: ${originalWidth} x ${originalHeight}px - Aspect ratio ${aspect.toFixed(2)}`;
+    syncThumbnailLockState();
   };
 
   const finalizeAfterRender = () => {
@@ -1083,6 +2315,9 @@
   };
 
   const resetPlacement = () => {
+    if (!state.initialPlacement && state.aspect) {
+      state.initialPlacement = buildDefaultPlacement(state.aspect);
+    }
     if (!state.initialPlacement) return;
     state.placement = { ...state.initialPlacement };
     scheduleRender();
@@ -1091,12 +2326,12 @@
   const syncFromUploader = (options) => {
     const useDraftSnapshot = !!(options && options.useDraftSnapshot);
     const snapshot = useDraftSnapshot ? readDraftSessionSnapshot() : null;
-    const src = String(
-      (designUrlInput && designUrlInput.value) ||
+    const durableSrc = getDurableDesignUrl(snapshot && snapshot.designUrl);
+    const transientPreviewSrc = String(
       (previewImg && (previewImg.currentSrc || previewImg.getAttribute("src") || previewImg.src)) ||
-      (snapshot && snapshot.designUrl) ||
       ""
     ).trim();
+    const src = String(durableSrc || transientPreviewSrc || "").trim();
     if (!src) {
       state.src = "";
       state.placement = null;
@@ -1106,23 +2341,45 @@
       setProofUrl("");
       designEditImg.removeAttribute("src");
       clearDraftSessionSnapshot();
+      syncCropActionButtons();
       scheduleRender();
       return;
     }
 
-    if (snapshot && snapshot.isOpen) setBodyOpen();
-    else setBodyOpen();
+    const shouldKeepDesignerOpen =
+      !!(
+        (snapshot && snapshot.isOpen) ||
+        root.classList.contains("is-design-open") ||
+        (body && !body.hidden)
+      );
+    if (shouldKeepDesignerOpen) {
+      setBodyOpen();
+    }
+    if (designUrlInput && isBlobDesignSrc(designUrlInput.value)) {
+      designUrlInput.value = durableSrc || "";
+    }
     if (state.src === src && state.placement) {
+      rehydrateProofStateFromInputs();
+      if (!cropSourceState.currentFile) {
+        window.setTimeout(() => {
+          ensureDraftCropSourceFile(snapshot).then((restored) => {
+            if (!restored && isRemoteDesignSrc(durableSrc)) {
+              ensureRemoteCropSourceFile(durableSrc, { promoteOriginal: !cropSourceState.originalFile });
+            }
+          });
+        }, 0);
+      }
+      syncCropActionButtons();
       scheduleRender();
       return;
     }
 
-    if (designUrlInput && !String(designUrlInput.value || "").trim()) {
-      designUrlInput.value = src;
+    if (designUrlInput && !String(designUrlInput.value || "").trim() && durableSrc) {
+      designUrlInput.value = durableSrc;
     }
 
     state.src = src;
-    designEditImg.onload = () => {
+    loadDesignEditImage(src, () => {
       state.width = designEditImg.naturalWidth || 0;
       state.height = designEditImg.naturalHeight || 0;
       state.aspect = state.height ? state.width / state.height : 1;
@@ -1133,13 +2390,23 @@
         state.placement = null;
         state.initialPlacement = null;
       }
+      rehydrateProofStateFromInputs();
+      if (!cropSourceState.currentFile) {
+        window.setTimeout(() => {
+          ensureDraftCropSourceFile(snapshot).then((restored) => {
+            if (!restored && isRemoteDesignSrc(durableSrc)) {
+              ensureRemoteCropSourceFile(durableSrc, { promoteOriginal: !cropSourceState.originalFile });
+            }
+          });
+        }, 0);
+      }
+      syncCropActionButtons();
       scheduleRender();
-    };
-    designEditImg.src = src;
+    });
   };
 
   const beginInteraction = (mode, e) => {
-    if (!state.src || !state.placement || pointerMode) return;
+    if (!state.src || !state.placement || pointerMode || isCropPending()) return;
     pointerMode = mode;
     pointerStart = { x: e.clientX, y: e.clientY };
     startPlacement = { ...state.placement };
@@ -1213,6 +2480,7 @@
 
   if (uploadBtn) {
     uploadBtn.addEventListener("click", () => {
+      if (isCropPending()) return;
       if (typeof uploadInput.showPicker === "function") {
         try {
           uploadInput.showPicker();
@@ -1225,7 +2493,94 @@
 
   if (resetBtn) resetBtn.addEventListener("click", resetPlacement);
 
+  if (cropBtn) {
+    cropBtn.addEventListener("click", async () => {
+      let file = cropSourceState.currentFile;
+      if (!file || !canCropFile(file)) {
+        const durableSrc = getDurableDesignUrl(state.src);
+        file = await ensureRemoteCropSourceFile(durableSrc, { promoteOriginal: !cropSourceState.originalFile });
+      }
+      if (!file || !canCropFile(file)) {
+        if (statusEl) statusEl.textContent = "We couldn't reopen that image for cropping. Please upload it again to crop it.";
+        return;
+      }
+      openCropModal(file);
+    });
+  }
+
+  if (cropCancelBtn) {
+    cropCancelBtn.addEventListener("click", () => {
+      closeCropModal();
+    });
+  }
+
+  if (cropOriginalBtn) {
+    cropOriginalBtn.addEventListener("click", () => {
+      const file = cropSourceState.originalFile;
+      if (!file) return;
+      setEditorCropMeta(null);
+      setCurrentEditorFile(file);
+      closeCropModal();
+      pushFileIntoRealInput(file);
+    });
+  }
+
+  if (loadOriginalBtn) {
+    loadOriginalBtn.addEventListener("click", async () => {
+      if (cropApplyInFlight) return;
+      const file = await readMasterOriginalFile();
+      if (!file) {
+        if (statusEl) {
+          statusEl.textContent = "Original image is not available on this device anymore. Please upload it again to restore it.";
+        }
+        return;
+      }
+      setEditorCropMeta(null);
+      setOriginalEditorFile(file);
+      pushFileIntoRealInput(file, {
+        bypassProductState: false,
+        preserveMasterOriginal: true
+      });
+    });
+  }
+
+  if (cropApplyBtn) {
+    cropApplyBtn.addEventListener("click", async () => {
+      const file = cropState.file;
+      if (!file || !canCropFile(file) || cropApplyInFlight) return;
+      cropApplyInFlight = true;
+      if (statusEl) statusEl.textContent = "Applying crop...";
+      syncCropActionButtons();
+      try {
+        const cropResult = await exportCroppedFile();
+        if (cropResult && cropResult.file) {
+          const previousUrl = designUrlInput ? String(designUrlInput.value || "").trim() : "";
+          setEditorCropMeta(cropResult.cropMeta || null);
+          setCurrentEditorFile(cropResult.file);
+          pushFileIntoRealInput(cropResult.file);
+          await waitForNextDesignUrlChange(previousUrl, 4000);
+          syncFromUploader();
+        }
+        closeCropModal();
+      } catch (err) {
+        cropApplyInFlight = false;
+        syncCropActionButtons();
+        console.error("Mug crop export failed", err);
+        if (statusEl) statusEl.textContent = "We couldn't apply that crop. Please try again.";
+      }
+    });
+  }
+
   uploadInput.addEventListener("change", () => {
+    if ((uploadInput.__bdCropBypassCount || 0) > 0) {
+      uploadInput.__bdCropBypassCount -= 1;
+      const bypassFile = uploadInput.files && uploadInput.files[0] ? uploadInput.files[0] : null;
+      if (bypassFile) setCurrentEditorFile(bypassFile);
+    } else {
+      const file = uploadInput.files && uploadInput.files[0] ? uploadInput.files[0] : null;
+      if (file) setOriginalEditorFile(file);
+    }
+    syncCropActionButtons();
     window.setTimeout(syncFromUploader, 0);
   });
 
@@ -1253,13 +2608,28 @@
 
   window.addEventListener("resize", () => {
     applyStageSpec();
+    if (cropState.isOpen) {
+      syncCropOverlayPanelPosition();
+      initCropRect();
+      syncCropBoxUi();
+    }
     scheduleRender();
   });
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (!cropState.isOpen) return;
+      syncCropOverlayPanelPosition();
+    },
+    { passive: true }
+  );
 
   window.addEventListener("pageshow", (event) => {
     closeTransientCartUi();
     mountSharedUploadNotice();
     applyStageSpec();
+    syncThumbnailLockState();
     if (!shouldAttemptDraftRestore({ persisted: !!(event && event.persisted) })) return;
     window.setTimeout(() => syncFromUploader({ useDraftSnapshot: true }), 0);
     window.setTimeout(() => syncFromUploader({ useDraftSnapshot: true }), 120);
@@ -1283,8 +2653,16 @@
           return;
         }
         if (!state.src) return;
+        if (isCropPending()) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          if (statusEl) {
+            statusEl.textContent = "Apply or cancel crop before adding to cart.";
+          }
+          return;
+        }
 
-        const currentDesignUrl = designUrlInput ? String(designUrlInput.value || "").trim() : "";
+        const currentDesignUrl = getDurableDesignUrl();
         if (!currentDesignUrl) {
           e.preventDefault();
           e.stopImmediatePropagation();
@@ -1318,31 +2696,32 @@
             return;
           }
 
+          e.preventDefault();
+          e.stopImmediatePropagation();
+
           if (proofInFlightPromise) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
             if (statusEl) {
-    statusEl.textContent = "Finishing your mug preview before adding to cart...";
+              statusEl.textContent = "Finishing your mug preview before adding to cart...";
             }
-            const syncedUrl = await waitForCurrentProof(MOBILE_PROOF_WAIT_MS);
-            if (syncedUrl) {
-              setProofNotice("");
-              if (statusEl) statusEl.textContent = "Preview ready. Adding to cart...";
-            } else {
-              setProofNotice(PROOF_NOTICE_TEXT);
-              if (statusEl) {
-                statusEl.textContent = "Proof size is greater than 10MB. Adding to cart without the proof preview. Our team will send you the proof before printing.";
-              }
-            }
-            allowNextSubmit = true;
-            resumeProductSubmit();
+          } else if (statusEl) {
+            statusEl.textContent = "Preparing your mug proof image before adding to cart...";
           }
-          if (!proofInFlightPromise) {
+
+          const syncedUrl = proofInFlightPromise
+            ? await waitForCurrentProof(MOBILE_PROOF_WAIT_MS)
+            : await syncProofNow({ force: true });
+
+          if (syncedUrl) {
+            setProofNotice("");
+            if (statusEl) statusEl.textContent = "Preview ready. Adding to cart...";
+          } else {
             setProofNotice(PROOF_NOTICE_TEXT);
             if (statusEl) {
               statusEl.textContent = "Proof size is greater than 10MB. Adding to cart without the proof preview. Our team will send you the proof before printing.";
             }
           }
+          allowNextSubmit = true;
+          resumeProductSubmit();
           return;
         }
 
@@ -1354,7 +2733,7 @@
         e.preventDefault();
         e.stopImmediatePropagation();
         if (statusEl) {
-      statusEl.textContent = "Preparing your mug proof image before adding to cart...";
+          statusEl.textContent = "Preparing your mug proof image before adding to cart...";
         }
 
         const syncedUrl = await syncProofNow({ force: true });
@@ -1381,6 +2760,8 @@
     ensureProofNoticeInput();
     ensureUploadNoticeInput();
     mountSharedUploadNotice();
+    syncCropActionButtons();
+    syncThumbnailLockState();
     scheduleRender();
     if (shouldAttemptDraftRestore()) {
       syncFromUploader({ useDraftSnapshot: true });

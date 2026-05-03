@@ -19,9 +19,135 @@
   const bdPreviewConfig = String(box.dataset.cfConfig || "front-only").toLowerCase().trim();
   const bdConfigId = String(box.dataset.configId || "").trim();
   const bdConfigUrl = String(box.dataset.configUrl || "").trim();
-  const bdIsFrontOnly = bdPreviewConfig === "front-only";
-  const bdIsBackOnly = bdPreviewConfig === "back-only";
-  const bdIsFrontBack = bdPreviewConfig === "front-back";
+  const bdProductFamily = String(box.dataset.cfProductFamily || "apparel").toLowerCase().trim();
+  const bdIsTotePreview = bdProductFamily === "tote";
+  const bdVariantTitleMap = (() => {
+    const node = document.getElementById("bd-variant-title-map");
+    if (!node || !node.textContent) return {};
+    try {
+      const json = JSON.parse(node.textContent);
+      return json && typeof json === "object" ? json : {};
+    } catch (e) {
+      return {};
+    }
+  })();
+  let bdResolvedPreviewMode = bdPreviewConfig;
+  let bdToteVariantModeUserInteracted = false;
+  let bdPreferredActiveSide = bdResolvedPreviewMode === "back-only" ? "back" : "front";
+
+  const bdRememberPreferredActiveSide = (side) => {
+    bdPreferredActiveSide = side === "back" ? "back" : "front";
+  };
+
+  const bdReadVariantId = () => {
+    const input =
+      box.closest("product-info")?.querySelector('form[action^="/cart/add"] input[name="id"]') ||
+      document.querySelector('form[action^="/cart/add"] input[name="id"]');
+    return String((input && input.value) || "").trim();
+  };
+
+  const bdGetCurrentVariantTitle = () => {
+    const variantId = bdReadVariantId();
+    return String(bdVariantTitleMap[variantId] || "").trim();
+  };
+
+  const bdResolveModeFromVariantText = (rawText) => {
+    const title = String(rawText || "").toLowerCase().trim();
+    if (!title) return "";
+    const normalized = title.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+    const hasSideWord = /\bside(?:d)?\b/.test(normalized);
+    if (((/\bdouble\b/.test(normalized) || /\b2\b/.test(normalized) || /\btwo\b/.test(normalized)) && hasSideWord) || /\bdouble\s*sided\b/.test(normalized) || /\b2\s*sided\b/.test(normalized) || /\btwo\s*sided\b/.test(normalized)) {
+      return "front-back";
+    }
+    if (((/\bsingle\b/.test(normalized) || /\b1\b/.test(normalized) || /\bone\b/.test(normalized)) && hasSideWord) || /\bsingle\s*sided\b/.test(normalized) || /\b1\s*sided\b/.test(normalized) || /\bone\s*sided\b/.test(normalized)) {
+      return "front-only";
+    }
+    return "";
+  };
+
+  const bdGetVariantUiDescriptor = () => {
+    const values = [];
+
+    document.querySelectorAll("variant-selects select").forEach((sel) => {
+      const text = String(sel.selectedOptions && sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : sel.value || "").trim();
+      if (text) values.push(text);
+    });
+
+    document.querySelectorAll('variant-selects input[type="radio"]:checked').forEach((inp) => {
+      const text = String(inp.value || "").trim();
+      if (text) values.push(text);
+    });
+
+    document.querySelectorAll('input[type="radio"][name^="options["]:checked').forEach((inp) => {
+      const text = String(inp.value || "").trim();
+      if (text) values.push(text);
+    });
+
+    return values.join(" ");
+  };
+
+  const bdResolveVariantDrivenMode = () => {
+    if (!bdIsTotePreview) return bdPreviewConfig;
+    const mappedMode = bdResolveModeFromVariantText(bdGetCurrentVariantTitle());
+    if (mappedMode) return mappedMode;
+
+    const uiMode = bdResolveModeFromVariantText(bdGetVariantUiDescriptor());
+    if (uiMode) return uiMode;
+
+    if (bdResolvedPreviewMode === "front-back" || bdResolvedPreviewMode === "front-only") {
+      return bdResolvedPreviewMode;
+    }
+
+    return "front-only";
+  };
+
+  const bdIsFrontOnlyMode = () => bdResolvedPreviewMode === "front-only";
+  const bdIsBackOnlyMode = () => bdResolvedPreviewMode === "back-only";
+  const bdIsFrontBackMode = () => bdResolvedPreviewMode === "front-back";
+
+  const bdEnsureToteModeNotice = () => {
+    if (!bdIsTotePreview) return null;
+    let notice = box.querySelector("[data-bd-tote-mode-notice='1']");
+    if (notice) return notice;
+    notice = document.createElement("div");
+    notice.setAttribute("data-bd-tote-mode-notice", "1");
+    notice.style.margin = "10px 0 0";
+    notice.style.padding = "10px 12px";
+    notice.style.border = "1px solid rgba(0,0,0,.12)";
+    notice.style.borderRadius = "8px";
+    notice.style.fontSize = "12px";
+    notice.style.lineHeight = "1.4";
+    notice.style.background = "rgba(249,249,246,0.96)";
+    notice.hidden = true;
+    const startRowHost = startRow && startRow.parentNode ? startRow.parentNode : box;
+    if (designerBody && designerBody.parentNode === startRowHost) {
+      designerBody.insertAdjacentElement("beforebegin", notice);
+    } else {
+      startRowHost.appendChild(notice);
+    }
+    return notice;
+  };
+
+  const bdSyncResolvedPreviewMode = ({ announce = false } = {}) => {
+    const nextMode = bdResolveVariantDrivenMode();
+    const previousMode = bdResolvedPreviewMode;
+    bdResolvedPreviewMode = nextMode;
+    box.dataset.bdResolvedMode = nextMode;
+    if (!bdIsTotePreview) return previousMode !== nextMode;
+    const notice = bdEnsureToteModeNotice();
+    if (!notice) return previousMode !== nextMode;
+    if (announce) {
+      bdToteVariantModeUserInteracted = true;
+    }
+    notice.hidden = !bdToteVariantModeUserInteracted;
+    notice.textContent = nextMode === "front-back"
+      ? "Double-sided selected. Price varies between Single-sided and Double-sided options."
+      : "Single-sided selected. Price varies between Single-sided and Double-sided options.";
+    if (bdToteVariantModeUserInteracted && !announce && previousMode === nextMode) {
+      notice.style.opacity = "0.92";
+    }
+    return previousMode !== nextMode;
+  };
 
 
   // --------------------------
@@ -75,6 +201,9 @@
   let bdActiveSide = "front";
 
   const bdGetActiveSide = () => {
+    if (bdActiveSide === "back" || bdActiveSide === "front") {
+      return bdActiveSide;
+    }
     const hidden = box.querySelector("#bd_active_side");
     const v = ((hidden && hidden.value) || "").toLowerCase();
     return v === "back" ? "back" : "front";
@@ -97,7 +226,7 @@
       b.setAttribute("aria-selected", on ? "true" : "false");
     });
 
-    if (inlineFrontBtn && inlineBackBtn && bdIsFrontBack) {
+    if (inlineFrontBtn && inlineBackBtn && bdIsFrontBackMode()) {
       const frontActive = s !== "back";
       inlineFrontBtn.disabled = !frontActive;
       inlineBackBtn.disabled = frontActive;
@@ -121,6 +250,7 @@
       const btn = e.target.closest(".bd-side-btn");
       if (!btn) return;
       const s = btn.dataset.bdSide === "back" ? "back" : "front";
+      bdRememberPreferredActiveSide(s);
       bdSetActiveSideUi(s);
       if (typeof window.bdSwitchPreviewSide === "function") window.bdSwitchPreviewSide(s);
     });
@@ -151,8 +281,8 @@
   if (!inputFront && !inputBack) return;
 
   const bdGetMirrorSide = () => {
-    if (bdIsBackOnly) return "back";
-    if (bdIsFrontOnly) return "front";
+    if (bdIsBackOnlyMode()) return "back";
+    if (bdIsFrontOnlyMode()) return "front";
     return bdGetActiveSide();
   };
 
@@ -163,6 +293,29 @@
       (input && input.closest('.cf-uploader__block[data-upload-block="' + idx + '"]')) ||
       document.querySelector('.cf-uploader__block[data-upload-block="' + idx + '"]')
     );
+  };
+
+  const bdGetSharedUploaderRoot = () => document.querySelector("[data-cf-uploader]");
+  const bdGetMasterOriginalUrlForSide = (side) => {
+    const idx = side === "back" ? "2" : "1";
+    const uploaderRoot = bdGetSharedUploaderRoot();
+    return String(uploaderRoot?.querySelector(`[data-master-url="${idx}"]`)?.value || "").trim();
+  };
+  const bdReadMasterOriginalFileForSide = (side) => {
+    const idx = side === "back" ? "2" : "1";
+    const uploaderRoot = bdGetSharedUploaderRoot();
+    if (typeof window.bdReadMasterOriginalUpload !== "function" || !uploaderRoot) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(window.bdReadMasterOriginalUpload(uploaderRoot, idx)).catch(() => null);
+  };
+  const bdReadWorkingUploadFileForSide = (side) => {
+    const idx = side === "back" ? "2" : "1";
+    const uploaderRoot = bdGetSharedUploaderRoot();
+    if (typeof window.bdReadWorkingUpload !== "function" || !uploaderRoot) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(window.bdReadWorkingUpload(uploaderRoot, idx)).catch(() => null);
   };
 
   // --------------------------
@@ -281,11 +434,12 @@
     const backBtn = box.querySelector('[data-bd-inline-back="1"]');
     const side = bdGetMirrorSide();
     const originalFile = bdCropState.originalBySide[side];
+    const hasMasterOriginal = !!bdGetMasterOriginalUrlForSide(side);
     const canRecrop = !!(originalFile && bdCanCropFile(originalFile));
 
     if (cropBtn) cropBtn.style.display = bdCropState.isOpen ? "none" : (canRecrop ? "" : "none");
     if (cancelBtn) cancelBtn.style.display = bdCropState.isOpen ? "" : "none";
-    if (originalBtn) originalBtn.style.display = bdCropState.isOpen ? "" : "none";
+    if (originalBtn) originalBtn.style.display = bdCropState.isOpen && (originalFile || hasMasterOriginal) ? "" : "none";
     if (applyBtn) applyBtn.style.display = bdCropState.isOpen ? "" : "none";
     if (frontBtn) frontBtn.disabled = bdCropState.isOpen;
     if (backBtn) backBtn.disabled = bdCropState.isOpen;
@@ -626,7 +780,7 @@
     } catch (e) {}
   };
 
-  const bdPushFileIntoRealInput = ({ side, file }) => {
+  const bdPushFileIntoRealInput = ({ side, file, bypassProductState = true, preserveMasterOriginal = true }) => {
     const input = bdGetInputForSide(side);
     if (!input || !file) return false;
 
@@ -636,7 +790,8 @@
 
     // Skip only the synthetic crop-apply change so the next real user re-upload
     // on the same side is adopted immediately on its first cycle.
-    input.__bdCropBypassCount = 1;
+    input.__bdCropBypassCount = bypassProductState ? 1 : 0;
+    input.__bdPreserveMasterOriginal = preserveMasterOriginal ? 1 : 0;
     input.dispatchEvent(new Event("change", { bubbles: true }));
 
     return true;
@@ -901,9 +1056,35 @@
     document;
 
   const bdMountSharedUploadNotice = () => {
-    const notice = bdGetScopedProductRoot().querySelector("[data-cf-upload-notice]");
+    let notice = bdGetScopedProductRoot().querySelector("[data-cf-upload-notice]");
     const bar = box.querySelector("[data-bd-inline-upload='1']");
-    if (!notice || !bar || !bar.parentNode) return;
+    if (!bar || !bar.parentNode) return;
+
+    if (!notice) {
+      notice = document.createElement("div");
+      notice.className = "cf-uploader__notice";
+      notice.setAttribute("data-cf-upload-notice", "");
+      notice.innerHTML = `
+        <p class="cf-uploader__notice-text">
+          <span>Upload only images you have rights to use - no copyrighted or trademarked content.</span>
+          <span class="cf-uploader__notice-tooltip-wrap">
+            <button
+              type="button"
+              class="cf-uploader__notice-trigger"
+              aria-label="About upload rights"
+              aria-describedby="BDUploadNoticeTooltipInline"
+            >i</button>
+            <span
+              id="BDUploadNoticeTooltipInline"
+              class="cf-uploader__notice-tooltip"
+              role="tooltip"
+            >
+              You must have the legal right to use any image you upload. Do not upload copyrighted or trademarked content without authorization.
+            </span>
+          </span>
+        </p>
+      `;
+    }
 
     notice.style.marginTop = "6px";
     notice.style.marginBottom = "0";
@@ -1014,7 +1195,7 @@
 
     const btnCropOriginal = document.createElement("button");
     btnCropOriginal.type = "button";
-    btnCropOriginal.textContent = "Use original";
+    btnCropOriginal.textContent = "Load original image";
     btnCropOriginal.setAttribute("data-bd-inline-crop-original", "1");
     btnCropOriginal.className = "button button--secondary";
     btnCropOriginal.style.flex = "1";
@@ -1156,6 +1337,7 @@
       const scrollY = window.scrollY;
       const inp = document.getElementById("cfUploadFront") || inputFront;
       try {
+        bdRememberPreferredActiveSide("front");
         if (typeof window.bdSwitchPreviewSide === "function") {
           window.bdSwitchPreviewSide("front");
         } else {
@@ -1183,6 +1365,7 @@
       const scrollY = window.scrollY;
       const inp = document.getElementById("cfUploadBack") || inputBack;
       try {
+        bdRememberPreferredActiveSide("back");
         if (typeof window.bdSwitchPreviewSide === "function") {
           window.bdSwitchPreviewSide("back");
         } else {
@@ -1204,9 +1387,16 @@
       if (inp) inp.click();
     });
 
-    btnCrop.addEventListener("click", () => {
+    btnCrop.addEventListener("click", async () => {
       const side = bdGetMirrorSide();
-      const currentFile = bdGetCurrentFileForSide(side);
+      let currentFile = bdGetCurrentFileForSide(side);
+      if (!currentFile) {
+        currentFile = await bdReadWorkingUploadFileForSide(side);
+        if (currentFile) {
+          bdSetOriginalEditorFile(side, currentFile);
+          bdWriteEditorMetaForSide(side);
+        }
+      }
       if (!currentFile || !bdCanCropFile(currentFile)) return;
       bdOpenCropModal({ file: currentFile, side });
     });
@@ -1215,17 +1405,31 @@
       bdCloseCropModal();
     });
 
-    btnCropOriginal.addEventListener("click", () => {
+    btnCropOriginal.addEventListener("click", async () => {
       const side = bdCropState.side;
       const editorSide = bdGetEditorSideState(side);
-      const file = editorSide.originalFile || bdCropState.file;
+      const note = box.querySelector('[data-bd-crop-note="1"]');
+      const file = editorSide.originalFile || await bdReadMasterOriginalFileForSide(side);
+      if (!file) {
+        if (note) {
+          note.hidden = false;
+          note.textContent = "Original image is not available on this device anymore. Please upload it again to restore it.";
+        }
+        return;
+      }
       bdCropState.usingOriginal = true;
       bdCloseCropModal();
       if (file) {
+        bdSetOriginalEditorFile(side, file);
         bdSetEditorCropMeta(side, null);
         bdWriteEditorMetaForSide(side);
         setDesignFromFile(file, side, { resetPlacement: false });
-        bdPushFileIntoRealInput({ side, file });
+        bdPushFileIntoRealInput({
+          side,
+          file,
+          bypassProductState: false,
+          preserveMasterOriginal: true
+        });
       }
     });
 
@@ -1417,6 +1621,7 @@
   };
 
   // Create once (safe even if Start Gate is enabled; weÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ll show/hide naturally)
+  bdSyncResolvedPreviewMode();
   bdEnsureInlineUploadUI();
 
   // --------------------------
@@ -1436,7 +1641,7 @@
     const inlineHint = box.querySelector('[data-bd-inline-hint="1"]');
     const inlineTitle = box.querySelector('[data-bd-inline-title="1"]');
 
-    if (bdIsFrontOnly) {
+    if (bdIsFrontOnlyMode()) {
       if (frontSideBtn) frontSideBtn.style.display = "none";
       if (backSideBtn) backSideBtn.style.display = "none";
       if (toggle) toggle.style.display = "none";
@@ -1448,7 +1653,7 @@
       if (inlineHint) inlineHint.textContent = "Upload your front design to preview it on the selected shirt color.";
 
       bdSetActiveSideUi("front");
-    } else if (bdIsBackOnly) {
+    } else if (bdIsBackOnlyMode()) {
       if (frontSideBtn) frontSideBtn.style.display = "none";
       if (backSideBtn) backSideBtn.style.display = "";
       if (toggle) toggle.style.display = backSideBtn ? "" : "none";
@@ -1472,7 +1677,7 @@
       if (inlineTitle) inlineTitle.style.display = "";
       if (inlineHint) inlineHint.textContent = "Tip: Use the Front/Back toggle above to preview each side.";
 
-      bdSetActiveSideUi("front");
+      bdSetActiveSideUi(bdGetActiveSide());
     }
 
     if (inlineCropBtn || inlineCropCancelBtn || inlineCropOriginalBtn || inlineCropApplyBtn) {
@@ -1516,6 +1721,58 @@
     });
   };
 
+  const bdGetMediaGallery = () =>
+    box.closest(".shopify-section")?.querySelector("media-gallery") || document.querySelector("media-gallery");
+
+  const bdGetThumbnailSlider = () => bdGetMediaGallery()?.querySelector('[id^="GalleryThumbnails-"]') || null;
+
+  const bdEnsureThumbnailLockNotice = () => {
+    const slider = bdGetThumbnailSlider();
+    if (!slider) return null;
+    let notice = slider.parentElement ? slider.parentElement.querySelector("[data-bd-apparel-thumb-lock-note]") : null;
+    if (notice) return notice;
+    notice = document.createElement("p");
+    notice.setAttribute("data-bd-apparel-thumb-lock-note", "");
+    notice.className = "bd-apparel-thumbnail-lock-note";
+    notice.hidden = true;
+    notice.textContent = "While designing, product gallery thumbnails are unavailable.";
+    slider.insertAdjacentElement("afterend", notice);
+    return notice;
+  };
+
+  const bdActivateDesignPreviewMedia = () => {
+    const slide =
+      box.closest(".shopify-section")?.querySelector('[data-bd-design-preview-slide="1"]') ||
+      document.querySelector('[data-bd-design-preview-slide="1"]');
+    const mediaId = slide ? String(slide.getAttribute("data-media-id") || "").trim() : "";
+    if (!mediaId || typeof window.bdGalleryActivateMedia !== "function") return;
+    try {
+      window.bdGalleryActivateMedia(mediaId);
+    } catch (e) {}
+  };
+
+  const bdSyncThumbnailLockState = () => {
+    const gallery = bdGetMediaGallery();
+    if (!gallery) return;
+    const isLocked = !!(bdStartGateEnabled && box.classList.contains("is-open"));
+    gallery.classList.toggle("bd-apparel-thumbs-locked", isLocked);
+
+    const notice = bdEnsureThumbnailLockNotice();
+    if (notice) notice.hidden = !isLocked;
+
+    gallery.querySelectorAll("button.thumbnail").forEach((button) => {
+      const isBlockedThumb = isLocked && !!String(button.getAttribute("data-target") || "").trim();
+      button.classList.toggle("is-apparel-thumb-locked", isBlockedThumb);
+      button.setAttribute("aria-disabled", isBlockedThumb ? "true" : "false");
+      button.disabled = isBlockedThumb;
+      if (isBlockedThumb) {
+        button.setAttribute("title", "Finish designing before browsing other product images.");
+      } else {
+        button.removeAttribute("title");
+      }
+    });
+  };
+
   const bdOpenDesignerUi = (opts = {}) => {
     const suppressAutoStartSide = !!(opts && opts.suppressAutoStartSide);
     const suppressScroll = !!(opts && opts.suppressScroll);
@@ -1528,6 +1785,7 @@
       designerBody.style.visibility = "";
       designerBody.style.opacity = "";
     }
+    bdSyncThumbnailLockState();
 
     if (startRow) startRow.style.display = "none";
     bdSetUploadBlocksVisible(true);
@@ -1547,7 +1805,7 @@
       ) {
         base.setAttribute("data-front-src", firstVariantSrc);
 
-        if (bdIsFrontOnly) {
+        if (bdIsFrontOnlyMode()) {
           base.setAttribute("data-back-src", firstVariantSrc);
         }
 
@@ -1573,7 +1831,7 @@
 
     if (!suppressAutoStartSide) {
       try {
-        const bdStartSide = bdIsBackOnly ? "back" : "front";
+        const bdStartSide = bdIsBackOnlyMode() ? "back" : "front";
         if (typeof window.bdSwitchPreviewSide === "function") {
           window.bdSwitchPreviewSide(bdStartSide);
         } else {
@@ -1592,7 +1850,7 @@
     try {
       const fBtn = box.querySelector("[data-bd-inline-front='1']");
       const bBtn = box.querySelector("[data-bd-inline-back='1']");
-      const useBack = suppressAutoStartSide ? uiSide === "back" : bdIsBackOnly;
+      const useBack = suppressAutoStartSide ? uiSide === "back" : bdIsBackOnlyMode();
 
       if (fBtn) {
         fBtn.style.outline = useBack ? "" : "2px solid rgba(0,0,0,.25)";
@@ -1608,7 +1866,7 @@
     
   };
 
-if (bdStartGateEnabled) {
+  if (bdStartGateEnabled) {
 
   box.classList.remove("is-hidden");
   box.classList.remove("is-open");
@@ -1619,12 +1877,46 @@ if (bdStartGateEnabled) {
   }
 
   bdSetUploadBlocksVisible(false);
+  bdSyncThumbnailLockState();
 
   if (startBtn && !startBtn.__bdStartBound) {
     startBtn.__bdStartBound = true;
     startBtn.addEventListener("click", () => bdOpenDesignerUi());
   }
 }
+
+  const bdMediaGallery = bdGetMediaGallery();
+  bdMediaGallery?.addEventListener(
+    "click",
+    (event) => {
+      if (!(bdStartGateEnabled && box.classList.contains("is-open"))) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const thumbButton = target.closest("button.thumbnail");
+      if (!thumbButton) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      bdActivateDesignPreviewMedia();
+    },
+    true
+  );
+  bdMediaGallery?.addEventListener(
+    "keydown",
+    (event) => {
+      if (!(bdStartGateEnabled && box.classList.contains("is-open"))) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const thumbButton = target.closest("button.thumbnail");
+      if (!thumbButton) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      bdActivateDesignPreviewMedia();
+    },
+    true
+  );
 
   // --------------------------
   // Line item properties
@@ -1853,7 +2145,6 @@ if (bdStartGateEnabled) {
     const { url, proofUrl, proofFront, proofBack, uploadNotice, previewFlow, proofStatus } = bdEnsurePropertyInputs(form);
     const designUrlFront = bdGetRealUploaderDesignUrl(1);
     const designUrlBack = bdGetRealUploaderDesignUrl(2);
-
     return {
       designUploadUrl: designUrlFront || designUrlBack || "",
       proofFrontUrl: String(approvedState.proofFrontUrl || "").trim(),
@@ -1915,28 +2206,41 @@ if (bdStartGateEnabled) {
     const backMeta = bdReadDraftMetaForSide("back");
     const frontUrl = bdGetRealUploaderDesignUrl(1);
     const backUrl = bdGetRealUploaderDesignUrl(2);
-    const snapshot = {
-      version: 1,
-      savedAt: Date.now(),
-      activeSide: bdGetActiveSide(),
-      front: null,
-      back: null
-    };
+    const liveFrontPlacementPayload = bdBuildPlacementPayloadForSideState("front");
+    const liveBackPlacementPayload = bdBuildPlacementPayloadForSideState("back");
+    const frontPlacementRaw = bdIsTotePreview
+      ? (liveFrontPlacementPayload ? JSON.stringify(liveFrontPlacementPayload) : frontMeta.placementRaw)
+      : (frontMeta.placementRaw || (liveFrontPlacementPayload ? JSON.stringify(liveFrontPlacementPayload) : ""));
+    const backPlacementRaw = bdIsTotePreview
+      ? (liveBackPlacementPayload ? JSON.stringify(liveBackPlacementPayload) : backMeta.placementRaw)
+      : (backMeta.placementRaw || (liveBackPlacementPayload ? JSON.stringify(liveBackPlacementPayload) : ""));
+      const snapshot = {
+        version: 1,
+        savedAt: Date.now(),
+        activeSide: bdPreferredActiveSide === "back" ? "back" : "front",
+        resolvedMode: bdIsTotePreview ? bdResolvedPreviewMode : "",
+        front: null,
+        back: null
+      };
 
-    if (hasFrontDesign && bdIsDurableRestoreUrl(frontUrl) && frontMeta.placement) {
+    if (hasFrontDesign && bdIsDurableRestoreUrl(frontUrl) && frontPlacementRaw) {
       snapshot.front = {
         designUrl: frontUrl,
-        placementRaw: frontMeta.placementRaw,
+        placementRaw: frontPlacementRaw,
         editRaw: frontMeta.editRaw
       };
     }
 
-    if (hasBackDesign && bdIsDurableRestoreUrl(backUrl) && backMeta.placement) {
+    if (hasBackDesign && bdIsDurableRestoreUrl(backUrl) && backPlacementRaw) {
       snapshot.back = {
         designUrl: backUrl,
-        placementRaw: backMeta.placementRaw,
+        placementRaw: backPlacementRaw,
         editRaw: backMeta.editRaw
       };
+    }
+
+    if (bdIsTotePreview) {
+      snapshot.resolvedMode = snapshot.back ? "front-back" : "front-only";
     }
 
     if (!snapshot.front && !snapshot.back) return null;
@@ -2210,19 +2514,19 @@ const bdGetColorMockupMap = (() => {
   };
 })();
 
-const bdGetMappedMockupSrc = (side, colorValue) => {
+  const bdGetMappedMockupSrc = (side, colorValue) => {
   const map = bdGetColorMockupMap();
   if (!map || typeof map !== "object") return "";
 
   const wantSide = side === "back" ? "back" : "front";
   const wantColor = bdNormColor(colorValue);
-  if (!wantColor) return "";
-
   const entries = Object.entries(map);
-  const hit = entries.find(([key]) => bdNormColor(key) === wantColor);
-  if (!hit || !hit[1] || typeof hit[1] !== "object") return "";
+  const hit = wantColor ? entries.find(([key]) => bdNormColor(key) === wantColor) : null;
+  const fallback = entries.find(([key]) => bdNormColor(key) === "default");
+  const resolved = (hit && hit[1] && typeof hit[1] === "object") ? hit[1] : (fallback && fallback[1] && typeof fallback[1] === "object" ? fallback[1] : null);
+  if (!resolved) return "";
 
-  const src = hit[1][wantSide];
+  const src = resolved[wantSide];
   return typeof src === "string" ? src.trim() : "";
 };
 
@@ -2323,8 +2627,8 @@ const bdResolvePreviewBaseSources = () => {
 
   let frontSrc = "";
   let backSrc = "";
-  const mappedFrontSrc = !bdIsBackOnly ? bdGetMappedMockupSrc("front", colorValue) : "";
-  const mappedBackSrc = !bdIsFrontOnly ? bdGetMappedMockupSrc("back", colorValue) : "";
+  const mappedFrontSrc = !bdIsBackOnlyMode() ? bdGetMappedMockupSrc("front", colorValue) : "";
+  const mappedBackSrc = !bdIsFrontOnlyMode() ? bdGetMappedMockupSrc("back", colorValue) : "";
   const registryFrontSrc = bdFindMockupSrc("front", colorValue);
   const registryBackSrc = bdFindMockupSrc("back", colorValue);
   const variantFrontSrc = bdGetActiveGalleryImageSrc();
@@ -2339,9 +2643,9 @@ const bdResolvePreviewBaseSources = () => {
     frontSrc = variantFrontSrc || registryFrontSrc;
   }
 
-  if (bdIsFrontOnly) {
+  if (bdIsFrontOnlyMode()) {
     backSrc = frontSrc;
-  } else if (bdIsBackOnly) {
+  } else if (bdIsBackOnlyMode()) {
     backSrc = registryBackSrc || frontSrc;
   } else {
     backSrc = mappedBackSrc || registryBackSrc || frontSrc;
@@ -2488,6 +2792,16 @@ requestAnimationFrame(() => {
 
   const bdSyncBaseByVariantColor = () => {
     if (!previewBaseImg) return;
+    const modeChanged = bdSyncResolvedPreviewMode({ announce: true });
+    if (modeChanged) {
+      try { bdApplyProductConfigUi(); } catch (e) {}
+      try { bdRefreshFinalizeUi(); } catch (e) {}
+      requestAnimationFrame(() => {
+        try {
+          if (typeof bdSyncInlineUploadInfo === "function") bdSyncInlineUploadInfo();
+        } catch (e) {}
+      });
+    }
 
     const prevFrontSrc = previewBaseImg.getAttribute("data-front-src") || "";
     const prevBackSrc = previewBaseImg.getAttribute("data-back-src") || "";
@@ -2531,6 +2845,10 @@ requestAnimationFrame(() => {
     tshirt: {
       front: { left: 35.5, top: 32, width: 30, height: 38 },
       back: { left: 36.5, top: 32, width: 30, height: 38 }
+    },
+    tote: {
+      front: { left: 31.5, top: 50.5, width: 35, height: 34 },
+      back: { left: 31.5, top: 50.5, width: 35, height: 34 }
     },
     "girls-onesies": {
       front: { left: 36.2, top: 21, width: 30, height: 40 },
@@ -2780,6 +3098,23 @@ requestAnimationFrame(() => {
     return { left, top, right: left + width, bottom: top + height, width, height };
   };
 
+  const bdGetInitialCenterZone = () => {
+    const zone = bdGetZone();
+    if (!bdIsTotePreview || !bdSoftPrintAreaEl) return zone;
+
+    const cRect = canvasRect();
+    const sRect = bdSoftPrintAreaEl.getBoundingClientRect();
+    if (!(sRect.width > 10 && sRect.height > 10) || !cRect.width || !cRect.height) {
+      return zone;
+    }
+
+    const left = sRect.left - cRect.left;
+    const top = sRect.top - cRect.top;
+    const width = sRect.width;
+    const height = sRect.height;
+    return { left, top, right: left + width, bottom: top + height, width, height };
+  };
+
   const bdGetBaseBounds = () => {
     const cRect = canvasRect();
     const cw = cRect.width || canvas.clientWidth || 1;
@@ -2980,6 +3315,48 @@ const bdUseSideState = (side) => {
     bdScheduleDraftSessionPersist();
   };
 
+  const bdBuildPlacementPayloadForSideState = (side) => {
+    const targetSide = side === "back" ? "back" : "front";
+    const targetState = targetSide === "back" ? stateBack : stateFront;
+    if (!targetState || !(targetState.w > 0) || !(targetState.h > 0)) return null;
+
+    const cw = canvas.clientWidth || 0;
+    const ch = canvas.clientHeight || 0;
+    if (!cw || !ch) return null;
+
+    const cRect = canvas.getBoundingClientRect();
+    const baseImg = canvas.querySelector(".cf-preview-base");
+    let baseLeft = 0;
+    let baseTop = 0;
+    let baseW = cw;
+    let baseH = ch;
+
+    if (baseImg) {
+      const bRect = baseImg.getBoundingClientRect();
+      if (cRect.width && cRect.height && bRect.width && bRect.height) {
+        baseLeft = bRect.left - cRect.left;
+        baseTop = bRect.top - cRect.top;
+        baseW = bRect.width;
+        baseH = bRect.height;
+      }
+    }
+
+    return {
+      side: targetSide,
+      cx: Math.round(targetState.cx || 0),
+      cy: Math.round(targetState.cy || 0),
+      w: Math.round(targetState.w || 0),
+      h: Math.round(targetState.h || 0),
+      canvasW: Math.round(cw),
+      canvasH: Math.round(ch),
+      baseLeft: Math.round(baseLeft),
+      baseTop: Math.round(baseTop),
+      baseW: Math.round(baseW),
+      baseH: Math.round(baseH),
+      ar: Number(targetState.ar || 1)
+    };
+  };
+
   const bdWriteEditorMetaForSide = (side) => {
     const form = bdFindCartForm();
     if (!form) return;
@@ -3105,24 +3482,35 @@ const bdUseSideState = (side) => {
 
   const bdGetPlacementPayloadForSide = (side) => {
     const form = bdFindCartForm();
-    if (!form) return null;
+    if (!form) return bdBuildPlacementPayloadForSideState(side);
 
     const { placementFront, placementBack } = bdEnsurePropertyInputs(form);
     const el = side === "back" ? placementBack : placementFront;
-    if (!el || !el.value) return null;
+    if (!el || !el.value) return bdBuildPlacementPayloadForSideState(side);
 
     try {
       return JSON.parse(el.value);
     } catch (e) {
-      return null;
+      return bdBuildPlacementPayloadForSideState(side);
     }
   };
 
   const bdRenderProofBlobForSide = async (side, { silent = false } = {}) => {
     const s = side === "back" ? "back" : "front";
     const hasDesign = s === "back" ? hasBackDesign : hasFrontDesign;
-    const designSrc = s === "back" ? objectUrlBack : objectUrlFront;
+    let designSrc = s === "back" ? objectUrlBack : objectUrlFront;
     if (!hasDesign || !designSrc) return null;
+
+    let ephemeralDesignUrl = "";
+    if (!String(designSrc).startsWith("blob:")) {
+      const workingFile = await bdReadWorkingUploadFileForSide(s);
+      if (workingFile) {
+        try {
+          ephemeralDesignUrl = URL.createObjectURL(workingFile);
+          designSrc = ephemeralDesignUrl;
+        } catch (e) {}
+      }
+    }
 
     if (typeof window.bdEnsureTshirtColorMockupMapLoaded === "function") {
       try { await window.bdEnsureTshirtColorMockupMapLoaded(); } catch (e) {}
@@ -3130,7 +3518,7 @@ const bdUseSideState = (side) => {
 
     const activeSideBefore = bdGetActiveSide();
     if (!silent && activeSideBefore !== s && typeof window.bdSwitchPreviewSide === "function") {
-      window.bdSwitchPreviewSide(s);
+      window.bdSwitchPreviewSide(s, { skipPersistBeforeSwitch: true });
       await new Promise((resolve) => requestAnimationFrame(resolve));
       await new Promise((resolve) => requestAnimationFrame(resolve));
     }
@@ -3161,52 +3549,50 @@ const bdUseSideState = (side) => {
     );
     if (!placement || !baseSrc) return null;
 
-    let baseImg;
-    let overlayImg;
     try {
-      [baseImg, overlayImg] = await Promise.all([
+      const [baseImg, overlayImg] = await Promise.all([
         bdLoadImageForProof(baseSrc),
         bdLoadImageForProof(designSrc)
       ]);
+      const outW = Math.max(1, baseImg.naturalWidth || baseImg.width || 1);
+      const outH = Math.max(1, baseImg.naturalHeight || baseImg.height || 1);
+      const proofCanvas = document.createElement("canvas");
+      proofCanvas.width = outW;
+      proofCanvas.height = outH;
+
+      const ctx = proofCanvas.getContext("2d");
+      if (!ctx) throw new Error("Could not get proof canvas context");
+
+      ctx.clearRect(0, 0, outW, outH);
+      ctx.drawImage(baseImg, 0, 0, outW, outH);
+
+      const baseW = Math.max(1, Number(placement.baseW || placement.canvasW || outW));
+      const baseH = Math.max(1, Number(placement.baseH || placement.canvasH || outH));
+      const baseLeft = Number(placement.baseLeft || 0);
+      const baseTop = Number(placement.baseTop || 0);
+
+      const xRel = (Number(placement.cx || 0) - baseLeft) / baseW;
+      const yRel = (Number(placement.cy || 0) - baseTop) / baseH;
+      const wRel = Number(placement.w || 0) / baseW;
+      const hRel = Number(placement.h || 0) / baseH;
+
+      const drawW = wRel * outW;
+      const drawH = hRel * outH;
+      const drawX = xRel * outW - drawW / 2;
+      const drawY = yRel * outH - drawH / 2;
+
+      ctx.drawImage(overlayImg, drawX, drawY, drawW, drawH);
+
+      return await bdCanvasToBlob(proofCanvas);
     } catch (err) {
       console.error("Proof render failed", err);
       throw err;
-    }
-
-    const outW = Math.max(1, baseImg.naturalWidth || baseImg.width || 1);
-    const outH = Math.max(1, baseImg.naturalHeight || baseImg.height || 1);
-    const proofCanvas = document.createElement("canvas");
-    proofCanvas.width = outW;
-    proofCanvas.height = outH;
-
-    const ctx = proofCanvas.getContext("2d");
-    if (!ctx) throw new Error("Could not get proof canvas context");
-
-    ctx.clearRect(0, 0, outW, outH);
-    ctx.drawImage(baseImg, 0, 0, outW, outH);
-
-    const baseW = Math.max(1, Number(placement.baseW || placement.canvasW || outW));
-    const baseH = Math.max(1, Number(placement.baseH || placement.canvasH || outH));
-    const baseLeft = Number(placement.baseLeft || 0);
-    const baseTop = Number(placement.baseTop || 0);
-
-    const xRel = (Number(placement.cx || 0) - baseLeft) / baseW;
-    const yRel = (Number(placement.cy || 0) - baseTop) / baseH;
-    const wRel = Number(placement.w || 0) / baseW;
-    const hRel = Number(placement.h || 0) / baseH;
-
-    const drawW = wRel * outW;
-    const drawH = hRel * outH;
-    const drawX = xRel * outW - drawW / 2;
-    const drawY = yRel * outH - drawH / 2;
-
-    ctx.drawImage(overlayImg, drawX, drawY, drawW, drawH);
-
-    try {
-      return await bdCanvasToBlob(proofCanvas);
-    } catch (err) {
-      console.error("Proof blob export failed", err);
-      throw err;
+    } finally {
+      if (ephemeralDesignUrl) {
+        try {
+          URL.revokeObjectURL(ephemeralDesignUrl);
+        } catch (e) {}
+      }
     }
   };
 
@@ -3279,8 +3665,8 @@ const bdUseSideState = (side) => {
   const bdHasDesignForSide = (side) => (side === "back" ? hasBackDesign : hasFrontDesign);
 
   const bdGetRequiredProofSides = () => {
-    if (bdIsBackOnly) return hasBackDesign ? ["back"] : [];
-    if (bdIsFrontOnly) return hasFrontDesign ? ["front"] : [];
+    if (bdIsBackOnlyMode()) return hasBackDesign ? ["back"] : [];
+    if (bdIsFrontOnlyMode()) return hasFrontDesign ? ["front"] : [];
     const sides = [];
     if (hasFrontDesign) sides.push("front");
     if (hasBackDesign) sides.push("back");
@@ -3365,7 +3751,9 @@ const bdUseSideState = (side) => {
 
   const bdGetPendingReviewCopy = ({ frontApproved, backApproved } = {}) => {
     if (bdLastInvalidationReason === "base-change" && (hasFrontDesign || hasBackDesign)) {
-      return "Color changed. Please finalize your design again to generate updated proofs.";
+        return bdIsTotePreview
+          ? "Product type changed. Please finalize your design again to generate updated proofs."
+          : "Color changed. Please finalize your design again to generate updated proofs.";
     }
     if (hasFrontDesign && hasBackDesign) {
       if (frontApproved && !backApproved) return "Front design ready. Finalize your back design to continue.";
@@ -3651,6 +4039,19 @@ const bdUseSideState = (side) => {
     const snapshot = bdReadDraftSessionSnapshot();
     if (!snapshot) return false;
 
+    if (bdIsTotePreview) {
+      let restoredMode = String(snapshot.resolvedMode || "").trim().toLowerCase();
+      if (snapshot.back && bdIsDurableRestoreUrl(snapshot.back.designUrl)) {
+        restoredMode = "front-back";
+      } else if (snapshot.front && bdIsDurableRestoreUrl(snapshot.front.designUrl) && restoredMode !== "front-back") {
+        restoredMode = "front-only";
+      }
+      if (restoredMode === "front-only" || restoredMode === "front-back") {
+        bdResolvedPreviewMode = restoredMode;
+        box.dataset.bdResolvedMode = restoredMode;
+      }
+    }
+
     const restoredFront = bdApplyRestoredDraftForSide("front", snapshot.front);
     const restoredBack = bdApplyRestoredDraftForSide("back", snapshot.back);
     const restoredSides = [];
@@ -3659,6 +4060,12 @@ const bdUseSideState = (side) => {
     if (!restoredSides.length) {
       bdClearDraftSessionSnapshot();
       return false;
+    }
+
+    if (bdIsTotePreview) {
+      const restoredMode = restoredBack ? "front-back" : "front-only";
+      bdResolvedPreviewMode = restoredMode;
+      box.dataset.bdResolvedMode = restoredMode;
     }
 
     bdProofDirty.front = restoredFront;
@@ -3683,9 +4090,16 @@ const bdUseSideState = (side) => {
         : restoredFront
           ? "front"
           : "back";
+    bdRememberPreferredActiveSide(activeSide);
 
+    try {
+      bdApplyProductConfigUi();
+    } catch (e) {}
     bdSetActiveSideUi(activeSide);
     bdUseSideState(activeSide);
+    try {
+      if (typeof bdSyncInlineUploadInfo === "function") bdSyncInlineUploadInfo();
+    } catch (e) {}
     bdInvalidateProofState(restoredSides, {
       reason: "draft-restore",
       markDirty: {
@@ -3703,7 +4117,7 @@ const bdUseSideState = (side) => {
     requestAnimationFrame(() => {
       try {
         if (typeof window.bdSwitchPreviewSide === "function") {
-          window.bdSwitchPreviewSide(activeSide, { deferVisibleUntilLoaded: true });
+          window.bdSwitchPreviewSide(activeSide, { deferVisibleUntilLoaded: true, skipPersistBeforeSwitch: true });
         }
       } catch (e) {}
       bdScheduleDraftSessionPersist();
@@ -3794,7 +4208,7 @@ const bdUseSideState = (side) => {
     } else if (pendingReviewCopy) {
       bdSetReviewStatusContent(reviewStatus, pendingReviewCopy);
     } else if (requiredSides.some((side) => bdProofDirty[side])) {
-      bdSetReviewStatusContent(reviewStatus, "Design changed. Finalize again to regenerate the required proof.");
+      bdSetReviewStatusContent(reviewStatus, "Design changed. Finalize again to regenerate the required proof before adding to cart.");
     } else {
       bdSetReviewStatusContent(reviewStatus, "Finalize your design to generate the required proof before adding to cart.");
     }
@@ -3860,7 +4274,11 @@ const bdUseSideState = (side) => {
 
   const bdFinalizeDesignProofs = async () => {
     const requiredSides = bdGetRequiredProofSides();
+    const originalActiveSide = bdLastInvalidationReason === "draft-restore"
+      ? (bdPreferredActiveSide === "back" ? "back" : "front")
+      : bdGetActiveSide();
     bdFinalizeRecoveryLog("finalize-design-proofs:start", {
+      originalActiveSide,
       requiredSides: requiredSides.slice(),
       state: bdBuildFinalizeRecoveryDebugState()
     });
@@ -3877,6 +4295,7 @@ const bdUseSideState = (side) => {
     if (bdFinalizeInProgress && bdFinalizePromise) return bdFinalizePromise;
 
     const runSeq = ++bdFinalizeRunSeq;
+    const forceVisibleRestoreRender = false;
     bdDesignFinalized = false;
     bdApprovedProofState = null;
     bdFinalizeInProgress = true;
@@ -3894,10 +4313,12 @@ const bdUseSideState = (side) => {
         if (!bdProofDirty[side] && bdIsProofValidForSide(side)) return false;
         return true;
       });
+      const isDraftRestoreFinalize = bdLastInvalidationReason === "draft-restore";
 
       bdFinalizeRecoveryLog("finalize-design-proofs:pending-sides", {
         runSeq,
         pendingSides: pendingSides.slice(),
+        forceVisibleRestoreRender,
         state: bdBuildFinalizeRecoveryDebugState()
       });
 
@@ -3982,6 +4403,20 @@ const bdUseSideState = (side) => {
       });
       bdUpdateReviewUi();
       bdRefreshFinalizeUi();
+      if (runSeq === bdFinalizeRunSeq && forceVisibleRestoreRender) {
+        bdRememberPreferredActiveSide(originalActiveSide);
+        try {
+          if (typeof window.bdSwitchPreviewSide === "function") {
+            window.bdSwitchPreviewSide(originalActiveSide, { deferVisibleUntilLoaded: true, skipPersistBeforeSwitch: true });
+          } else {
+            bdSetActiveSideUi(originalActiveSide);
+            bdUseSideState(originalActiveSide);
+          }
+        } catch (e) {}
+        try {
+          bdPersistDraftSessionNow();
+        } catch (e) {}
+      }
       if (runSeq === bdFinalizeRunSeq && bdDesignFinalized) {
         requestAnimationFrame(() => {
           setTimeout(() => {
@@ -4249,7 +4684,7 @@ const bdUseSideState = (side) => {
   };
 
   window.__bdTshirtPreviewState = {
-    isFrontBack: () => !!bdIsFrontBack,
+    isFrontBack: () => !!bdIsFrontBackMode(),
     hasFrontDesign: () => !!hasFrontDesign,
     hasBackDesign: () => !!hasBackDesign,
     getActiveSide: () => bdGetActiveSide(),
@@ -4375,8 +4810,13 @@ const bdUseSideState = (side) => {
     }
 
     bdUpdatePrintZoneFromInches();
+    if (bdIsTotePreview) {
+      try {
+        bdRefreshSoftPrintArea();
+      } catch (e) {}
+    }
 
-    const z = bdGetZone();
+    const z = bdGetInitialCenterZone();
     state.cx = z.left + z.width / 2;
     state.cy = z.top + z.height / 2;
 
@@ -4587,6 +5027,108 @@ window.bdSwitchPreviewSide = function (side, opts = {}) {
   designImg.src = url;
 };
 
+  const __bdOriginalSwitchPreviewSide = window.bdSwitchPreviewSide;
+  window.bdSwitchPreviewSide = function (side, opts = {}) {
+    const skipPersistBeforeSwitch = !!(opts && opts.skipPersistBeforeSwitch);
+    if (!skipPersistBeforeSwitch) {
+      return __bdOriginalSwitchPreviewSide(side, opts);
+    }
+
+    const s = side === "back" ? "back" : "front";
+    const deferVisibleUntilLoaded = !!(opts && opts.deferVisibleUntilLoaded);
+
+    try {
+      const fBtn = box.querySelector("[data-bd-inline-front='1']");
+      const bBtn = box.querySelector("[data-bd-inline-back='1']");
+      if (fBtn && bBtn) {
+        const onFront = s !== "back";
+        fBtn.style.outline = onFront ? "2px solid rgba(0,0,0,.25)" : "";
+        fBtn.style.outlineOffset = onFront ? "2px" : "";
+        bBtn.style.outline = !onFront ? "2px solid rgba(0,0,0,.25)" : "";
+        bBtn.style.outlineOffset = !onFront ? "2px" : "";
+      }
+    } catch (e) {}
+
+    bdSetActiveSideUi(s);
+    bdUseSideState(s);
+
+    if (typeof bdSwitchMainMockup === "function") bdSwitchMainMockup(s);
+    bdScheduleSoftPrintRefresh();
+
+    box.classList.remove("is-hidden");
+    if (designerBody) {
+      designerBody.hidden = false;
+      designerBody.removeAttribute("hidden");
+      designerBody.style.display = "";
+      designerBody.style.visibility = "";
+      designerBody.style.opacity = "";
+    }
+
+    const url = s === "back" ? objectUrlBack : objectUrlFront;
+    const has = s === "back" ? hasBackDesign : hasFrontDesign;
+
+    if (!has || !url) {
+      designImg.hidden = true;
+      wrap.style.display = "none";
+      dimLabel.hidden = true;
+
+      const any = !!(hasFrontDesign || hasBackDesign);
+      if (any) box.classList.add("has-design");
+
+      requestAnimationFrame(() => {
+        try { bdSyncPreviewBase(); } catch (e) {}
+        try { bdUpdatePrintZoneFromInches(); } catch (e) {}
+        bdScheduleSoftPrintRefresh();
+        try {
+          if (typeof window.bdGalleryRestorePrimaryMedia === "function") {
+            window.bdGalleryRestorePrimaryMedia();
+          }
+        } catch (e) {}
+        if (!bdDraftRestoreInProgress) {
+          bdDispatchPreviewRefreshBatch();
+        }
+      });
+
+      return;
+    }
+
+    if (deferVisibleUntilLoaded) {
+      designImg.hidden = true;
+      wrap.style.display = "none";
+    } else {
+      designImg.hidden = false;
+      wrap.style.display = "block";
+    }
+    box.classList.add("has-design");
+    designImg.onload = () => {
+      designImg.onload = null;
+      designImg.onerror = null;
+
+      state = s === "back" ? stateBack : stateFront;
+      state.ar =
+        designImg.naturalWidth && designImg.naturalHeight
+          ? designImg.naturalWidth / designImg.naturalHeight
+          : state.ar || 1;
+
+      requestAnimationFrame(() => {
+        designImg.hidden = false;
+        wrap.style.display = "block";
+        try { bdRefreshZoneAndClamp(); } catch (e) {}
+        try { apply(); } catch (e) {}
+        bdScheduleSoftPrintRefresh();
+        if (!bdDraftRestoreInProgress) {
+          try { bdScheduleProofMockupSync({ side: s }); } catch (e) {}
+          bdDispatchPreviewRefreshBatch();
+        }
+      });
+    };
+    designImg.onerror = () => {
+      designImg.onload = null;
+      designImg.onerror = null;
+    };
+    designImg.src = url;
+  };
+
   // --------------------------
   // Upload -> per-side overlay
   // --------------------------
@@ -4703,6 +5245,7 @@ designImg.onerror = () => {
       const file = e.target.files && e.target.files[0];
       const side = inp.id === "cfUploadBack" ? "back" : "front";
       if (!file) return;
+      bdRememberPreferredActiveSide(side);
       try {
         bdSetActiveSideUi(side);
         bdUseSideState(side);
@@ -4733,6 +5276,20 @@ designImg.onerror = () => {
     },
     true
   );
+
+  document.addEventListener("bd:upload-slot-updated", (e) => {
+    const detail = e && e.detail ? e.detail : {};
+    const slot = String(detail.slot || "").trim();
+    if (slot !== "1" && slot !== "2") return;
+    requestAnimationFrame(() => {
+      try {
+        if (typeof bdSyncInlineUploadInfo === "function") bdSyncInlineUploadInfo();
+      } catch (err) {}
+      try {
+        bdScheduleDraftSessionPersist();
+      } catch (err) {}
+    });
+  });
 
   // Resize updates
   window.addEventListener("resize", () => {
@@ -4831,7 +5388,10 @@ const endPointer = () => {
   mode = null;
   activeHandle = null;
   box.classList.remove("is-interacting");
-  try { bdPersistActiveState(); } catch (e) {}
+  const skipPersistBeforeSwitch = !!(opts && opts.skipPersistBeforeSwitch);
+  if (!skipPersistBeforeSwitch) {
+    try { bdPersistActiveState(); } catch (e) {}
+  }
   if (bdInteractionChanged) {
     bdInvalidateProofState([bdGetActiveSide()], {
       reason: "placement-edit",
@@ -4967,16 +5527,34 @@ const endPointer = () => {
   function bdIsFrontBackStatusMode() {
     const box = document.getElementById("cf-tshirt-preview-container");
     if (!box) return false;
-    return String(box.dataset.cfConfig || "").toLowerCase().trim() === "front-back";
+    return String(box.dataset.bdResolvedMode || box.dataset.cfConfig || "").toLowerCase().trim() === "front-back";
+  }
+
+  function bdGetUploadedUrlForIndex(idx) {
+    const input = document.querySelector(`[data-url="${idx}"]`);
+    return String((input && input.value) || "").trim();
+  }
+
+  function bdHasDesignForSide(side) {
+    const previewState = bdPreviewState();
+    if (previewState && previewState.hasApprovedProofForSide && previewState.hasApprovedProofForSide(side)) {
+      return true;
+    }
+    if (previewState) {
+      if (side === "front" && previewState.hasFrontDesign && previewState.hasFrontDesign()) return true;
+      if (side === "back" && previewState.hasBackDesign && previewState.hasBackDesign()) return true;
+    }
+    const idx = side === "back" ? "2" : "1";
+    if (bdGetUploadedUrlForIndex(idx)) return true;
+    const input = side === "back" ? document.getElementById("cfUploadBack") : document.getElementById("cfUploadFront");
+    return !!(input && input.files && input.files.length);
   }
 
   function bdHasLiteUploadSelected() {
     if (typeof window.__bdTshirtHasFileSelected === "boolean") {
-      return window.__bdTshirtHasFileSelected;
+      if (window.__bdTshirtHasFileSelected) return true;
     }
-    const f1 = document.getElementById("cfUploadFront");
-    const f2 = document.getElementById("cfUploadBack");
-    return !!((f1 && f1.files && f1.files.length) || (f2 && f2.files && f2.files.length));
+    return bdHasDesignForSide("front") || bdHasDesignForSide("back");
   }
 
   function bdGetForms() {
@@ -5079,10 +5657,8 @@ const endPointer = () => {
 
     const box = bdEnsureStatusBox(form);
     const { addButton } = bdGetNativeAddControls(form);
-    const f1 = document.getElementById("cfUploadFront");
-    const f2 = document.getElementById("cfUploadBack");
-    const hasFrontUpload = !!(f1 && f1.files && f1.files.length);
-    const hasBackUpload = !!(f2 && f2.files && f2.files.length);
+    const hasFrontUpload = bdHasDesignForSide("front");
+    const hasBackUpload = bdHasDesignForSide("back");
     const hasUpload = hasFrontUpload || hasBackUpload;
     const previewState = bdPreviewState();
     const requiredSides = previewState && previewState.getRequiredProofSides ? previewState.getRequiredProofSides() : [];
@@ -5116,7 +5692,7 @@ const endPointer = () => {
     );
 
     if (!hasUpload) {
-      bdSetStatusBoxContent(box, "Please upload your design before finalizing.");
+      bdSetStatusBoxContent(box, "Upload your design to get started.");
     } else if (isCropPending) {
       bdSetStatusBoxContent(box, "Apply or cancel crop before finalizing your design.");
     } else if (readyNow && canApprove) {
@@ -5183,7 +5759,7 @@ const endPointer = () => {
       previewState.switchPreviewSide(activeBefore);
       await new Promise((resolve) => requestAnimationFrame(resolve));
     } finally {
-      if (statusBox) statusBox.textContent = prevStatus || "Design selected. You can add to cart.";
+      bdRefreshAll();
     }
   }
 

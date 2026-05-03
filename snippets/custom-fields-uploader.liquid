@@ -11,15 +11,25 @@
 {% assign has_u1 = false %}
 {% assign has_u2 = false %}
 {% assign is_tshirt_preview = false %}
+{% assign is_tote_preview = false %}
 {% assign is_tumbler_preview = false %}
 {% assign is_mug_preview = false %}
 {% assign is_circle_preview = false %}
+{% assign is_svg_only_upload = false %}
+{% assign is_doorsign_circle_fallback = false %}
 {% assign is_front_only_tshirt = false %}
 {% assign is_back_only_tshirt = false %}
 {% assign is_front_back_tshirt = false %}
 
+{% if product.handle == 'custom-made-wooden-door-sign' %}
+  {% assign is_doorsign_circle_fallback = true %}
+{% endif %}
+
 {% if product.tags contains 'cf-tshirt-preview' %}
   {% assign is_tshirt_preview = true %}
+{% endif %}
+{% if product.tags contains 'cf-tote-preview' %}
+  {% assign is_tote_preview = true %}
 {% endif %}
 {% if product.tags contains 'cf-tumbler-preview' %}
   {% assign is_tumbler_preview = true %}
@@ -30,11 +40,20 @@
 {% if product.tags contains 'cf-circle-preview' %}
   {% assign is_circle_preview = true %}
 {% endif %}
+{% if product.tags contains 'cf-doorsign-preview' %}
+  {% assign is_circle_preview = true %}
+{% endif %}
+{% if is_doorsign_circle_fallback %}
+  {% assign is_circle_preview = true %}
+{% endif %}
+{% if product.tags contains 'cf-upload-svg-only' %}
+  {% assign is_svg_only_upload = true %}
+{% endif %}
 {% if product.tags contains 'cf-config-back-only' %}
   {% assign is_back_only_tshirt = true %}
 {% elsif product.tags contains 'cf-config-front-back' %}
   {% assign is_front_back_tshirt = true %}
-{% elsif product.tags contains 'cf-tshirt-preview' %}
+{% elsif product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' %}
   {% assign is_front_only_tshirt = true %}
 {% endif %}
 {% if product.tags contains 'cf-text' %}
@@ -46,8 +65,11 @@
 {% if product.tags contains 'cf-upload2' %}
   {% assign has_u2 = true %}
 {% endif %}
-{% if is_front_only_tshirt or is_front_back_tshirt %}
+{% if is_front_only_tshirt or is_front_back_tshirt or is_tote_preview %}
   {% assign has_u1 = true %}
+{% endif %}
+{% if is_tote_preview %}
+  {% assign has_u2 = true %}
 {% endif %}
 {% if is_tumbler_preview or is_mug_preview or is_circle_preview %}
   {% assign has_u1 = true %}
@@ -60,7 +82,7 @@
 {% assign enforcement_mode = s.cf_enforcement_mode | default: 'soft' %}
 {% assign preview_mode = s.cf_preview_mode | default: 'on' %}
 {% assign hide_tshirt_upload_blocks = false %}
-{% if is_tshirt_preview %}
+{% if is_tshirt_preview or is_tote_preview %}
   {% assign hide_tshirt_upload_blocks = true %}
 {% endif %}
 {% assign hide_tumbler_upload_blocks = false %}
@@ -81,6 +103,12 @@
 {%- assign text_label = text_label | strip -%}
 {%- assign upload_notice_text = 'Upload only images you have rights to use - no copyrighted or trademarked content.' -%}
 {%- assign upload_notice_tooltip = 'You must have the legal right to use any image you upload. Do not upload copyrighted or trademarked content without authorization' -%}
+{%- assign upload_accept = 'image/png,image/jpeg,image/svg+xml' -%}
+{%- assign upload_type_help = '' -%}
+{% if is_svg_only_upload %}
+  {%- assign upload_accept = 'image/svg+xml' -%}
+  {%- assign upload_type_help = 'Accepted format: SVG only.' -%}
+{% endif %}
 
 
  {% if has_text or has_u1 or has_u2 %}
@@ -101,6 +129,7 @@
     data-u2-required="{{ s.cf_upload2_required }}"
     data-min-width="{{ s.cf_min_width | default: 2000 }}"
     data-quality-mode="{{ s.cf_quality_mode | default: 'warn' }}"
+    data-upload-mode="{% if is_svg_only_upload %}svg-only{% else %}default{% endif %}"
   >
     <div class="cf-uploader__inner">
 
@@ -112,24 +141,28 @@
         style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; opacity:0;"
         {% endif %}
       >
-          <label class="cf-uploader__label" for="{% if product.tags contains 'cf-tshirt-preview' %}cfUploadFront{% else %}CFUpload1-{{ section.id | default: 'main' }}{% endif %}">
+          <label class="cf-uploader__label" for="{% if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' %}cfUploadFront{% else %}CFUpload1-{{ section.id | default: 'main' }}{% endif %}">
            {{ u1_label }}
           </label>
 
    <input
-  id="{% if product.tags contains 'cf-tshirt-preview' %}cfUploadFront{% else %}CFUpload1-{{ section.id | default: 'main' }}{% endif %}"
+  id="{% if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' %}cfUploadFront{% else %}CFUpload1-{{ section.id | default: 'main' }}{% endif %}"
   class="cf-uploader__input"
   type="file"
-  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+  accept="{{ upload_accept }}"
   data-upload-input="1"
 >
 
 
          
-         {% assign upload1_help = s.cf_upload1_help | strip %}
-            {% if upload1_help != blank and upload1_help != '__none__' %}
-            <p class="cf-uploader__help">{{ upload1_help }}</p>
-            {% endif %}
+         {% if upload_type_help != blank %}
+            <p class="cf-uploader__help">{{ upload_type_help }}</p>
+         {% else %}
+           {% assign upload1_help = s.cf_upload1_help | strip %}
+           {% if upload1_help != blank and upload1_help != '__none__' %}
+             <p class="cf-uploader__help">{{ upload1_help }}</p>
+           {% endif %}
+         {% endif %}
           <div class="cf-uploader__status" role="status" aria-live="polite" data-status="1"></div>
 
           <div class="cf-uploader__progress" hidden data-progress="1">
@@ -151,6 +184,13 @@
 
           <!-- Saved to order as line item properties -->
           <input type="hidden" name="properties[Design 1 URL]" value="" data-url="1">
+          {% if is_tshirt_preview or is_tote_preview %}
+            <input type="hidden" name="properties[_Front Master Original URL]" value="" data-master-url="1">
+          {% elsif is_tumbler_preview or is_mug_preview or is_circle_preview %}
+            <input type="hidden" name="properties[_Master Original URL]" value="" data-master-url="1">
+          {% else %}
+            <input type="hidden" name="properties[_Design 1 Master Original URL]" value="" data-master-url="1">
+          {% endif %}
           <input type="hidden" name="properties[_Design 1 public_id]" value="" data-publicid="1">
           <input type="hidden" name="properties[_Design 1 width]" value="" data-width="1">
           <input type="hidden" name="properties[_Design 1 height]" value="" data-height="1">
@@ -166,27 +206,31 @@
           style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden; opacity:0;"
           {% endif %}
         >
-          <label class="cf-uploader__label" for="{% if product.tags contains 'cf-tshirt-preview' %}cfUploadBack{% else %}CFUpload2-{{ section.id | default: 'main' }}{% endif %}">
+          <label class="cf-uploader__label" for="{% if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' %}cfUploadBack{% else %}CFUpload2-{{ section.id | default: 'main' }}{% endif %}">
             {{ u2_label }} 
 
          </label>
 
    <input
-  id="{% if product.tags contains 'cf-tshirt-preview' %}cfUploadBack{% else %}CFUpload2-{{ section.id | default: 'main' }}{% endif %}"
+  id="{% if product.tags contains 'cf-tshirt-preview' or product.tags contains 'cf-tote-preview' %}cfUploadBack{% else %}CFUpload2-{{ section.id | default: 'main' }}{% endif %}"
   class="cf-uploader__input"
   type="file"
-  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+  accept="{{ upload_accept }}"
   data-upload-input="2"
 >
 
 
-          {% assign upload2_help = s.cf_upload2_help | strip %}
-          {% assign upload1_help = s.cf_upload1_help | strip %}
+          {% if upload_type_help != blank %}
+            <p class="cf-uploader__help">{{ upload_type_help }}</p>
+          {% else %}
+            {% assign upload2_help = s.cf_upload2_help | strip %}
+            {% assign upload1_help = s.cf_upload1_help | strip %}
 
-          {% if upload2_help != blank and upload2_help != '__none__' %}
-            <p class="cf-uploader__help">{{ upload2_help }}</p>
-          {% elsif upload1_help != blank and upload1_help != '__none__' %}
-            <p class="cf-uploader__help">{{ upload1_help }}</p>
+            {% if upload2_help != blank and upload2_help != '__none__' %}
+              <p class="cf-uploader__help">{{ upload2_help }}</p>
+            {% elsif upload1_help != blank and upload1_help != '__none__' %}
+              <p class="cf-uploader__help">{{ upload1_help }}</p>
+            {% endif %}
           {% endif %}
 
           <div class="cf-uploader__status" role="status" aria-live="polite" data-status="2"></div>
@@ -212,6 +256,11 @@
           <!-- Saved to order as line item properties -->
           <input type="hidden" name="properties[_Design 2 URL]" value="" data-url="2">
           <input type="hidden" name="properties[Design 2 URL]" value="" data-url="2">
+          {% if is_tshirt_preview or is_tote_preview %}
+            <input type="hidden" name="properties[_Back Master Original URL]" value="" data-master-url="2">
+          {% else %}
+            <input type="hidden" name="properties[_Design 2 Master Original URL]" value="" data-master-url="2">
+          {% endif %}
           <input type="hidden" name="properties[_Design 2 public_id]" value="" data-publicid="2">
           <input type="hidden" name="properties[_Design 2 width]" value="" data-width="2">
           <input type="hidden" name="properties[_Design 2 height]" value="" data-height="2">
