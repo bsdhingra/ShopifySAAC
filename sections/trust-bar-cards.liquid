@@ -17,6 +17,10 @@
   assign font_size_desktop = section.settings.font_size_desktop | default: 13
   assign font_size_mobile = section.settings.font_size_mobile | default: 12
   assign font_weight = section.settings.font_weight | default: '500'
+  assign enable_sticky_desktop = section.settings.enable_sticky_desktop
+  assign enable_sticky_mobile = section.settings.enable_sticky_mobile
+  assign sticky_top_offset_desktop = section.settings.sticky_top_offset_desktop | default: 0
+  assign sticky_top_offset_mobile = section.settings.sticky_top_offset_mobile | default: 0
 
   assign card_1_text = section.settings.card_1_text | strip
   assign card_2_text = section.settings.card_2_text | strip
@@ -49,6 +53,8 @@
       --bd-trust-line-height: 1.2;
       --bd-trust-content-justify: {% case content_alignment %}{% when 'left' %}flex-start{% when 'right' %}flex-end{% else %}center{% endcase %};
       --bd-trust-content-text-align: {% case content_alignment %}{% when 'left' %}left{% when 'right' %}right{% else %}center{% endcase %};
+      --bd-trust-sticky-top-desktop: {{ sticky_top_offset_desktop }}px;
+      --bd-trust-sticky-top-mobile: {{ sticky_top_offset_mobile }}px;
       color: var(--bd-trust-text-color, rgb(var(--color-foreground)));
       margin: 0;
       padding: 0.35rem 0;
@@ -253,6 +259,26 @@
         display: inline-flex;
       }
     }
+
+    @media screen and (min-width: 750px) {
+      {% if enable_sticky_desktop %}
+        #shopify-section-{{ section.id }} .bd-trust-bar-cards {
+          position: sticky;
+          top: var(--bd-trust-sticky-top-desktop);
+          z-index: 20;
+        }
+      {% endif %}
+    }
+
+    @media screen and (max-width: 749px) {
+      {% if enable_sticky_mobile %}
+        #shopify-section-{{ section.id }} .bd-trust-bar-cards {
+          position: sticky;
+          top: var(--bd-trust-sticky-top-mobile);
+          z-index: 20;
+        }
+      {% endif %}
+    }
   {%- endstyle -%}
 
     <div
@@ -431,6 +457,38 @@
       "step": 1,
       "unit": "s",
       "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_desktop",
+      "label": "Enable sticky on desktop",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "sticky_top_offset_desktop",
+      "label": "Sticky top offset desktop",
+      "min": 0,
+      "max": 160,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_mobile",
+      "label": "Enable sticky on mobile",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "sticky_top_offset_mobile",
+      "label": "Sticky top offset mobile",
+      "min": 0,
+      "max": 120,
+      "step": 2,
+      "unit": "px",
+      "default": 0
     },
     {
       "type": "select",

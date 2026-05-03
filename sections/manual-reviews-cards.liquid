@@ -1,0 +1,835 @@
+{%- liquid
+  assign enable_section = section.settings.enable_section
+  assign feed_url = section.settings.feed_url | strip
+  assign section_width_mode = section.settings.width_mode | default: 'page'
+  assign desktop_visible_cards = section.settings.desktop_visible_cards | default: '4'
+  assign mobile_visible_mode = section.settings.mobile_visible_mode | default: '1.1'
+-%}
+
+{% if enable_section %}
+  {{ 'manual-reviews-cards.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'manual-reviews-cards.js' | asset_url }}" defer="defer"></script>
+
+  <section
+    id="shopify-section-{{ section.id }}"
+    class="bd-manual-reviews-cards-section section"
+    data-section-id="{{ section.id }}"
+  >
+  {%- style -%}
+    #shopify-section-{{ section.id }} .bd-manual-reviews-cards {
+      --bd-manual-reviews-section-bg: {{ section.settings.section_bg_color | default: 'rgb(var(--color-background))' }};
+      --bd-manual-reviews-card-bg: {{ section.settings.card_bg_color | default: '#ffffff' }};
+      --bd-manual-reviews-card-border: {{ section.settings.card_border_color | default: 'rgba(var(--color-foreground), 0.08)' }};
+      --bd-manual-reviews-heading-color: {{ section.settings.heading_color | default: 'rgb(var(--color-foreground))' }};
+      --bd-manual-reviews-body-color: {{ section.settings.body_text_color | default: 'rgb(var(--color-foreground))' }};
+      --bd-manual-reviews-meta-color: {{ section.settings.meta_text_color | default: 'rgba(var(--color-foreground), 0.7)' }};
+      --bd-manual-reviews-star-color: {{ section.settings.star_color | default: '#d29a2f' }};
+      --bd-manual-reviews-link-color: {{ section.settings.link_color | default: 'rgb(var(--color-foreground))' }};
+      --bd-manual-reviews-section-width-desktop: {{ section.settings.section_width_desktop_px }}px;
+      --bd-manual-reviews-section-width-mobile: {{ section.settings.section_width_mobile_px }}px;
+      --bd-manual-reviews-section-min-height-desktop: {{ section.settings.section_min_height_desktop_px }}px;
+      --bd-manual-reviews-section-min-height-mobile: {{ section.settings.section_min_height_mobile_px }}px;
+      --bd-manual-reviews-card-width-desktop: {{ section.settings.card_width_desktop_px }}px;
+      --bd-manual-reviews-card-width-mobile: {{ section.settings.card_width_mobile_px }}px;
+      --bd-manual-reviews-card-min-height-desktop: {{ section.settings.card_min_height_desktop_px }}px;
+      --bd-manual-reviews-card-min-height-mobile: {{ section.settings.card_min_height_mobile_px }}px;
+      --bd-manual-reviews-heading-size-desktop: {{ section.settings.heading_size_desktop_px }}px;
+      --bd-manual-reviews-heading-size-mobile: {{ section.settings.heading_size_mobile_px }}px;
+      --bd-manual-reviews-heading-count-size-desktop: {{ section.settings.heading_count_size_desktop_px }}px;
+      --bd-manual-reviews-heading-count-size-mobile: {{ section.settings.heading_count_size_mobile_px }}px;
+      --bd-manual-reviews-body-size-desktop: {{ section.settings.body_text_size_desktop_px }}px;
+      --bd-manual-reviews-body-size-mobile: {{ section.settings.body_text_size_mobile_px }}px;
+      --bd-manual-reviews-name-size-desktop: {{ section.settings.reviewer_name_size_desktop_px }}px;
+      --bd-manual-reviews-name-size-mobile: {{ section.settings.reviewer_name_size_mobile_px }}px;
+      --bd-manual-reviews-meta-size-desktop: {{ section.settings.meta_text_size_desktop_px }}px;
+      --bd-manual-reviews-meta-size-mobile: {{ section.settings.meta_text_size_mobile_px }}px;
+      --bd-manual-reviews-star-size-desktop: {{ section.settings.star_size_desktop_px }}px;
+      --bd-manual-reviews-star-size-mobile: {{ section.settings.star_size_mobile_px }}px;
+      --bd-manual-reviews-summary-metric-size-desktop: {{ section.settings.summary_metric_size_desktop_px }}px;
+      --bd-manual-reviews-summary-metric-size-mobile: {{ section.settings.summary_metric_size_mobile_px }}px;
+      --bd-manual-reviews-heading-weight: {{ section.settings.font_weight_heading }};
+      --bd-manual-reviews-body-weight: {{ section.settings.font_weight_body }};
+      --bd-manual-reviews-radius: {% case section.settings.card_radius %}{% when 'soft' %}1rem{% when 'large-rounded' %}1.8rem{% else %}1.35rem{% endcase %};
+      --bd-manual-reviews-border-width: {{ section.settings.card_border_width_px }}px;
+      --bd-manual-reviews-gap-desktop: {{ section.settings.card_gap_desktop_px }}px;
+      --bd-manual-reviews-gap-mobile: {{ section.settings.card_gap_mobile_px }}px;
+      --bd-manual-reviews-section-padding-top: {{ section.settings.section_padding_top_px }}px;
+      --bd-manual-reviews-section-padding-bottom: {{ section.settings.section_padding_bottom_px }}px;
+      --bd-manual-reviews-inner-padding-desktop: {{ section.settings.section_inner_padding_desktop_px }}px;
+      --bd-manual-reviews-inner-padding-mobile: {{ section.settings.section_inner_padding_mobile_px }}px;
+      --bd-manual-reviews-card-padding-desktop: {{ section.settings.card_padding_desktop_px }}px;
+      --bd-manual-reviews-card-padding-mobile: {{ section.settings.card_padding_mobile_px }}px;
+      --bd-manual-reviews-text-align: {{ section.settings.text_alignment }};
+      --bd-manual-reviews-action-align: {{ section.settings.card_action_alignment }};
+      --bd-manual-reviews-heading-count-color: {{ section.settings.heading_count_color | default: 'rgba(var(--color-foreground), 0.72)' }};
+      --bd-manual-reviews-summary-metric-color: {{ section.settings.summary_metric_color | default: 'rgb(var(--color-foreground))' }};
+      --bd-manual-reviews-summary-metric-align: {{ section.settings.summary_metric_alignment }};
+      --bd-manual-reviews-top-metric-placement: {{ section.settings.top_metric_placement }};
+      --bd-manual-reviews-card-shadow: {% case section.settings.card_shadow_style %}{% when 'none' %}none{% when 'subtle' %}0 12px 30px rgba(15, 23, 42, 0.08){% else %}0 6px 18px rgba(15, 23, 42, 0.05){% endcase %};
+      --bd-manual-reviews-mobile-visible: {{ mobile_visible_mode }};
+      color: var(--bd-manual-reviews-body-color);
+      padding-top: var(--bd-manual-reviews-section-padding-top);
+      padding-bottom: var(--bd-manual-reviews-section-padding-bottom);
+    }
+
+    #shopify-section-{{ section.id }} .bd-manual-reviews-cards__shell {
+      {% if section_width_mode == 'custom' %}
+        max-width: var(--bd-manual-reviews-section-width-desktop);
+      {% elsif section_width_mode == 'page' %}
+        max-width: var(--page-width);
+      {% else %}
+        max-width: none;
+      {% endif %}
+    }
+
+    #shopify-section-{{ section.id }} .bd-manual-reviews-cards__summary,
+    #shopify-section-{{ section.id }} .bd-manual-reviews-card {
+      {% if section.settings.use_theme_font %}
+        font-family: var(--font-body-family);
+        font-style: var(--font-body-style);
+      {% endif %}
+    }
+
+    @media screen and (max-width: 749px) {
+      #shopify-section-{{ section.id }} .bd-manual-reviews-cards__shell {
+        {% if section_width_mode == 'custom' %}
+          max-width: var(--bd-manual-reviews-section-width-mobile);
+        {% elsif section_width_mode == 'page' %}
+          max-width: calc(100% - 3rem);
+        {% else %}
+          max-width: none;
+        {% endif %}
+      }
+    }
+  {%- endstyle -%}
+
+  <div
+    class="bd-manual-reviews-cards"
+    data-bd-manual-reviews
+    data-feed-url="{{ feed_url | escape }}"
+    data-local-url="{{ 'manual-reviews-data.json' | asset_url }}"
+    data-text-alignment="{{ section.settings.text_alignment }}"
+    data-action-alignment="{{ section.settings.card_action_alignment }}"
+    data-summary-metric-alignment="{{ section.settings.summary_metric_alignment }}"
+    data-top-metric-placement="{{ section.settings.top_metric_placement }}"
+    data-desktop-visible-cards="{{ desktop_visible_cards }}"
+    data-mobile-visible-mode="{{ mobile_visible_mode }}"
+    data-max-reviews="{{ section.settings.max_reviews }}"
+    data-show-summary="{{ section.settings.show_summary }}"
+    data-show-source-label="{{ section.settings.show_source_label }}"
+    data-show-rating-summary="{{ section.settings.show_rating_summary }}"
+    data-show-avatar="{{ section.settings.show_avatar }}"
+    data-show-rating="{{ section.settings.show_rating }}"
+    data-show-review-date="{{ section.settings.show_review_date }}"
+    data-show-review-link="{{ section.settings.show_review_link }}"
+    data-review-link-label="{{ section.settings.review_link_label | escape }}"
+    data-show-nav-arrows-desktop="{{ section.settings.show_nav_arrows_desktop }}"
+    data-show-nav-dots-mobile="{{ section.settings.show_nav_dots_mobile }}"
+    data-enable-drag-desktop="{{ section.settings.enable_drag_desktop }}"
+    data-enable-swipe-mobile="{{ section.settings.enable_swipe_mobile }}"
+    data-enable-endless-loop="{{ section.settings.enable_endless_loop }}"
+    data-enable-auto-rotate="{{ section.settings.enable_auto_rotate }}"
+    data-auto-rotate-interval="{{ section.settings.auto_rotate_interval_seconds }}"
+  >
+    <div class="bd-manual-reviews-cards__shell page-width{% if section_width_mode == 'full' %} bd-manual-reviews-cards__shell--full{% endif %}">
+      <div class="bd-manual-reviews-cards__surface">
+        <div class="bd-manual-reviews-cards__summary{% unless section.settings.show_summary %} is-hidden{% endunless %}">
+          <div class="bd-manual-reviews-cards__summary-text">
+            {%- if section.settings.heading != blank -%}
+              <div class="bd-manual-reviews-cards__heading-row">
+                <h2 class="bd-manual-reviews-cards__heading">{{ section.settings.heading | escape }}</h2>
+                <span class="bd-manual-reviews-cards__heading-count" data-bd-manual-reviews-heading-count></span>
+              </div>
+            {%- endif -%}
+            {%- if section.settings.summary_text != blank -%}
+              <div class="bd-manual-reviews-cards__summary-copy rte">
+                {{ section.settings.summary_text }}
+              </div>
+            {%- endif -%}
+          </div>
+          <div class="bd-manual-reviews-cards__summary-metrics">
+            <div class="bd-manual-reviews-cards__rating-summary" data-bd-manual-reviews-rating-summary></div>
+            <div class="bd-manual-reviews-cards__source-label" data-bd-manual-reviews-source-label>
+              {%- if section.settings.source_label contains 'Facebook' -%}
+                {%- assign source_label_tail = section.settings.source_label | remove_first: 'Facebook' -%}
+                <span class="bd-manual-reviews-cards__source-brand">facebook</span>
+                {%- if source_label_tail != blank -%}
+                  <span class="bd-manual-reviews-cards__source-tail bd-manual-reviews-cards__source-brand">{{ source_label_tail | downcase | escape }}</span>
+                {%- endif -%}
+              {%- else -%}
+                {{ section.settings.source_label | escape }}
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+
+        <div class="bd-manual-reviews-cards__viewport" data-bd-manual-reviews-viewport>
+          <div class="bd-manual-reviews-cards__track" data-bd-manual-reviews-track></div>
+        </div>
+
+        <div class="bd-manual-reviews-cards__nav bd-manual-reviews-cards__nav--prev">
+          <button type="button" class="bd-manual-reviews-cards__arrow" data-bd-manual-reviews-prev aria-label="Previous reviews">
+            <span aria-hidden="true">&lsaquo;</span>
+          </button>
+        </div>
+        <div class="bd-manual-reviews-cards__nav bd-manual-reviews-cards__nav--next">
+          <button type="button" class="bd-manual-reviews-cards__arrow" data-bd-manual-reviews-next aria-label="Next reviews">
+            <span aria-hidden="true">&rsaquo;</span>
+          </button>
+        </div>
+        <div class="bd-manual-reviews-cards__dots" data-bd-manual-reviews-dots></div>
+
+        <div class="bd-manual-reviews-cards__status" data-bd-manual-reviews-status>
+          Loading reviews...
+        </div>
+      </div>
+    </div>
+  </div>
+  </section>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Manual Reviews Cards",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_section",
+      "label": "Enable section",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "What Customers Say"
+    },
+    {
+      "type": "richtext",
+      "id": "summary_text",
+      "label": "Summary text",
+      "default": "<p>Loved by customers across custom apparel, gifts, and drinkware.</p>"
+    },
+    {
+      "type": "text",
+      "id": "source_label",
+      "label": "Source label",
+      "default": "Facebook Reviews"
+    },
+    {
+      "type": "url",
+      "id": "feed_url",
+      "label": "Google Sheets CSV feed URL"
+    },
+    {
+      "type": "range",
+      "id": "max_reviews",
+      "label": "Maximum reviews",
+      "min": 4,
+      "max": 50,
+      "step": 1,
+      "default": 20
+    },
+    {
+      "type": "checkbox",
+      "id": "show_summary",
+      "label": "Show summary area",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_source_label",
+      "label": "Show source label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating_summary",
+      "label": "Show rating summary",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_avatar",
+      "label": "Show avatar",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show rating",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_review_date",
+      "label": "Show review date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_review_link",
+      "label": "Show review link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "review_link_label",
+      "label": "Review link label",
+      "default": "View review"
+    },
+    {
+      "type": "select",
+      "id": "desktop_visible_cards",
+      "label": "Visible cards on desktop",
+      "default": "4",
+      "options": [
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" },
+        { "value": "5", "label": "5" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "mobile_visible_mode",
+      "label": "Visible cards on mobile",
+      "default": "1.1",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "1.1", "label": "1.1" },
+        { "value": "1.2", "label": "1.2" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "width_mode",
+      "label": "Section width",
+      "default": "page",
+      "options": [
+        { "value": "page", "label": "Page width" },
+        { "value": "full", "label": "Full width" },
+        { "value": "custom", "label": "Custom width" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "section_width_desktop_px",
+      "label": "Section width desktop",
+      "min": 1200,
+      "max": 1600,
+      "step": 4,
+      "unit": "px",
+      "default": 1440
+    },
+    {
+      "type": "range",
+      "id": "section_width_mobile_px",
+      "label": "Section width mobile",
+      "min": 280,
+      "max": 480,
+      "step": 2,
+      "unit": "px",
+      "default": 360
+    },
+    {
+      "type": "range",
+      "id": "section_min_height_desktop_px",
+      "label": "Section min height desktop",
+      "min": 180,
+      "max": 520,
+      "step": 4,
+      "unit": "px",
+      "default": 320
+    },
+    {
+      "type": "range",
+      "id": "section_min_height_mobile_px",
+      "label": "Section min height mobile",
+      "min": 140,
+      "max": 340,
+      "step": 2,
+      "unit": "px",
+      "default": 240
+    },
+    {
+      "type": "range",
+      "id": "card_width_desktop_px",
+      "label": "Card width desktop",
+      "min": 220,
+      "max": 420,
+      "step": 2,
+      "unit": "px",
+      "default": 320
+    },
+    {
+      "type": "range",
+      "id": "card_width_mobile_px",
+      "label": "Card width mobile",
+      "min": 220,
+      "max": 340,
+      "step": 2,
+      "unit": "px",
+      "default": 280
+    },
+    {
+      "type": "range",
+      "id": "card_min_height_desktop_px",
+      "label": "Card min height desktop",
+      "min": 180,
+      "max": 380,
+      "step": 4,
+      "unit": "px",
+      "default": 260
+    },
+    {
+      "type": "range",
+      "id": "card_min_height_mobile_px",
+      "label": "Card min height mobile",
+      "min": 180,
+      "max": 320,
+      "step": 2,
+      "unit": "px",
+      "default": 232
+    },
+    {
+      "type": "range",
+      "id": "heading_size_desktop_px",
+      "label": "Heading size desktop",
+      "min": 18,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "heading_size_mobile_px",
+      "label": "Heading size mobile",
+      "min": 16,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "heading_count_size_desktop_px",
+      "label": "Heading metric size desktop",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "heading_count_size_mobile_px",
+      "label": "Heading metric size mobile",
+      "min": 12,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "body_text_size_desktop_px",
+      "label": "Review text size desktop",
+      "min": 13,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "body_text_size_mobile_px",
+      "label": "Review text size mobile",
+      "min": 13,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "reviewer_name_size_desktop_px",
+      "label": "Reviewer name size desktop",
+      "min": 13,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "reviewer_name_size_mobile_px",
+      "label": "Reviewer name size mobile",
+      "min": 13,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "meta_text_size_desktop_px",
+      "label": "Meta text size desktop",
+      "min": 11,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "meta_text_size_mobile_px",
+      "label": "Meta text size mobile",
+      "min": 11,
+      "max": 15,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "star_size_desktop_px",
+      "label": "Star size desktop",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "star_size_mobile_px",
+      "label": "Star size mobile",
+      "min": 12,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "summary_metric_size_desktop_px",
+      "label": "Summary metric size desktop",
+      "min": 14,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "summary_metric_size_mobile_px",
+      "label": "Summary metric size mobile",
+      "min": 14,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "default": 17
+    },
+    {
+      "type": "select",
+      "id": "font_weight_heading",
+      "label": "Heading weight",
+      "default": "600",
+      "options": [
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semi-bold" },
+        { "value": "700", "label": "Bold" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "font_weight_body",
+      "label": "Body weight",
+      "default": "400",
+      "options": [
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semi-bold" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "card_action_alignment",
+      "label": "Card action alignment",
+      "default": "left",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "summary_metric_alignment",
+      "label": "Summary metric alignment",
+      "default": "right",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "top_metric_placement",
+      "label": "Top metric placement",
+      "default": "right",
+      "options": [
+        { "value": "right", "label": "Right of summary" },
+        { "value": "left", "label": "Left under heading" },
+        { "value": "inline", "label": "Next to heading" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "section_padding_top_px",
+      "label": "Section padding top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "section_padding_bottom_px",
+      "label": "Section padding bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "section_inner_padding_desktop_px",
+      "label": "Section inner padding desktop",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "section_inner_padding_mobile_px",
+      "label": "Section inner padding mobile",
+      "min": 0,
+      "max": 28,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "card_padding_desktop_px",
+      "label": "Card padding desktop",
+      "min": 12,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "card_padding_mobile_px",
+      "label": "Card padding mobile",
+      "min": 12,
+      "max": 28,
+      "step": 2,
+      "unit": "px",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "card_gap_desktop_px",
+      "label": "Card gap desktop",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "card_gap_mobile_px",
+      "label": "Card gap mobile",
+      "min": 8,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "select",
+      "id": "card_radius",
+      "label": "Card radius",
+      "default": "rounded",
+      "options": [
+        { "value": "soft", "label": "Soft" },
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "large-rounded", "label": "Large rounded" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "card_border_width_px",
+      "label": "Card border width",
+      "min": 0,
+      "max": 3,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "select",
+      "id": "card_shadow_style",
+      "label": "Card shadow",
+      "default": "soft",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "soft", "label": "Soft" },
+        { "value": "subtle", "label": "Subtle" }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "section_bg_color",
+      "label": "Section background",
+      "default": "#f8f6f1"
+    },
+    {
+      "type": "color",
+      "id": "card_bg_color",
+      "label": "Card background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_border_color",
+      "label": "Card border",
+      "default": "#dad6cf"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#1f2937"
+    },
+    {
+      "type": "color",
+      "id": "body_text_color",
+      "label": "Body text color",
+      "default": "#1f2937"
+    },
+    {
+      "type": "color",
+      "id": "heading_count_color",
+      "label": "Heading metric color",
+      "default": "#6b7280"
+    },
+    {
+      "type": "color",
+      "id": "meta_text_color",
+      "label": "Meta text color",
+      "default": "#6b7280"
+    },
+    {
+      "type": "color",
+      "id": "summary_metric_color",
+      "label": "Summary metric color",
+      "default": "#1f2937"
+    },
+    {
+      "type": "color",
+      "id": "star_color",
+      "label": "Star color",
+      "default": "#d49f30"
+    },
+    {
+      "type": "color",
+      "id": "link_color",
+      "label": "Link color",
+      "default": "#1f2937"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_nav_arrows_desktop",
+      "label": "Show arrows on desktop",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_nav_dots_mobile",
+      "label": "Show dots on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_drag_desktop",
+      "label": "Enable drag/scroll on desktop",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_swipe_mobile",
+      "label": "Enable swipe on mobile",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_endless_loop",
+      "label": "Enable endless loop",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_auto_rotate",
+      "label": "Auto-rotate reviews",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "auto_rotate_interval_seconds",
+      "label": "Auto-rotate interval",
+      "min": 3,
+      "max": 8,
+      "step": 1,
+      "unit": "s",
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "use_theme_font",
+      "label": "Use theme font",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Manual Reviews Cards"
+    }
+  ]
+}
+{% endschema %}

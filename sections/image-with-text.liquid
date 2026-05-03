@@ -6,10 +6,23 @@
     padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
   }
 
+  .section-{{ section.id }}-padding .image-with-text__content .button,
+  .section-{{ section.id }}-padding .image-with-text__content .button--secondary {
+    font-weight: var(--saac-home-cta-font-weight);
+    min-height: var(--saac-home-cta-min-height-mobile);
+    padding-inline: var(--saac-home-cta-padding-inline-mobile);
+  }
+
   @media screen and (min-width: 750px) {
     .section-{{ section.id }}-padding {
       padding-top: {{ section.settings.padding_top }}px;
       padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+
+    .section-{{ section.id }}-padding .image-with-text__content .button,
+    .section-{{ section.id }}-padding .image-with-text__content .button--secondary {
+      min-height: var(--saac-home-cta-min-height-desktop);
+      padding-inline: var(--saac-home-cta-padding-inline-desktop);
     }
   }
 {%- endstyle -%}

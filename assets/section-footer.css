@@ -40,9 +40,70 @@
   }
 }
 
+@media screen and (min-width: 990px) {
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) {
+    display: grid;
+    grid-template-columns: minmax(32rem, 40rem) minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: clamp(2rem, 4vw, 6rem);
+    padding-bottom: 4rem;
+  }
+
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) .footer__blocks-wrapper {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    justify-self: stretch;
+    align-self: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) .footer-block--newsletter {
+    display: contents;
+  }
+
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) .footer-block__newsletter {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    justify-self: start;
+    width: min(100%, 38rem);
+    max-width: 38rem;
+    flex-grow: 0;
+    margin-right: 0;
+  }
+
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) .footer__follow-on-shop {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) .footer__list-social {
+    grid-column: 4;
+    grid-row: 1;
+    align-self: center;
+    justify-self: end;
+  }
+
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) .footer-block__details-content {
+    text-align: center;
+  }
+
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) .footer-block__heading {
+    margin-bottom: 1.6rem;
+  }
+
+  .footer__content-top:has(.footer__blocks-wrapper .footer-block:only-child) .footer-block__details-content {
+    margin-bottom: 0;
+  }
+}
+
 .footer__content-bottom {
   border-top: solid 0.1rem rgba(var(--color-foreground), 0.08);
-  padding-top: 3rem;
+  padding-top: 1.1rem;
 }
 
 .footer__content-bottom:only-child {
@@ -104,7 +165,7 @@
   .footer__column--info {
     padding-left: 0;
     padding-right: 0;
-    align-items: flex-end;
+    align-items: center;
   }
 }
 
@@ -282,7 +343,8 @@
 
 @media screen and (min-width: 750px) {
   .footer__payment {
-    margin-top: 1.5rem;
+    margin-top: 0;
+    width: 100%;
   }
 }
 
@@ -296,6 +358,10 @@
 }
 
 @media screen and (min-width: 750px) {
+  .footer__copyright {
+    margin-top: 0.8rem;
+  }
+
   .footer__content-bottom-wrapper:not(.footer__content-bottom-wrapper--center) .footer__copyright {
     text-align: right;
   }

@@ -205,6 +205,7 @@
     text-align: {{ sub_heading_align }};
     color: rgb(var(--color-foreground));
     opacity: .75;
+    max-width: 64rem;
     {% if use_custom_subheading_font %}
       font-family: {{ subheading_font.family }}, {{ subheading_font.fallback_families }};
       font-weight: {{ subheading_font.weight }};
@@ -216,6 +217,11 @@
     {% endif %}
     font-size: {{ subheading_size_mobile }}px;
     line-height: 1.35;
+  }
+
+  .collection-carousel__subheading-{{ section.id }}:where(*) {
+    margin-left: auto;
+    margin-right: auto;
   }
   @media(min-width: 1024px) {
     .collection-carousel__subheading-{{ section.id }} { font-size: {{ subheading_size }}px; }
@@ -246,6 +252,12 @@
       flex-wrap: wrap;
     }
   {% endunless %}
+
+  .collection-carousel__top-{{ section.id }} h2 {
+    max-width: 16ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
   /* NEW: View all positioning (only affects when inline is used) */
   {% unless link_position %}
@@ -487,6 +499,29 @@
   .collection-carousel__view-all-{{ section.id }}{
     margin-top: 2.4rem;
     text-align: center;
+  }
+
+  .collection-carousel__view-all-{{ section.id }} .button {
+    background: {{ section.settings.link_background_color }};
+    color: {{ section.settings.link_color }};
+    border-color: {{ section.settings.link_background_color }};
+    box-shadow: none;
+    font-weight: var(--saac-home-cta-font-weight);
+    min-height: var(--saac-home-cta-min-height-mobile);
+    padding-inline: var(--saac-home-cta-padding-inline-mobile);
+  }
+
+  .collection-carousel__view-all-{{ section.id }} .button:hover {
+    background: {{ section.settings.link_background_hover_color }};
+    color: #ffffff;
+    border-color: {{ section.settings.link_background_hover_color }};
+  }
+
+  @media screen and (min-width: 750px) {
+    .collection-carousel__view-all-{{ section.id }} .button {
+      min-height: var(--saac-home-cta-min-height-desktop);
+      padding-inline: var(--saac-home-cta-padding-inline-desktop);
+    }
   }
 
   /* NEW: top-center view all wrapper */
