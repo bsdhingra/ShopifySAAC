@@ -848,7 +848,7 @@
         "show_rating": true,
         "show_review_date": true,
         "show_review_link": true,
-        "review_link_label": "View review",
+        "review_link_label": "View on Facebook →",
         "desktop_visible_cards": "4",
         "mobile_visible_mode": "1.1",
         "width_mode": "page",

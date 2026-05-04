@@ -88,6 +88,17 @@
     return markup;
   }
 
+  function facebookIconMarkup(iconMarkup, className) {
+    var icon = String(iconMarkup || '').trim();
+    if (!icon) return '';
+
+    return (
+      '<span class="' + escapeHtml(className || '') + '" aria-hidden="true">' +
+        icon +
+      '</span>'
+    );
+  }
+
   function initials(name) {
     return String(name || '')
       .split(/\s+/)
@@ -194,42 +205,27 @@
     return numeric.toFixed(1);
   }
 
-  function buildSourceMarkup(label) {
-    var input = String(label || '').trim();
-    if (!input) return '';
-
-    if (/facebook/i.test(input)) {
-      var tail = input.replace(/facebook/i, '').trim();
+  function buildMetricMarkup(valueText) {
+    var metricValue = String(valueText || '').trim();
+    if (metricValue) {
       return (
-        '<span class="bd-manual-reviews-cards__metric-source">' +
-          '<span class="bd-manual-reviews-cards__source-brand">facebook</span>' +
-          (tail ? '<span class="bd-manual-reviews-cards__source-tail bd-manual-reviews-cards__source-brand"> ' + escapeHtml(tail) + '</span>' : '') +
+        '<span class="bd-manual-reviews-cards__metric-rating">' +
+          '<span class="bd-manual-reviews-cards__metric-stars" aria-hidden="true">' + stars(5) + '</span>' +
+          '<span class="bd-manual-reviews-cards__metric-value">Rated ' + escapeHtml(metricValue) + '</span>' +
         '</span>'
       );
     }
-
-    return '<span class="bd-manual-reviews-cards__metric-source">' + escapeHtml(input) + '</span>';
-  }
-
-  function buildMetricMarkup(valueText, sourceLabelText, showSource) {
-    var metricValue = String(valueText || '').trim();
-    var sourceMarkup = showSource ? buildSourceMarkup(sourceLabelText) : '';
-
-    if (metricValue && sourceMarkup) {
-      return '<span class="bd-manual-reviews-cards__metric-value">' + escapeHtml(metricValue) + '</span>' + sourceMarkup;
-    }
-    if (metricValue) {
-      return '<span class="bd-manual-reviews-cards__metric-value">' + escapeHtml(metricValue) + '</span>';
-    }
-    return sourceMarkup;
+    return '';
   }
 
   function buildCard(review, settings) {
     var topParts = [];
-    var metaParts = [];
+    var trustMetaHtml = '';
+    var ratingMetaParts = [];
     var linkHtml = '';
     var formattedReviewDate = formatReviewDate(review.reviewDate);
     var reviewText = repairMojibake(review.reviewText || '');
+    var facebookIcon = facebookIconMarkup(settings.facebookIconMarkup, 'bd-manual-reviews-card__trust-icon');
 
     if (settings.showAvatar === 'true') {
       if (review.reviewerAvatarUrl) {
@@ -254,12 +250,19 @@
       }
     }
 
+    trustMetaHtml = (
+      '<span class="bd-manual-reviews-card__trust-meta">' +
+        facebookIcon +
+        '<span class="bd-manual-reviews-card__trust-label">Verified Facebook Review</span>' +
+      '</span>'
+    );
+
     if (settings.showRating === 'true' && review.rating > 0) {
-      metaParts.push('<span class="bd-manual-reviews-card__stars">' + stars(review.rating) + '</span>');
+      ratingMetaParts.push('<span class="bd-manual-reviews-card__stars">' + stars(review.rating) + '</span>');
     }
 
     if (settings.showReviewDate === 'true' && formattedReviewDate) {
-      metaParts.push('<span>' + escapeHtml(formattedReviewDate) + '</span>');
+      ratingMetaParts.push('<span>' + escapeHtml(formattedReviewDate) + '</span>');
     }
 
     if (settings.showReviewLink === 'true' && review.reviewUrl) {
@@ -284,7 +287,8 @@
           topParts.join('') +
           '<div class="bd-manual-reviews-card__identity">' +
             '<p class="bd-manual-reviews-card__name">' + escapeHtml(review.reviewerName || 'Facebook customer') + '</p>' +
-            '<div class="bd-manual-reviews-card__meta">' + metaParts.join('') + '</div>' +
+            '<div class="bd-manual-reviews-card__trust-row">' + trustMetaHtml + '</div>' +
+            '<div class="bd-manual-reviews-card__rating-row">' + ratingMetaParts.join('') + '</div>' +
           '</div>' +
         '</div>' +
         '<div class="bd-manual-reviews-card__body-wrap">' +
@@ -642,7 +646,8 @@
       showRating: root.getAttribute('data-show-rating'),
       showReviewDate: root.getAttribute('data-show-review-date'),
       showReviewLink: root.getAttribute('data-show-review-link'),
-      reviewLinkLabel: root.getAttribute('data-review-link-label')
+      reviewLinkLabel: root.getAttribute('data-review-link-label'),
+      facebookIconMarkup: root.getAttribute('data-facebook-icon')
     };
 
     if (!track) return;
@@ -725,17 +730,17 @@
 
       var avg = averageRating(reviews);
       var summaryText = avg ? formatAverageRating(avg) + '/5' : '';
-      var showSourceText = root.getAttribute('data-show-source-label') === 'true';
-      var sourceText = 'facebook reviews';
       if (sourceLabel) {
-        var sourceValue = String(sourceLabel.textContent || '').trim();
-        if (sourceValue) sourceText = sourceValue;
-        sourceLabel.classList.add('is-hidden');
+        if (root.getAttribute('data-show-source-label') === 'true') {
+          sourceLabel.classList.remove('is-hidden');
+        } else {
+          sourceLabel.classList.add('is-hidden');
+        }
       }
-      var metricMarkup = buildMetricMarkup(summaryText, sourceText, showSourceText);
+      var metricMarkup = buildMetricMarkup(summaryText);
       var placement = root.getAttribute('data-top-metric-placement') || 'right';
       var isMobile = window.matchMedia('(max-width: 749px)').matches;
-      var showHeadingMetric = isMobile || placement === 'inline' || placement === 'left';
+      var showHeadingMetric = isMobile || placement === 'inline';
 
       if (ratingSummary) {
         if (root.getAttribute('data-show-rating-summary') === 'true' && !showHeadingMetric) {

@@ -108,6 +108,7 @@
     data-bd-manual-reviews
     data-feed-url="{{ feed_url | escape }}"
     data-local-url="{{ 'manual-reviews-data.json' | asset_url }}"
+    data-facebook-icon="{{ 'icon-facebook.svg' | inline_asset_content | escape }}"
     data-text-alignment="{{ section.settings.text_alignment }}"
     data-action-alignment="{{ section.settings.card_action_alignment }}"
     data-summary-metric-alignment="{{ section.settings.summary_metric_alignment }}"
@@ -141,26 +142,27 @@
                 <span class="bd-manual-reviews-cards__heading-count" data-bd-manual-reviews-heading-count></span>
               </div>
             {%- endif -%}
-            {%- if section.settings.summary_text != blank -%}
-              <div class="bd-manual-reviews-cards__summary-copy rte">
-                {{ section.settings.summary_text }}
-              </div>
-            {%- endif -%}
           </div>
           <div class="bd-manual-reviews-cards__summary-metrics">
-            <div class="bd-manual-reviews-cards__rating-summary" data-bd-manual-reviews-rating-summary></div>
             <div class="bd-manual-reviews-cards__source-label" data-bd-manual-reviews-source-label>
               {%- if section.settings.source_label contains 'Facebook' -%}
-                {%- assign source_label_tail = section.settings.source_label | remove_first: 'Facebook' -%}
-                <span class="bd-manual-reviews-cards__source-brand">facebook</span>
-                {%- if source_label_tail != blank -%}
-                  <span class="bd-manual-reviews-cards__source-tail bd-manual-reviews-cards__source-brand">{{ source_label_tail | downcase | escape }}</span>
-                {%- endif -%}
+                <span class="bd-manual-reviews-cards__source-icon" aria-hidden="true">
+                  {{- 'icon-facebook.svg' | inline_asset_content -}}
+                </span>
+                <span class="bd-manual-reviews-cards__source-copy">
+                  <span class="bd-manual-reviews-cards__source-brand">Facebook Reviews</span>
+                </span>
               {%- else -%}
                 {{ section.settings.source_label | escape }}
               {%- endif -%}
             </div>
+            <div class="bd-manual-reviews-cards__rating-summary" data-bd-manual-reviews-rating-summary></div>
           </div>
+          {%- if section.settings.summary_text != blank -%}
+            <div class="bd-manual-reviews-cards__summary-copy rte">
+              {{ section.settings.summary_text }}
+            </div>
+          {%- endif -%}
         </div>
 
         <div class="bd-manual-reviews-cards__viewport" data-bd-manual-reviews-viewport>
