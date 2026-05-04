@@ -86,6 +86,7 @@
     --bd-carousel-dot-active-bg: {{ section.settings.dot_active_color }};
     --bd-carousel-button-font-size: {{ section.settings.button_font_size }}px;
     --bd-carousel-button-min-height: {{ section.settings.button_height }}px;
+    --bd-carousel-button-horizontal-padding: {{ section.settings.button_horizontal_padding }}px;
     --bd-carousel-mobile-button-font-size: {{ section.settings.mobile_button_font_size }}px;
     --bd-carousel-mobile-button-min-height: {{ section.settings.mobile_button_height }}px;
     --bd-carousel-mobile-button-horizontal-padding: {{ section.settings.mobile_button_horizontal_padding }}px;
@@ -390,7 +391,7 @@
       align-items: center;
       justify-content: center;
       min-height: var(--bd-carousel-button-min-height);
-      padding: 0.85rem 1.4rem;
+      padding: 0.85rem var(--bd-carousel-button-horizontal-padding);
       border-radius: 999px;
       border: 1px solid var(--bd-carousel-button-border, transparent);
       background: color-mix(in srgb, var(--bd-carousel-button-bg, #111827) var(--bd-carousel-button-opacity, 100%), transparent);
@@ -1777,6 +1778,16 @@
       "unit": "px",
       "label": "Button height",
       "default": 48
+    },
+    {
+      "type": "range",
+      "id": "button_horizontal_padding",
+      "min": 12,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Desktop button horizontal padding",
+      "default": 22
     },
     {
       "type": "header",
