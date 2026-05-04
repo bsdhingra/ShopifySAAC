@@ -120,6 +120,7 @@
   let draftPersistFrame = 0;
   let draftEditableSourceSnapshot = null;
   let draftEditableSourceSeq = 0;
+  let pendingDraftRestoreSnapshot = null;
   let cropApplyInFlight = false;
   const MOBILE_PROOF_WAIT_MS = 1200;
   const MAX_DRAFT_EDITABLE_SOURCE_BYTES = 1800000;
@@ -345,6 +346,31 @@
     }
     return Promise.resolve(window.bdReadMasterOriginalUpload(uploader, "1")).catch(() => null);
   };
+  const readWorkingUploadFile = () => {
+    if (typeof window.bdReadWorkingUpload !== "function" || !uploader) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(window.bdReadWorkingUpload(uploader, "1")).catch(() => null);
+  };
+
+  const restoreWorkingEditorFileFromStorage = (() => {
+    let inFlight = null;
+    return async () => {
+      if (inFlight) return inFlight;
+      inFlight = readWorkingUploadFile()
+        .then((file) => {
+          if (!file || !String(file.type || "").startsWith("image/")) return null;
+          setCurrentEditorFile(file);
+          syncCropActionButtons();
+          return file;
+        })
+        .catch(() => null)
+        .finally(() => {
+          inFlight = null;
+        });
+      return inFlight;
+    };
+  })();
 
   const syncCropActionButtons = () => {
     const hasUploadedDesign = !!String(
@@ -633,7 +659,11 @@
   };
 
   const buildDraftSessionSnapshot = () => {
-    const designUrl = getDurableDesignUrl(state.src);
+    const designUrl = String(
+      (designUrlInput && designUrlInput.value) ||
+      state.src ||
+      ""
+    ).trim();
     if (!designUrl || !state.placement) return null;
     return {
       designUrl,
@@ -648,6 +678,9 @@
   };
 
   const persistDraftSessionNow = () => {
+    if (pendingDraftRestoreSnapshot) {
+      return false;
+    }
     const key = getDraftSessionKey();
     try {
       const snapshot = buildDraftSessionSnapshot();
@@ -682,11 +715,26 @@
   };
 
   const clearDraftSessionSnapshot = () => {
+    pendingDraftRestoreSnapshot = null;
     try {
       window.sessionStorage.removeItem(getDraftSessionKey());
     } catch (e) {}
     clearDraftEditableSource();
     draftEditableSourceSnapshot = null;
+  };
+
+  const primeStateFromDraftSnapshot = (snapshot) => {
+    if (!snapshot || !snapshot.placement) return false;
+    state.initialPlacement = snapshot.initialPlacement ? { ...snapshot.initialPlacement } : null;
+    state.placement = { ...snapshot.placement };
+    state.width = Number(snapshot.width || 0);
+    state.height = Number(snapshot.height || 0);
+    state.aspect = Number(snapshot.aspect || 1) || 1;
+    const durableSrc = getDurableDesignUrl(snapshot.designUrl);
+    if (durableSrc) {
+      state.src = durableSrc;
+    }
+    return true;
   };
 
   const getNavigationType = () => {
@@ -2439,7 +2487,9 @@
 
   const syncFromUploader = (options) => {
     const useDraftSnapshot = !!(options && options.useDraftSnapshot);
-    const snapshot = useDraftSnapshot ? readDraftSessionSnapshot() : null;
+    const snapshot =
+      (useDraftSnapshot ? readDraftSessionSnapshot() : null) ||
+      pendingDraftRestoreSnapshot;
     const durableSrc = getDurableDesignUrl(snapshot && snapshot.designUrl);
     const transientPreviewSrc = String(
       (previewImg && (previewImg.currentSrc || previewImg.getAttribute("src") || previewImg.src)) ||
@@ -2447,6 +2497,16 @@
     ).trim();
     const workingSrc = String(cropSourceState.currentObjectUrl || "").trim();
     const src = String(workingSrc || durableSrc || transientPreviewSrc || "").trim();
+    const shouldRestoreSnapshotPlacement =
+      !!(
+        snapshot &&
+        snapshot.placement &&
+        (
+          snapshot.designUrl === src ||
+          (durableSrc && snapshot.designUrl === durableSrc) ||
+          (workingSrc && cropSourceState.currentFile)
+        )
+      );
     if (!src) {
       state.src = "";
       state.placement = null;
@@ -2474,6 +2534,11 @@
       designUrlInput.value = durableSrc || "";
     }
     if (state.src === src && state.placement) {
+      if (shouldRestoreSnapshotPlacement) {
+        state.initialPlacement = snapshot.initialPlacement ? { ...snapshot.initialPlacement } : null;
+        state.placement = { ...snapshot.placement };
+        pendingDraftRestoreSnapshot = null;
+      }
       rehydrateProofStateFromInputs();
       if (!cropSourceState.currentFile) {
         window.setTimeout(() => {
@@ -2498,9 +2563,10 @@
       state.width = designEditImg.naturalWidth || 0;
       state.height = designEditImg.naturalHeight || 0;
       state.aspect = state.height ? state.width / state.height : 1;
-      if (snapshot && snapshot.designUrl === src && snapshot.placement) {
+      if (shouldRestoreSnapshotPlacement) {
         state.initialPlacement = snapshot.initialPlacement ? { ...snapshot.initialPlacement } : null;
         state.placement = { ...snapshot.placement };
+        pendingDraftRestoreSnapshot = null;
       } else {
         state.placement = null;
         state.initialPlacement = null;
@@ -2576,8 +2642,12 @@
     if ((wasMode === "dragging" || wasMode === "resizing") && isMobileViewport()) {
       renderPreviewNow();
       finalizeAfterRender();
+      persistDraftSessionNow();
     } else {
       scheduleRender();
+      if (wasMode === "dragging" || wasMode === "resizing") {
+        persistDraftSessionNow();
+      }
     }
   };
 
@@ -2746,9 +2816,16 @@
     applyStageSpec();
     syncThumbnailLockState();
     if (!shouldAttemptDraftRestore({ persisted: !!(event && event.persisted) })) return;
-    window.setTimeout(() => syncFromUploader({ useDraftSnapshot: true }), 0);
-    window.setTimeout(() => syncFromUploader({ useDraftSnapshot: true }), 120);
-    window.setTimeout(() => syncFromUploader({ useDraftSnapshot: true }), 260);
+    pendingDraftRestoreSnapshot = readDraftSessionSnapshot();
+    primeStateFromDraftSnapshot(pendingDraftRestoreSnapshot);
+    const restoreDraftView = () => {
+      restoreWorkingEditorFileFromStorage().finally(() => {
+        syncFromUploader({ useDraftSnapshot: true });
+      });
+    };
+    window.setTimeout(restoreDraftView, 0);
+    window.setTimeout(restoreDraftView, 120);
+    window.setTimeout(restoreDraftView, 260);
   });
 
   window.addEventListener("pagehide", () => {
@@ -2776,6 +2853,8 @@
           }
           return;
         }
+
+        persistDraftSessionNow();
 
         const currentDesignUrl = getDurableDesignUrl();
         if (!currentDesignUrl) {
@@ -2879,6 +2958,8 @@
     syncThumbnailLockState();
     scheduleRender();
     if (shouldAttemptDraftRestore()) {
+      pendingDraftRestoreSnapshot = readDraftSessionSnapshot();
+      primeStateFromDraftSnapshot(pendingDraftRestoreSnapshot);
       syncFromUploader({ useDraftSnapshot: true });
     }
   });
