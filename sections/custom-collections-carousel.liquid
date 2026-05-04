@@ -217,11 +217,16 @@
     {% endif %}
     font-size: {{ subheading_size_mobile }}px;
     line-height: 1.35;
-  }
-
-  .collection-carousel__subheading-{{ section.id }}:where(*) {
-    margin-left: auto;
-    margin-right: auto;
+    {% if sub_heading_align == 'center' %}
+      margin-left: auto;
+      margin-right: auto;
+    {% elsif sub_heading_align == 'right' %}
+      margin-left: auto;
+      margin-right: 0;
+    {% else %}
+      margin-left: 0;
+      margin-right: auto;
+    {% endif %}
   }
   @media(min-width: 1024px) {
     .collection-carousel__subheading-{{ section.id }} { font-size: {{ subheading_size }}px; }
@@ -255,8 +260,16 @@
 
   .collection-carousel__top-{{ section.id }} h2 {
     max-width: 16ch;
-    margin-left: auto;
-    margin-right: auto;
+    {% if heading_align == 'center' %}
+      margin-left: auto;
+      margin-right: auto;
+    {% elsif heading_align == 'right' %}
+      margin-left: auto;
+      margin-right: 0;
+    {% else %}
+      margin-left: 0;
+      margin-right: auto;
+    {% endif %}
   }
 
   /* NEW: View all positioning (only affects when inline is used) */
