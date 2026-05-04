@@ -346,6 +346,11 @@
     margin-top: 0;
     width: 100%;
   }
+
+  /* Keep footer payment badges centered instead of inheriting Dawn's desktop end-alignment. */
+  .footer .list-payment {
+    justify-content: center;
+  }
 }
 
 .footer__content-bottom-wrapper--center {
