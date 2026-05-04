@@ -1,0 +1,657 @@
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .sarv-about-page-{{ section.id }} {
+    --about-border: rgba(var(--color-foreground), 0.1);
+    --about-border-strong: rgba(var(--color-foreground), 0.16);
+    --about-muted: rgba(var(--color-foreground), 0.72);
+    --about-soft: rgba(var(--color-foreground), 0.58);
+    --about-card: rgba(var(--color-foreground), 0.035);
+    --about-quote: rgba(var(--color-foreground), 0.045);
+    --about-shadow: 0 1.4rem 3.6rem rgba(var(--color-foreground), 0.06);
+    --about-radius: 2.4rem;
+    --about-radius-small: 1.6rem;
+    color: rgb(var(--color-foreground));
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__shell {
+    max-width: 90rem;
+    margin: 0 auto;
+    padding-inline: 2rem;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__article {
+    max-width: 82rem;
+    margin: 0 auto;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__eyebrow {
+    margin: 0 0 1.2rem;
+    font-family: var(--font-body-family);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgb(var(--color-button));
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__heading {
+    margin: 0 0 2rem;
+    font-family: var(--font-heading-family);
+    font-size: clamp(3.4rem, 4.5vw, 5.2rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__heading em {
+    font-style: italic;
+    color: rgb(var(--color-button));
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__intro {
+    margin: 0;
+    padding: 0 0 4rem;
+    border-bottom: 0.1rem solid var(--about-border);
+    font-size: clamp(1.7rem, 2vw, 1.95rem);
+    line-height: 1.8;
+    color: var(--about-muted);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__section {
+    padding: 4rem 0 0;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__section + .sarv-about-page__section {
+    margin-top: 4rem;
+    border-top: 0.1rem solid var(--about-border);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__section-title {
+    margin: 0 0 1.6rem;
+    font-family: var(--font-heading-family);
+    font-size: clamp(2.6rem, 3.4vw, 3.2rem);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__copy {
+    color: var(--about-muted);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__copy p {
+    margin: 0 0 1.6rem;
+    font-size: 1.55rem;
+    line-height: 1.82;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__copy p:last-child {
+    margin-bottom: 0;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__quote {
+    margin: 3rem 0;
+    padding: 2.6rem 2.8rem;
+    border: 0.1rem solid var(--about-border);
+    border-left: 0.35rem solid rgb(var(--color-button));
+    border-radius: 0 var(--about-radius-small) var(--about-radius-small) 0;
+    background: var(--about-quote);
+    box-shadow: var(--about-shadow);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__quote p {
+    margin: 0;
+    font-family: var(--font-heading-family);
+    font-size: clamp(2rem, 2.5vw, 2.4rem);
+    line-height: 1.6;
+    font-style: italic;
+    color: rgb(var(--color-foreground));
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__values {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.8rem;
+    margin-top: 3rem;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__value-card {
+    height: 100%;
+    padding: 2.4rem;
+    border: 0.1rem solid var(--about-border);
+    border-radius: var(--about-radius-small);
+    background: var(--about-card);
+    box-shadow: 0 1rem 2.8rem rgba(var(--color-foreground), 0.04);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__value-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 1.2rem;
+    border-radius: 999px;
+    background: rgba(var(--color-button), 0.12);
+    color: rgb(var(--color-button));
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__value-title {
+    margin: 0 0 0.7rem;
+    font-family: var(--font-heading-family);
+    font-size: 1.9rem;
+    line-height: 1.3;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__value-text {
+    margin: 0;
+    font-size: 1.45rem;
+    line-height: 1.72;
+    color: var(--about-soft);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__cta {
+    margin-top: 4.8rem;
+    padding: 3.4rem;
+    border-radius: var(--about-radius);
+    background: rgb(var(--color-foreground));
+    color: rgb(var(--color-background));
+    text-align: center;
+    box-shadow: 0 1.8rem 4rem rgba(var(--color-foreground), 0.12);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__cta-copy {
+    max-width: 58rem;
+    margin: 0 auto;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__cta-copy p {
+    margin: 0 0 1.4rem;
+    font-size: 1.55rem;
+    line-height: 1.78;
+    color: rgba(var(--color-background), 0.8);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__cta-copy p:last-child {
+    margin-bottom: 0;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__email {
+    display: inline-block;
+    margin: 0.4rem 0 1.8rem;
+    color: rgb(var(--color-background));
+    text-decoration-thickness: 0.08rem;
+    text-underline-offset: 0.24rem;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__button-wrap {
+    margin-top: 1.8rem;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__button-wrap .button {
+    min-width: 20rem;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.8rem;
+    margin-top: 3.2rem;
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__meta-item {
+    padding-top: 1.4rem;
+    border-top: 0.1rem solid var(--about-border-strong);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__meta-label {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--about-soft);
+  }
+
+  .sarv-about-page-{{ section.id }} .sarv-about-page__meta-value {
+    margin: 0;
+    font-size: 1.55rem;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground));
+  }
+
+  @media screen and (max-width: 989px) {
+    .sarv-about-page-{{ section.id }} .sarv-about-page__shell {
+      padding-inline: 1.8rem;
+    }
+
+    .sarv-about-page-{{ section.id }} .sarv-about-page__meta {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .sarv-about-page-{{ section.id }} .sarv-about-page__shell {
+      padding-inline: 1.5rem;
+    }
+
+    .sarv-about-page-{{ section.id }} .sarv-about-page__intro {
+      padding-bottom: 3.2rem;
+    }
+
+    .sarv-about-page-{{ section.id }} .sarv-about-page__section {
+      padding-top: 3.2rem;
+    }
+
+    .sarv-about-page-{{ section.id }} .sarv-about-page__section + .sarv-about-page__section {
+      margin-top: 3.2rem;
+    }
+
+    .sarv-about-page-{{ section.id }} .sarv-about-page__quote,
+    .sarv-about-page-{{ section.id }} .sarv-about-page__cta {
+      padding: 2.4rem 2rem;
+    }
+
+    .sarv-about-page-{{ section.id }} .sarv-about-page__values,
+    .sarv-about-page-{{ section.id }} .sarv-about-page__meta {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.4rem;
+    }
+
+    .sarv-about-page-{{ section.id }} .sarv-about-page__value-card {
+      padding: 2rem;
+    }
+
+    .sarv-about-page-{{ section.id }} .sarv-about-page__button-wrap .button {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+{%- endstyle -%}
+
+<section class="sarv-about-page sarv-about-page-{{ section.id }} color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding">
+  <div class="sarv-about-page__shell">
+    <article class="sarv-about-page__article">
+      <p class="sarv-about-page__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+
+      <h1 class="sarv-about-page__heading">
+        <span>{{ section.settings.heading_line_1 | escape }}</span><br>
+        <em>{{ section.settings.heading_line_2 | escape }}</em>
+      </h1>
+
+      <div class="sarv-about-page__intro rte">
+        {{ section.settings.intro_text }}
+      </div>
+
+      <section class="sarv-about-page__section">
+        <h2 class="sarv-about-page__section-title inline-richtext">
+          {{ section.settings.story_title }}
+        </h2>
+        <div class="sarv-about-page__copy rte">
+          {{ section.settings.story_body }}
+        </div>
+
+        <aside class="sarv-about-page__quote">
+          <p>{{ section.settings.highlight_quote | escape }}</p>
+        </aside>
+
+        <div class="sarv-about-page__copy rte">
+          {{ section.settings.story_footer }}
+        </div>
+      </section>
+
+      <section class="sarv-about-page__section">
+        <h2 class="sarv-about-page__section-title inline-richtext">
+          {{ section.settings.values_title }}
+        </h2>
+        <div class="sarv-about-page__copy rte">
+          {{ section.settings.values_intro }}
+        </div>
+
+        <div class="sarv-about-page__values">
+          {%- for block in section.blocks -%}
+            <div class="sarv-about-page__value-card" {{ block.shopify_attributes }}>
+              <div class="sarv-about-page__value-icon" aria-hidden="true">
+                {{ block.settings.icon | escape }}
+              </div>
+              <h3 class="sarv-about-page__value-title">{{ block.settings.title | escape }}</h3>
+              <p class="sarv-about-page__value-text">{{ block.settings.text | escape }}</p>
+            </div>
+          {%- endfor -%}
+        </div>
+      </section>
+
+      <section class="sarv-about-page__section">
+        <h2 class="sarv-about-page__section-title inline-richtext">
+          {{ section.settings.family_title }}
+        </h2>
+        <div class="sarv-about-page__copy rte">
+          {{ section.settings.family_body }}
+        </div>
+      </section>
+
+      <section class="sarv-about-page__cta">
+        <div class="sarv-about-page__cta-copy rte">
+          {{ section.settings.cta_copy }}
+        </div>
+        {%- if section.settings.contact_email != blank -%}
+          <a class="sarv-about-page__email" href="mailto:{{ section.settings.contact_email | escape }}">
+            {{ section.settings.contact_email | escape }}
+          </a>
+        {%- endif -%}
+        {%- if section.settings.cta_label != blank -%}
+          <div class="sarv-about-page__button-wrap">
+            <a
+              {% if section.settings.cta_link == blank %}
+                role="link" aria-disabled="true"
+              {% else %}
+                href="{{ section.settings.cta_link }}"
+              {% endif %}
+              class="button{% if section.settings.cta_style_secondary %} button--secondary{% else %} button--primary{% endif %}"
+            >
+              {{ section.settings.cta_label | escape }}
+            </a>
+          </div>
+        {%- endif -%}
+      </section>
+
+      <div class="sarv-about-page__meta" aria-label="About Sarv details">
+        {%- if section.settings.founded_label != blank and section.settings.founded_value != blank -%}
+          <div class="sarv-about-page__meta-item">
+            <p class="sarv-about-page__meta-label">{{ section.settings.founded_label | escape }}</p>
+            <p class="sarv-about-page__meta-value">{{ section.settings.founded_value | escape }}</p>
+          </div>
+        {%- endif -%}
+        {%- if section.settings.based_in_label != blank and section.settings.based_in_value != blank -%}
+          <div class="sarv-about-page__meta-item">
+            <p class="sarv-about-page__meta-label">{{ section.settings.based_in_label | escape }}</p>
+            <p class="sarv-about-page__meta-value">{{ section.settings.based_in_value | escape }}</p>
+          </div>
+        {%- endif -%}
+        {%- if section.settings.rating_label != blank and section.settings.rating_value != blank -%}
+          <div class="sarv-about-page__meta-item">
+            <p class="sarv-about-page__meta-label">{{ section.settings.rating_label | escape }}</p>
+            <p class="sarv-about-page__meta-value">{{ section.settings.rating_value | escape }}</p>
+          </div>
+        {%- endif -%}
+        {%- if section.settings.production_label != blank and section.settings.production_value != blank -%}
+          <div class="sarv-about-page__meta-item">
+            <p class="sarv-about-page__meta-label">{{ section.settings.production_label | escape }}</p>
+            <p class="sarv-about-page__meta-value">{{ section.settings.production_value | escape }}</p>
+          </div>
+        {%- endif -%}
+      </div>
+    </article>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "About Sarv",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "Our story"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading_line_1",
+      "label": "Main heading line 1",
+      "default": "Made with love,"
+    },
+    {
+      "type": "text",
+      "id": "heading_line_2",
+      "label": "Main heading line 2",
+      "default": "every single time"
+    },
+    {
+      "type": "richtext",
+      "id": "intro_text",
+      "label": "Intro text",
+      "default": "<p>Hi, I'm Sarv - and every product you order from this shop is made personally by me, right here in Fuquay Varina, NC. Not by a factory. Not drop-shipped. By me, at my workstation, thinking about the person who's going to receive it.</p>"
+    },
+    {
+      "type": "text",
+      "id": "story_title",
+      "label": "Story section title",
+      "default": "It started with my daughter"
+    },
+    {
+      "type": "richtext",
+      "id": "story_body",
+      "label": "Story body",
+      "default": "<p>My crafting journey began the way the best things do - out of love. As a mom, I found myself making everything my daughter asked for. Birthday decorations, school event crafts, little gifts that would make her eyes light up. Every project was a chance to create a special moment for her.</p><p>As she grew up and needed me a little less, I found myself with time on my hands and a heart full of creativity. So I kept going - learning new techniques, trying new materials, making things for friends and family. What started as a way to stay busy became something I genuinely couldn't stop doing.</p>"
+    },
+    {
+      "type": "text",
+      "id": "highlight_quote",
+      "label": "Highlight quote",
+      "default": "\"I realized that what I was making for my daughter - that feeling of something made specifically for you - was something everyone deserved.\""
+    },
+    {
+      "type": "richtext",
+      "id": "story_footer",
+      "label": "Story footer",
+      "default": "<p>In 2024, Sarv's Arts and Crafts became official. But the way I work hasn't changed at all. Every order still gets the same care I put into the things I made for my little girl.</p>"
+    },
+    {
+      "type": "text",
+      "id": "values_title",
+      "label": "Values title",
+      "default": "What makes us different"
+    },
+    {
+      "type": "richtext",
+      "id": "values_intro",
+      "label": "Values intro",
+      "default": "<p>Every single item at Sarv's Arts and Crafts is made in-house, by me - never drop-shipped. Your mug, your shirt, your laser-engraved keepsake - I make it, I check it, and I ship it. No warehouse, no middleman, no guessing.</p><p>What I hear most from customers is that they appreciate three things: the quality of what arrives, how quickly it gets to them, and that when they reach out - I actually respond. Fast. Those aren't happy accidents - they're what I've built this business around from day one.</p><p>From custom apparel and drinkware to laser-engraved gifts, every technique I offer is something I've personally mastered. If I can't do it well, I don't offer it.</p>"
+    },
+    {
+      "type": "text",
+      "id": "family_title",
+      "label": "Family section title",
+      "default": "A little about our family"
+    },
+    {
+      "type": "richtext",
+      "id": "family_body",
+      "label": "Family body",
+      "default": "<p>I live with my husband, my now 10-year-old daughter (the original inspiration for all of this!), and our sweet dog. Fuquay Varina is home, and many of our local customers have become familiar faces I genuinely look forward to hearing from.</p><p>Whether you're ordering a single mug as a birthday gift or 50 shirts for your team - every order gets my full attention. That's a promise I've kept since day one and one I intend to keep.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "cta_copy",
+      "label": "CTA copy",
+      "default": "<p>Have a question about an order, a custom idea, or just want to say hello? I'd love to hear from you.</p>"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "Contact email",
+      "default": "info@sarvsartsandcrafts.com"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA text",
+      "default": "Shop our collections"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    },
+    {
+      "type": "checkbox",
+      "id": "cta_style_secondary",
+      "label": "Use secondary button style",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Meta details"
+    },
+    {
+      "type": "text",
+      "id": "founded_label",
+      "label": "Founded label",
+      "default": "Founded"
+    },
+    {
+      "type": "text",
+      "id": "founded_value",
+      "label": "Founded value",
+      "default": "2024"
+    },
+    {
+      "type": "text",
+      "id": "based_in_label",
+      "label": "Based in label",
+      "default": "Based in"
+    },
+    {
+      "type": "text",
+      "id": "based_in_value",
+      "label": "Based in value",
+      "default": "Fuquay Varina, NC"
+    },
+    {
+      "type": "text",
+      "id": "rating_label",
+      "label": "Rating label",
+      "default": "Rating"
+    },
+    {
+      "type": "text",
+      "id": "rating_value",
+      "label": "Rating value",
+      "default": "5/5 on Facebook"
+    },
+    {
+      "type": "text",
+      "id": "production_label",
+      "label": "Production label",
+      "default": "Production"
+    },
+    {
+      "type": "text",
+      "id": "production_value",
+      "label": "Production value",
+      "default": "100% in-house"
+    },
+    {
+      "type": "header",
+      "content": "Section spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "value",
+      "name": "Value card",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "Icon",
+          "default": "C"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Crafted in-house, always"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text",
+          "default": "Never drop-shipped. Every item is personally made at our studio in Fuquay Varina, NC - by me, every time."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "About Sarv",
+      "blocks": [
+        {
+          "type": "value",
+          "settings": {
+            "icon": "C",
+            "title": "Crafted in-house, always",
+            "text": "Never drop-shipped. Every item is personally made at our studio in Fuquay Varina, NC - by me, every time."
+          }
+        },
+        {
+          "type": "value",
+          "settings": {
+            "icon": "F",
+            "title": "Fast turnaround",
+            "text": "Most orders are ready within 48-72 hours. Because we know gift deadlines are real and last-minute happens."
+          }
+        },
+        {
+          "type": "value",
+          "settings": {
+            "icon": "R",
+            "title": "Communication you can count on",
+            "text": "When you message us, I respond - quickly and personally. No support tickets, no bots, just me."
+          }
+        },
+        {
+          "type": "value",
+          "settings": {
+            "icon": "L",
+            "title": "Laser engraving & more",
+            "text": "Beyond printing - we offer laser engraving for keepsakes, gifts, and corporate items that need that extra touch of permanence."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

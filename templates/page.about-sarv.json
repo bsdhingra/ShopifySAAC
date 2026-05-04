@@ -1,0 +1,89 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "about-sarv",
+      "blocks": {
+        "value_1": {
+          "type": "value",
+          "settings": {
+            "icon": "C",
+            "title": "Crafted in-house, always",
+            "text": "Never drop-shipped. Every item is personally made at our studio in Fuquay Varina, NC - by me, every time."
+          }
+        },
+        "value_2": {
+          "type": "value",
+          "settings": {
+            "icon": "F",
+            "title": "Fast turnaround",
+            "text": "Most orders are ready within 48-72 hours. Because we know gift deadlines are real and last-minute happens."
+          }
+        },
+        "value_3": {
+          "type": "value",
+          "settings": {
+            "icon": "R",
+            "title": "Communication you can count on",
+            "text": "When you message us, I respond - quickly and personally. No support tickets, no bots, just me."
+          }
+        },
+        "value_4": {
+          "type": "value",
+          "settings": {
+            "icon": "L",
+            "title": "Laser engraving & more",
+            "text": "Beyond printing - we offer laser engraving for keepsakes, gifts, and corporate items that need that extra touch of permanence."
+          }
+        }
+      },
+      "block_order": [
+        "value_1",
+        "value_2",
+        "value_3",
+        "value_4"
+      ],
+      "settings": {
+        "color_scheme": "scheme-1",
+        "eyebrow": "Our story",
+        "heading_line_1": "Made with love,",
+        "heading_line_2": "every single time",
+        "intro_text": "<p>Hi, I'm Sarv - and every product you order from this shop is made personally by me, right here in Fuquay Varina, NC. Not by a factory. Not drop-shipped. By me, at my workstation, thinking about the person who's going to receive it.</p>",
+        "story_title": "It started with my daughter",
+        "story_body": "<p>My crafting journey began the way the best things do - out of love. As a mom, I found myself making everything my daughter asked for. Birthday decorations, school event crafts, little gifts that would make her eyes light up. Every project was a chance to create a special moment for her.</p><p>As she grew up and needed me a little less, I found myself with time on my hands and a heart full of creativity. So I kept going - learning new techniques, trying new materials, making things for friends and family. What started as a way to stay busy became something I genuinely couldn't stop doing.</p>",
+        "highlight_quote": "\"I realized that what I was making for my daughter - that feeling of something made specifically for you - was something everyone deserved.\"",
+        "story_footer": "<p>In 2024, Sarv's Arts and Crafts became official. But the way I work hasn't changed at all. Every order still gets the same care I put into the things I made for my little girl.</p>",
+        "values_title": "What makes us different",
+        "values_intro": "<p>Every single item at Sarv's Arts and Crafts is made in-house, by me - never drop-shipped. Your mug, your shirt, your laser-engraved keepsake - I make it, I check it, and I ship it. No warehouse, no middleman, no guessing.</p><p>What I hear most from customers is that they appreciate three things: the quality of what arrives, how quickly it gets to them, and that when they reach out - I actually respond. Fast. Those aren't happy accidents - they're what I've built this business around from day one.</p><p>From custom apparel and drinkware to laser-engraved gifts, every technique I offer is something I've personally mastered. If I can't do it well, I don't offer it.</p>",
+        "family_title": "A little about our family",
+        "family_body": "<p>I live with my husband, my now 10-year-old daughter (the original inspiration for all of this!), and our sweet dog. Fuquay Varina is home, and many of our local customers have become familiar faces I genuinely look forward to hearing from.</p><p>Whether you're ordering a single mug as a birthday gift or 50 shirts for your team - every order gets my full attention. That's a promise I've kept since day one and one I intend to keep.</p>",
+        "cta_copy": "<p>Have a question about an order, a custom idea, or just want to say hello? I'd love to hear from you.</p>",
+        "contact_email": "info@sarvsartsandcrafts.com",
+        "cta_label": "Shop our collections",
+        "cta_link": "shopify://collections",
+        "cta_style_secondary": false,
+        "founded_label": "Founded",
+        "founded_value": "2024",
+        "based_in_label": "Based in",
+        "based_in_value": "Fuquay Varina, NC",
+        "rating_label": "Rating",
+        "rating_value": "5/5 on Facebook",
+        "production_label": "Production",
+        "production_value": "100% in-house",
+        "padding_top": 56,
+        "padding_bottom": 64
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
