@@ -244,8 +244,9 @@
         "image_fit": "cover",
         "text_container_width": "medium",
         "content_max_width": 720,
-        "button_font_size": 15,
-        "button_height": 48,
+        "button_font_size": 16,
+        "button_height": 52,
+        "button_horizontal_padding": 40,
         "mobile_button_font_size": 13,
         "mobile_button_height": 44,
         "mobile_button_horizontal_padding": 16,
@@ -263,7 +264,7 @@
         "enable_shared_freeform_position": true,
         "use_same_shared_position_on_mobile": false,
         "shared_content_x_desktop": 50,
-        "shared_content_y_desktop": 83,
+        "shared_content_y_desktop": 86,
         "shared_content_x_mobile": 30,
         "shared_content_y_mobile": 62,
         "shared_button_1_label": "Start Designing",
@@ -272,10 +273,10 @@
         "shared_button_2_link": "",
         "shared_button_style": "primary",
         "shared_button_text_color": "#ffffff",
-        "shared_button_background_color": "#000000",
+        "shared_button_background_color": "#121212",
         "shared_button_border_color": "#46523e",
-        "shared_button_background_opacity": 85,
-        "enable_shared_button_hover_fill": false,
+        "shared_button_background_opacity": 100,
+        "enable_shared_button_hover_fill": true,
         "shared_button_hover_background_color": "#374151",
         "shared_button_hover_text_color": "#ffffff",
         "shared_button_hover_border_color": "#000000",
@@ -291,7 +292,7 @@
         "overlay_style": "gradient",
         "global_overlay_opacity": 45,
         "padding_top": 0,
-        "padding_bottom": 12,
+        "padding_bottom": 0,
         "hide_on_desktop": false,
         "hide_on_mobile": false
       }
@@ -848,7 +849,7 @@
         "show_rating": true,
         "show_review_date": true,
         "show_review_link": true,
-        "review_link_label": "View on Facebook →",
+        "review_link_label": "View review",
         "desktop_visible_cards": "4",
         "mobile_visible_mode": "1.1",
         "width_mode": "page",
@@ -918,7 +919,7 @@
         "custom_liquid": "<a class=\"sticky-contact-btn\" href=\"/pages/contact\" aria-label=\"Contact us\">\n  Contact Us\n</a>\n\n<style>\n  .sticky-contact-btn{\n    position: fixed;\n    right: 18px;\n    bottom: 18px;\n    z-index: 9999;\n    display: inline-flex;\n    align-items: center;\n    justify-content: center;\n\n    padding: 12px 16px;\n    border-radius: 999px;\n\n    background: rgb(var(--color-button));\n    color: rgb(var(--color-button-text));\n    text-decoration: none;\n\n    box-shadow: 0 10px 25px rgba(0,0,0,.18);\n    font-weight: 600;\n    line-height: 1;\n  }\n\n  .sticky-contact-btn:hover{\n    opacity: .92;\n  }\n\n  /* iPhone safe area */\n  @supports (padding: max(0px)) {\n    .sticky-contact-btn{\n      bottom: max(18px, env(safe-area-inset-bottom));\n      right: max(18px, env(safe-area-inset-right));\n    }\n  }\n</style>",
         "color_scheme": "",
         "padding_top": 20,
-        "padding_bottom": 24
+        "padding_bottom": 0
       }
     }
   },
