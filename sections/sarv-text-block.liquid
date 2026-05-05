@@ -1,0 +1,1230 @@
+{%- liquid
+  assign desktop_width_mode = section.settings.desktop_width_mode
+  assign mobile_width_mode = section.settings.mobile_width_mode
+  assign eyebrow_transform = section.settings.eyebrow_text_transform
+  assign eyebrow_alignment = section.settings.eyebrow_alignment
+  assign heading_alignment = section.settings.heading_alignment
+  assign text_alignment = section.settings.text_alignment
+  assign cta_alignment = section.settings.cta_alignment
+  assign image_layout = section.settings.image_layout
+  assign mobile_image_layout = section.settings.mobile_image_layout
+  assign desktop_content_position = section.settings.desktop_content_position
+  assign image_fit = section.settings.image_fit
+  assign content_width_mode = section.settings.content_width_mode
+
+  case desktop_width_mode
+    when 'page_width'
+      assign desktop_max_width = 'var(--page-width)'
+      assign desktop_padding_inline = '5rem'
+    when 'custom_width'
+      assign desktop_max_width = section.settings.desktop_custom_width | append: 'px'
+      assign desktop_padding_inline = '5rem'
+    else
+      assign desktop_max_width = 'none'
+      assign desktop_padding_inline = '5rem'
+  endcase
+
+  case mobile_width_mode
+    when 'page_width'
+      assign mobile_max_width = 'var(--page-width)'
+      assign mobile_padding_inline = '1.5rem'
+    when 'custom_width'
+      assign mobile_max_width = section.settings.mobile_custom_width | append: 'px'
+      assign mobile_padding_inline = '1.5rem'
+    else
+      assign mobile_max_width = 'none'
+      assign mobile_padding_inline = '1.5rem'
+  endcase
+
+  if content_width_mode == 'full'
+    assign heading_max_width = '100%'
+    assign text_max_width = '100%'
+  else
+    assign heading_max_width = section.settings.heading_max_width | append: 'px'
+    assign text_max_width = section.settings.text_max_width | append: 'px'
+  endif
+
+  assign eyebrow_letter_spacing = section.settings.eyebrow_letter_spacing | divided_by: 100.0
+  assign text_line_height = section.settings.text_line_height | divided_by: 10.0
+
+  case section.settings.desktop_image_width
+    when 'small'
+      assign media_fraction = '0.38fr'
+      assign content_fraction = '0.62fr'
+    when 'large'
+      assign media_fraction = '0.58fr'
+      assign content_fraction = '0.42fr'
+    else
+      assign media_fraction = '0.5fr'
+      assign content_fraction = '0.5fr'
+  endcase
+
+  capture section_text_html
+    echo section.settings.text
+  endcapture
+
+  unless section.settings.preserve_manual_line_breaks
+    assign section_text_html = section_text_html | replace: '<br />', ' ' | replace: '<br/>', ' ' | replace: '<br>', ' '
+  endunless
+-%}
+
+{%- style -%}
+  .sarv-text-block.section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top_mobile }}px;
+    padding-bottom: {{ section.settings.padding_bottom_mobile }}px;
+  }
+
+  .sarv-text-block--{{ section.id }} {
+    --sarv-text-block-mobile-max-width: {{ mobile_max_width }};
+    --sarv-text-block-desktop-max-width: {{ desktop_max_width }};
+    --sarv-text-block-mobile-padding-inline: {{ mobile_padding_inline }};
+    --sarv-text-block-desktop-padding-inline: {{ desktop_padding_inline }};
+    --sarv-text-block-content-padding-inline-mobile: {{ section.settings.content_padding_inline_mobile }}px;
+    --sarv-text-block-content-padding-inline-desktop: {{ section.settings.content_padding_inline_desktop }}px;
+    --sarv-text-block-eyebrow-font-mobile: {{ section.settings.eyebrow_font_size_mobile }}px;
+    --sarv-text-block-eyebrow-font-desktop: {{ section.settings.eyebrow_font_size_desktop }}px;
+    --sarv-text-block-eyebrow-letter-spacing: {{ eyebrow_letter_spacing }}em;
+    --sarv-text-block-heading-font-mobile: {{ section.settings.heading_font_size_mobile }}px;
+    --sarv-text-block-heading-font-desktop: {{ section.settings.heading_font_size_desktop }}px;
+    --sarv-text-block-heading-max-width: min(100%, {{ heading_max_width }});
+    --sarv-text-block-text-font-mobile: {{ section.settings.text_font_size_mobile }}px;
+    --sarv-text-block-text-font-desktop: {{ section.settings.text_font_size_desktop }}px;
+    --sarv-text-block-text-line-height: {{ text_line_height }};
+    --sarv-text-block-paragraph-gap-mobile: {{ section.settings.paragraph_spacing_mobile }}px;
+    --sarv-text-block-paragraph-gap-desktop: {{ section.settings.paragraph_spacing_desktop }}px;
+    --sarv-text-block-text-max-width: min(100%, {{ text_max_width }});
+    --sarv-text-block-gap-eyebrow-heading: {{ section.settings.gap_eyebrow_heading }}px;
+    --sarv-text-block-gap-heading-text: {{ section.settings.gap_heading_text }}px;
+    --sarv-text-block-eyebrow-color: {{ section.settings.eyebrow_color }};
+    --sarv-text-block-heading-color: {{ section.settings.heading_color }};
+    --sarv-text-block-text-color: {{ section.settings.text_color }};
+    --sarv-text-block-cta-text-color: {{ section.settings.cta_text_color }};
+    --sarv-text-block-cta-background-color: {{ section.settings.cta_background_color }};
+    --sarv-text-block-cta-border-color: {{ section.settings.cta_border_color }};
+    --sarv-text-block-cta-hover-text-color: {{ section.settings.cta_hover_text_color }};
+    --sarv-text-block-cta-hover-background-color: {{ section.settings.cta_hover_background_color }};
+    --sarv-text-block-cta-hover-border-color: {{ section.settings.cta_hover_border_color }};
+    --sarv-text-block-cta-width: min(100%, {{ section.settings.cta_width }}px);
+    --sarv-text-block-cta-padding-inline: {{ section.settings.cta_padding_horizontal }}px;
+    --sarv-text-block-cta-padding-block: {{ section.settings.cta_padding_vertical }}px;
+    --sarv-text-block-cta-gap: {{ section.settings.gap_text_cta }}px;
+    --sarv-text-block-media-fraction: {{ media_fraction }};
+    --sarv-text-block-content-fraction: {{ content_fraction }};
+    --sarv-text-block-image-border-radius: var(--media-radius);
+    --sarv-text-block-image-height-mobile: 28rem;
+    --sarv-text-block-image-height-desktop: 42rem;
+    --sarv-text-block-min-height-mobile: {{ section.settings.min_height_mobile }}px;
+    --sarv-text-block-min-height-desktop: {{ section.settings.min_height_desktop }}px;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__shell {
+    width: 100%;
+    max-width: var(--sarv-text-block-mobile-max-width);
+    margin: 0 auto;
+    padding-left: var(--sarv-text-block-mobile-padding-inline);
+    padding-right: var(--sarv-text-block-mobile-padding-inline);
+    box-sizing: border-box;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.4rem;
+    align-items: stretch;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__grid--mobile-text-first .sarv-text-block__media-item {
+    order: 2;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__grid--mobile-text-first .sarv-text-block__content-item {
+    order: 1;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__media-item,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__content-item {
+    min-width: 0;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__media-item {
+    align-self: stretch;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__media {
+    position: relative;
+    width: 100%;
+    height: var(--sarv-text-block-image-height-mobile);
+    overflow: hidden;
+    border-radius: var(--sarv-text-block-image-border-radius);
+    background: rgba(var(--color-foreground), 0.06);
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__media--adapt {
+    height: auto;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__media img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: {{ image_fit }};
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__media--adapt img {
+    height: auto;
+    aspect-ratio: auto;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__content {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    padding-left: var(--sarv-text-block-content-padding-inline-mobile);
+    padding-right: var(--sarv-text-block-content-padding-inline-mobile);
+    box-sizing: border-box;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__content-item {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: var(--sarv-text-block-min-height-mobile);
+  }
+
+  .sarv-text-block--{{ section.id }}.sarv-text-block--no-image .sarv-text-block__content-item {
+    display: block;
+  }
+
+  .sarv-text-block--{{ section.id }}.sarv-text-block--no-image .sarv-text-block__content {
+    display: block;
+    width: 100%;
+    max-width: none;
+  }
+
+  .sarv-text-block--{{ section.id }}.sarv-text-block--no-image .sarv-text-block__eyebrow,
+  .sarv-text-block--{{ section.id }}.sarv-text-block--no-image .sarv-text-block__heading,
+  .sarv-text-block--{{ section.id }}.sarv-text-block--no-image .sarv-text-block__text,
+  .sarv-text-block--{{ section.id }}.sarv-text-block--no-image .sarv-text-block__text.rte,
+  .sarv-text-block--{{ section.id }}.sarv-text-block--no-image .sarv-text-block__cta-wrap {
+    max-width: none;
+    width: 100%;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__content-item--top {
+    align-items: flex-start;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__content-item--middle {
+    align-items: center;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__content-item--bottom {
+    align-items: flex-end;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__eyebrow {
+    margin: 0;
+    width: 100%;
+    font-family: var(--font-body-family);
+    font-size: var(--sarv-text-block-eyebrow-font-mobile);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: var(--sarv-text-block-eyebrow-letter-spacing);
+    text-transform: {{ eyebrow_transform }};
+    text-align: {{ eyebrow_alignment }};
+    color: var(--sarv-text-block-eyebrow-color);
+    overflow-wrap: anywhere;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__heading {
+    margin: 0;
+    width: 100%;
+    max-width: var(--sarv-text-block-heading-max-width);
+    font-family: var(--font-heading-family);
+    font-size: var(--sarv-text-block-heading-font-mobile);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: var(--sarv-text-block-heading-color);
+    text-align: {{ heading_alignment }};
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text {
+    width: 100%;
+    max-width: var(--sarv-text-block-text-max-width);
+    color: var(--sarv-text-block-text-color);
+    text-align: {{ text_alignment }};
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text.rte {
+    max-width: var(--sarv-text-block-text-max-width);
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text p,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text li {
+    font-size: var(--sarv-text-block-text-font-mobile);
+    line-height: var(--sarv-text-block-text-line-height);
+    overflow-wrap: anywhere;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text p {
+    margin-top: 0;
+    margin-bottom: var(--sarv-text-block-paragraph-gap-mobile);
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text p:last-child {
+    margin-bottom: 0;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text ul,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text ol {
+    margin-top: 0;
+    margin-bottom: 1.4rem;
+    padding-left: 2rem;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__eyebrow + .sarv-text-block__heading {
+    margin-top: var(--sarv-text-block-gap-eyebrow-heading);
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__heading + .sarv-text-block__text,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__eyebrow + .sarv-text-block__text {
+    margin-top: var(--sarv-text-block-gap-heading-text);
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__cta-wrap {
+    width: 100%;
+    margin-top: var(--sarv-text-block-cta-gap);
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__cta-wrap--left {
+    text-align: left;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__cta-wrap--center {
+    text-align: center;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__cta-wrap--right {
+    text-align: right;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: var(--sarv-text-block-cta-width);
+    padding: var(--sarv-text-block-cta-padding-block) var(--sarv-text-block-cta-padding-inline);
+    border: 0.1rem solid var(--sarv-text-block-cta-border-color);
+    border-radius: 999px;
+    background: var(--sarv-text-block-cta-background-color);
+    color: var(--sarv-text-block-cta-text-color);
+    font-family: var(--font-body-family);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+    box-sizing: border-box;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__cta:hover {
+    background: var(--sarv-text-block-cta-hover-background-color);
+    color: var(--sarv-text-block-cta-hover-text-color);
+    border-color: var(--sarv-text-block-cta-hover-border-color);
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__cta[aria-disabled='true'] {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__heading--left,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text--left,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__eyebrow--left {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__heading--center,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text--center,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__eyebrow--center {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .sarv-text-block--{{ section.id }} .sarv-text-block__heading--right,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__text--right,
+  .sarv-text-block--{{ section.id }} .sarv-text-block__eyebrow--right {
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  @media screen and (min-width: 750px) {
+    .sarv-text-block.section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top_desktop }}px;
+      padding-bottom: {{ section.settings.padding_bottom_desktop }}px;
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__shell {
+      max-width: var(--sarv-text-block-desktop-max-width);
+      padding-left: var(--sarv-text-block-desktop-padding-inline);
+      padding-right: var(--sarv-text-block-desktop-padding-inline);
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__grid--has-image {
+      grid-template-columns: minmax(0, var(--sarv-text-block-media-fraction)) minmax(0, var(--sarv-text-block-content-fraction));
+      gap: 4rem;
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__grid--has-image.sarv-text-block__grid--image-right .sarv-text-block__media-item {
+      order: 2;
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__grid--has-image.sarv-text-block__grid--image-right .sarv-text-block__content-item {
+      order: 1;
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__content-item {
+      min-height: var(--sarv-text-block-min-height-desktop);
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__content {
+      padding-left: var(--sarv-text-block-content-padding-inline-desktop);
+      padding-right: var(--sarv-text-block-content-padding-inline-desktop);
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__media {
+      height: var(--sarv-text-block-image-height-desktop);
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__eyebrow {
+      font-size: var(--sarv-text-block-eyebrow-font-desktop);
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__heading {
+      font-size: var(--sarv-text-block-heading-font-desktop);
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__text p,
+    .sarv-text-block--{{ section.id }} .sarv-text-block__text li {
+      font-size: var(--sarv-text-block-text-font-desktop);
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__text p {
+      margin-bottom: var(--sarv-text-block-paragraph-gap-desktop);
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__media--small {
+      --sarv-text-block-image-height-desktop: 32rem;
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__media--medium {
+      --sarv-text-block-image-height-desktop: 42rem;
+    }
+
+    .sarv-text-block--{{ section.id }} .sarv-text-block__media--large {
+      --sarv-text-block-image-height-desktop: 56rem;
+    }
+  }
+{%- endstyle -%}
+
+<section class="sarv-text-block sarv-text-block--{{ section.id }}{% if section.settings.image == blank %} sarv-text-block--no-image{% endif %} color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding">
+  <div class="sarv-text-block__shell">
+    {%- if section.settings.image != blank -%}
+      <div class="sarv-text-block__grid sarv-text-block__grid--has-image sarv-text-block__grid--{{ image_layout }} sarv-text-block__grid--mobile-{{ mobile_image_layout }}">
+        <div class="sarv-text-block__media-item">
+          <div class="sarv-text-block__media sarv-text-block__media--{{ section.settings.image_height }}">
+            {{
+              section.settings.image
+              | image_url: width: 1800
+              | image_tag:
+                widths: '320, 480, 640, 900, 1200, 1600, 1800',
+                sizes: '(min-width: 750px) 50vw, 100vw',
+                loading: 'lazy'
+            }}
+          </div>
+        </div>
+        <div class="sarv-text-block__content-item sarv-text-block__content-item--{{ desktop_content_position }}">
+          <div class="sarv-text-block__content">
+            {%- if section.settings.eyebrow != blank -%}
+              <p class="sarv-text-block__eyebrow sarv-text-block__eyebrow--{{ eyebrow_alignment }}">
+                {{ section.settings.eyebrow | escape }}
+              </p>
+            {%- endif -%}
+
+            {%- if section.settings.heading != blank -%}
+              <h2 class="sarv-text-block__heading sarv-text-block__heading--{{ heading_alignment }}">
+                {{ section.settings.heading | escape }}
+              </h2>
+            {%- endif -%}
+
+            {%- if section.settings.text != blank -%}
+              <div class="sarv-text-block__text sarv-text-block__text--{{ text_alignment }} rte">
+                {{ section_text_html }}
+              </div>
+            {%- endif -%}
+
+            {%- if section.settings.cta_label != blank -%}
+              <div class="sarv-text-block__cta-wrap sarv-text-block__cta-wrap--{{ cta_alignment }}">
+                <a
+                  {% if section.settings.cta_link == blank %}
+                    role="link" aria-disabled="true"
+                  {% else %}
+                    href="{{ section.settings.cta_link }}"
+                  {% endif %}
+                  class="sarv-text-block__cta"
+                >
+                  {{ section.settings.cta_label | escape }}
+                </a>
+              </div>
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    {%- else -%}
+      <div class="sarv-text-block__content sarv-text-block__content--standalone">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="sarv-text-block__eyebrow sarv-text-block__eyebrow--{{ eyebrow_alignment }}">
+            {{ section.settings.eyebrow | escape }}
+          </p>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <h2 class="sarv-text-block__heading sarv-text-block__heading--{{ heading_alignment }}">
+            {{ section.settings.heading | escape }}
+          </h2>
+        {%- endif -%}
+
+        {%- if section.settings.text != blank -%}
+          <div class="sarv-text-block__text sarv-text-block__text--{{ text_alignment }} rte">
+            {{ section_text_html }}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.cta_label != blank -%}
+          <div class="sarv-text-block__cta-wrap sarv-text-block__cta-wrap--{{ cta_alignment }}">
+            <a
+              {% if section.settings.cta_link == blank %}
+                role="link" aria-disabled="true"
+              {% else %}
+                href="{{ section.settings.cta_link }}"
+              {% endif %}
+              class="sarv-text-block__cta"
+            >
+              {{ section.settings.cta_label | escape }}
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Sarv Text Block",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow text",
+      "default": "Our Story"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Made with love, every single time"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Your story goes here.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "preserve_manual_line_breaks",
+      "label": "Preserve manual line breaks",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Eyebrow style"
+    },
+    {
+      "type": "range",
+      "id": "eyebrow_font_size_desktop",
+      "min": 10,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "label": "Eyebrow font size desktop",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "eyebrow_font_size_mobile",
+      "min": 10,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Eyebrow font size mobile",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "eyebrow_letter_spacing",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "%",
+      "label": "Eyebrow letter spacing",
+      "default": 18
+    },
+    {
+      "type": "select",
+      "id": "eyebrow_text_transform",
+      "label": "Eyebrow text transform",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        }
+      ],
+      "default": "uppercase"
+    },
+    {
+      "type": "color",
+      "id": "eyebrow_color",
+      "label": "Eyebrow color",
+      "default": "#46523E"
+    },
+    {
+      "type": "select",
+      "id": "eyebrow_alignment",
+      "label": "Eyebrow alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Heading style"
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_desktop",
+      "min": 24,
+      "max": 96,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading font size desktop",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_mobile",
+      "min": 22,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "label": "Heading font size mobile",
+      "default": 34
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#121212"
+    },
+    {
+      "type": "range",
+      "id": "heading_max_width",
+      "min": 280,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "label": "Heading max width",
+      "default": 900
+    },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Heading alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Text style"
+    },
+    {
+      "type": "range",
+      "id": "text_font_size_desktop",
+      "min": 14,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Text font size desktop",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "text_font_size_mobile",
+      "min": 14,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Text font size mobile",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "text_line_height",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "label": "Text line height",
+      "default": 17
+    },
+    {
+      "type": "range",
+      "id": "paragraph_spacing_desktop",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Paragraph spacing desktop",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "paragraph_spacing_mobile",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Paragraph spacing mobile",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#3F3F3F"
+    },
+    {
+      "type": "range",
+      "id": "text_max_width",
+      "min": 280,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "label": "Text max width",
+      "default": 760
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "content_width_mode",
+      "label": "Content width mode",
+      "options": [
+        {
+          "value": "constrained",
+          "label": "Constrained"
+        },
+        {
+          "value": "full",
+          "label": "Full available width"
+        }
+      ],
+      "default": "constrained"
+    },
+    {
+      "type": "header",
+      "content": "CTA"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA text",
+      "default": "Learn more"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "CTA link"
+    },
+    {
+      "type": "select",
+      "id": "cta_alignment",
+      "label": "CTA position",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "cta_width",
+      "min": 120,
+      "max": 640,
+      "step": 10,
+      "unit": "px",
+      "label": "CTA width",
+      "default": 240
+    },
+    {
+      "type": "range",
+      "id": "cta_padding_horizontal",
+      "min": 12,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "label": "CTA horizontal padding",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "cta_padding_vertical",
+      "min": 8,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "CTA vertical padding",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "cta_text_color",
+      "label": "CTA text color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "cta_background_color",
+      "label": "CTA background color",
+      "default": "#46523E"
+    },
+    {
+      "type": "color",
+      "id": "cta_border_color",
+      "label": "CTA border color",
+      "default": "#46523E"
+    },
+    {
+      "type": "color",
+      "id": "cta_hover_text_color",
+      "label": "CTA hover text color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "cta_hover_background_color",
+      "label": "CTA hover background color",
+      "default": "#374151"
+    },
+    {
+      "type": "color",
+      "id": "cta_hover_border_color",
+      "label": "CTA hover border color",
+      "default": "#374151"
+    },
+    {
+      "type": "header",
+      "content": "Image layout"
+    },
+    {
+      "type": "select",
+      "id": "image_layout",
+      "label": "Desktop image position",
+      "options": [
+        {
+          "value": "image-left",
+          "label": "Image first"
+        },
+        {
+          "value": "image-right",
+          "label": "Image second"
+        }
+      ],
+      "default": "image-right"
+    },
+    {
+      "type": "select",
+      "id": "mobile_image_layout",
+      "label": "Mobile image position",
+      "options": [
+        {
+          "value": "image-first",
+          "label": "Image first"
+        },
+        {
+          "value": "text-first",
+          "label": "Text first"
+        }
+      ],
+      "default": "image-first"
+    },
+    {
+      "type": "select",
+      "id": "desktop_image_width",
+      "label": "Desktop image width",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "desktop_content_position",
+      "label": "Desktop content position",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "middle",
+          "label": "Middle"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        }
+      ],
+      "default": "middle"
+    },
+    {
+      "type": "select",
+      "id": "image_height",
+      "label": "Image height",
+      "options": [
+        {
+          "value": "adapt",
+          "label": "Adapt to image"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Image fit",
+      "options": [
+        {
+          "value": "cover",
+          "label": "Cover"
+        },
+        {
+          "value": "contain",
+          "label": "Contain"
+        }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "content_padding_inline_desktop",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Content side padding desktop",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "content_padding_inline_mobile",
+      "min": 0,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "label": "Content side padding mobile",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top desktop",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom desktop",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top mobile",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom mobile",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "min_height_desktop",
+      "min": 0,
+      "max": 1200,
+      "step": 20,
+      "unit": "px",
+      "label": "Minimum height desktop",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "min_height_mobile",
+      "min": 0,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "label": "Minimum height mobile",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "gap_eyebrow_heading",
+      "min": 0,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Gap between eyebrow and heading",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "gap_heading_text",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "Gap between heading and text",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "gap_text_cta",
+      "min": 0,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "label": "Gap between text and CTA",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Desktop width"
+    },
+    {
+      "type": "select",
+      "id": "desktop_width_mode",
+      "label": "Desktop width mode",
+      "options": [
+        {
+          "value": "page_width",
+          "label": "Page width"
+        },
+        {
+          "value": "full_width",
+          "label": "Full width"
+        },
+        {
+          "value": "custom_width",
+          "label": "Custom width"
+        }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "range",
+      "id": "desktop_custom_width",
+      "min": 600,
+      "max": 1800,
+      "step": 20,
+      "unit": "px",
+      "label": "Desktop custom width",
+      "default": 900
+    },
+    {
+      "type": "header",
+      "content": "Mobile width"
+    },
+    {
+      "type": "select",
+      "id": "mobile_width_mode",
+      "label": "Mobile width mode",
+      "options": [
+        {
+          "value": "page_width",
+          "label": "Page width"
+        },
+        {
+          "value": "full_width",
+          "label": "Full width"
+        },
+        {
+          "value": "custom_width",
+          "label": "Custom width"
+        }
+      ],
+      "default": "page_width"
+    },
+    {
+      "type": "range",
+      "id": "mobile_custom_width",
+      "min": 280,
+      "max": 800,
+      "step": 10,
+      "unit": "px",
+      "label": "Mobile custom width",
+      "default": 360
+    }
+  ],
+  "presets": [
+    {
+      "name": "Sarv Text Block"
+    }
+  ]
+}
+{% endschema %}

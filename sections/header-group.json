@@ -92,8 +92,8 @@
         "card_bg_color": "#fcfbf5",
         "card_border_color": "#fcfbf5",
         "text_color": "#000000",
-        "font_size_desktop": 16,
-        "font_size_mobile": 14,
+        "font_size_desktop": 17,
+        "font_size_mobile": 16,
         "font_weight": "500",
         "card_radius": "soft",
         "use_theme_font": true
