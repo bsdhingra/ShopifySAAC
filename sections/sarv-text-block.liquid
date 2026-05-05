@@ -120,11 +120,21 @@
   }
 
   .sarv-text-block--{{ section.id }} .sarv-text-block__shell {
-    width: auto;
-    max-width: var(--sarv-text-block-mobile-max-width);
+    width: 100%;
     margin: 0 auto;
     padding-left: calc(var(--sarv-text-block-mobile-padding-inline) + var(--sarv-text-block-section-padding-inline-mobile));
     padding-right: calc(var(--sarv-text-block-mobile-padding-inline) + var(--sarv-text-block-section-padding-inline-mobile));
+    box-sizing: border-box;
+  }
+
+  .sarv-text-block--{{ section.id }}.sarv-text-block--mobile-full-width .sarv-text-block__shell {
+    max-width: none;
+  }
+
+  .sarv-text-block--{{ section.id }}:not(.sarv-text-block--mobile-full-width) .sarv-text-block__shell {
+    max-width: calc(
+      var(--sarv-text-block-mobile-max-width) + (2 * var(--sarv-text-block-mobile-padding-inline)) + (2 * var(--sarv-text-block-section-padding-inline-mobile))
+    );
   }
 
   .sarv-text-block--{{ section.id }} .sarv-text-block__grid {
@@ -379,9 +389,18 @@
     }
 
     .sarv-text-block--{{ section.id }} .sarv-text-block__shell {
-      max-width: var(--sarv-text-block-desktop-max-width);
       padding-left: calc(var(--sarv-text-block-desktop-padding-inline) + var(--sarv-text-block-section-padding-inline-desktop));
       padding-right: calc(var(--sarv-text-block-desktop-padding-inline) + var(--sarv-text-block-section-padding-inline-desktop));
+    }
+
+    .sarv-text-block--{{ section.id }}.sarv-text-block--desktop-full-width .sarv-text-block__shell {
+      max-width: none;
+    }
+
+    .sarv-text-block--{{ section.id }}:not(.sarv-text-block--desktop-full-width) .sarv-text-block__shell {
+      max-width: calc(
+        var(--sarv-text-block-desktop-max-width) + (2 * var(--sarv-text-block-desktop-padding-inline)) + (2 * var(--sarv-text-block-section-padding-inline-desktop))
+      );
     }
 
     .sarv-text-block--{{ section.id }} .sarv-text-block__grid--has-image {
@@ -441,7 +460,7 @@
   }
 {%- endstyle -%}
 
-<section class="sarv-text-block sarv-text-block--{{ section.id }}{% if section.settings.image == blank %} sarv-text-block--no-image{% endif %} color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding">
+<section class="sarv-text-block sarv-text-block--{{ section.id }} sarv-text-block--desktop-{{ desktop_width_mode | replace: '_', '-' }} sarv-text-block--mobile-{{ mobile_width_mode | replace: '_', '-' }}{% if section.settings.image == blank %} sarv-text-block--no-image{% endif %} color-{{ section.settings.color_scheme }} gradient section-{{ section.id }}-padding">
   <div class="sarv-text-block__shell">
     {%- if section.settings.image != blank -%}
       <div class="sarv-text-block__grid sarv-text-block__grid--has-image sarv-text-block__grid--{{ image_layout }} sarv-text-block__grid--mobile-{{ mobile_image_layout }}">
