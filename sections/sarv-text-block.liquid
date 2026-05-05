@@ -15,25 +15,19 @@
   case desktop_width_mode
     when 'page_width'
       assign desktop_max_width = 'var(--page-width)'
-      assign desktop_padding_inline = '5rem'
     when 'custom_width'
       assign desktop_max_width = section.settings.desktop_custom_width | append: 'px'
-      assign desktop_padding_inline = '5rem'
     else
       assign desktop_max_width = 'none'
-      assign desktop_padding_inline = '5rem'
   endcase
 
   case mobile_width_mode
     when 'page_width'
       assign mobile_max_width = 'var(--page-width)'
-      assign mobile_padding_inline = '1.5rem'
     when 'custom_width'
       assign mobile_max_width = section.settings.mobile_custom_width | append: 'px'
-      assign mobile_padding_inline = '1.5rem'
     else
       assign mobile_max_width = 'none'
-      assign mobile_padding_inline = '1.5rem'
   endcase
 
   if content_width_mode == 'full'
@@ -77,8 +71,8 @@
   .sarv-text-block--{{ section.id }} {
     --sarv-text-block-mobile-max-width: {{ mobile_max_width }};
     --sarv-text-block-desktop-max-width: {{ desktop_max_width }};
-    --sarv-text-block-mobile-padding-inline: {{ mobile_padding_inline }};
-    --sarv-text-block-desktop-padding-inline: {{ desktop_padding_inline }};
+    --sarv-text-block-mobile-padding-inline: {{ section.settings.shell_gutter_mobile }}px;
+    --sarv-text-block-desktop-padding-inline: {{ section.settings.shell_gutter_desktop }}px;
     --sarv-text-block-section-padding-inline-mobile: {{ section.settings.section_padding_inline_mobile }}px;
     --sarv-text-block-section-padding-inline-desktop: {{ section.settings.section_padding_inline_desktop }}px;
     --sarv-text-block-content-padding-inline-mobile: {{ section.settings.content_padding_inline_mobile }}px;
@@ -110,6 +104,8 @@
     --sarv-text-block-cta-padding-inline: {{ section.settings.cta_padding_horizontal }}px;
     --sarv-text-block-cta-padding-block: {{ section.settings.cta_padding_vertical }}px;
     --sarv-text-block-cta-gap: {{ section.settings.gap_text_cta }}px;
+    --sarv-text-block-image-gap-mobile: {{ section.settings.image_gap_mobile }}px;
+    --sarv-text-block-image-gap-desktop: {{ section.settings.image_gap_desktop }}px;
     --sarv-text-block-media-fraction: {{ media_fraction }};
     --sarv-text-block-content-fraction: {{ content_fraction }};
     --sarv-text-block-image-border-radius: var(--media-radius);
@@ -140,7 +136,7 @@
   .sarv-text-block--{{ section.id }} .sarv-text-block__grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 2.4rem;
+    gap: var(--sarv-text-block-image-gap-mobile);
     align-items: stretch;
   }
 
@@ -405,7 +401,7 @@
 
     .sarv-text-block--{{ section.id }} .sarv-text-block__grid--has-image {
       grid-template-columns: minmax(0, var(--sarv-text-block-media-fraction)) minmax(0, var(--sarv-text-block-content-fraction));
-      gap: 4rem;
+      gap: var(--sarv-text-block-image-gap-desktop);
     }
 
     .sarv-text-block--{{ section.id }} .sarv-text-block__grid--has-image.sarv-text-block__grid--image-right .sarv-text-block__media-item {
@@ -1064,6 +1060,26 @@
     },
     {
       "type": "range",
+      "id": "shell_gutter_desktop",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Shell gutter desktop",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "shell_gutter_mobile",
+      "min": 0,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "label": "Shell gutter mobile",
+      "default": 15
+    },
+    {
+      "type": "range",
       "id": "section_padding_inline_desktop",
       "min": 0,
       "max": 120,
@@ -1190,6 +1206,26 @@
       "step": 2,
       "unit": "px",
       "label": "Gap between text and CTA",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "image_gap_desktop",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Image/text gap desktop",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "image_gap_mobile",
+      "min": 0,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "label": "Image/text gap mobile",
       "default": 24
     },
     {
