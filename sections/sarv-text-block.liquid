@@ -79,6 +79,8 @@
     --sarv-text-block-desktop-max-width: {{ desktop_max_width }};
     --sarv-text-block-mobile-padding-inline: {{ mobile_padding_inline }};
     --sarv-text-block-desktop-padding-inline: {{ desktop_padding_inline }};
+    --sarv-text-block-section-padding-inline-mobile: {{ section.settings.section_padding_inline_mobile }}px;
+    --sarv-text-block-section-padding-inline-desktop: {{ section.settings.section_padding_inline_desktop }}px;
     --sarv-text-block-content-padding-inline-mobile: {{ section.settings.content_padding_inline_mobile }}px;
     --sarv-text-block-content-padding-inline-desktop: {{ section.settings.content_padding_inline_desktop }}px;
     --sarv-text-block-eyebrow-font-mobile: {{ section.settings.eyebrow_font_size_mobile }}px;
@@ -121,8 +123,8 @@
     width: 100%;
     max-width: var(--sarv-text-block-mobile-max-width);
     margin: 0 auto;
-    padding-left: var(--sarv-text-block-mobile-padding-inline);
-    padding-right: var(--sarv-text-block-mobile-padding-inline);
+    padding-left: calc(var(--sarv-text-block-mobile-padding-inline) + var(--sarv-text-block-section-padding-inline-mobile));
+    padding-right: calc(var(--sarv-text-block-mobile-padding-inline) + var(--sarv-text-block-section-padding-inline-mobile));
     box-sizing: border-box;
   }
 
@@ -379,8 +381,8 @@
 
     .sarv-text-block--{{ section.id }} .sarv-text-block__shell {
       max-width: var(--sarv-text-block-desktop-max-width);
-      padding-left: var(--sarv-text-block-desktop-padding-inline);
-      padding-right: var(--sarv-text-block-desktop-padding-inline);
+      padding-left: calc(var(--sarv-text-block-desktop-padding-inline) + var(--sarv-text-block-section-padding-inline-desktop));
+      padding-right: calc(var(--sarv-text-block-desktop-padding-inline) + var(--sarv-text-block-section-padding-inline-desktop));
     }
 
     .sarv-text-block--{{ section.id }} .sarv-text-block__grid--has-image {
@@ -1041,6 +1043,26 @@
     {
       "type": "header",
       "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "section_padding_inline_desktop",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Section side padding desktop",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "section_padding_inline_mobile",
+      "min": 0,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "label": "Section side padding mobile",
+      "default": 0
     },
     {
       "type": "range",
