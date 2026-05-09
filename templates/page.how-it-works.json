@@ -10,54 +10,41 @@
 {
   "sections": {
     "main": {
-      "type": "How-it-works-process",
+      "type": "saac-how-it-works-simple",
       "blocks": {
         "step_1": {
           "type": "step",
           "settings": {
-            "icon": "browse",
-            "title": "Select Your Product (e.g., Tumbler)",
-            "text": "Shop All • Collections • Featured • Menu • Then pick your product"
+            "heading": "Choose Your Product",
+            "text": "<p>Pick from apparel, mugs, tumblers, wood signs, photo gifts, and more.</p>"
           }
         },
         "step_2": {
           "type": "step",
           "settings": {
-            "icon": "upload",
-            "title": "Customize (Upload Image)",
-            "text": "Upload your design image (for fully customizable products)"
+            "heading": "Upload or Personalize",
+            "text": "<p>Add your photo, artwork, name, message, or design details.</p>"
           }
         },
         "step_3": {
           "type": "step",
           "settings": {
-            "icon": "message",
-            "title": "Add Customization Details",
-            "text": "Add Name • Message • Design URL (optional) • Print size (if needed)"
+            "heading": "Preview & Finalize",
+            "text": "<p>Use live preview where available, adjust your design, and confirm before checkout.</p>"
           }
         },
         "step_4": {
           "type": "step",
           "settings": {
-            "icon": "checkout",
-            "title": "Secure Checkout",
-            "text": "Add to cart • Safe payment • Order confirmation"
+            "heading": "We Make It In-House",
+            "text": "<p>Your item is crafted with care by us — never drop shipped.</p>"
           }
         },
         "step_5": {
           "type": "step",
           "settings": {
-            "icon": "print",
-            "title": "Proof & Approval → Print",
-            "text": "We finalize design & send proof (if needed) • You approve • Then we print"
-          }
-        },
-        "step_6": {
-          "type": "step",
-          "settings": {
-            "icon": "ship",
-            "title": "Packed & Shipped With Care",
-            "text": "Quality checked • Packed safely • Delivered to you"
+            "heading": "Packed & Delivered",
+            "text": "<p>We quality check, pack safely, and ship your finished order.</p>"
           }
         }
       },
@@ -66,29 +53,27 @@
         "step_2",
         "step_3",
         "step_4",
-        "step_5",
-        "step_6"
+        "step_5"
       ],
       "settings": {
-        "heading": "How It Works",
-        "subheading": "<p>From browsing to delivery — here’s how your custom order is made with care.</p>",
-        "color_scheme": "",
-        "padding_top": 32,
-        "padding_bottom": 36,
-        "show_extras": false,
-        "intro_text": "<p>Creating your custom order is simple. Choose a product, upload your design, approve the proof (if needed), and we’ll print and ship it with care.</p>",
-        "expect_title": "What to expect",
-        "expect_1": "Proof approval for many custom designs",
-        "expect_2": "Printing starts after approval",
-        "expect_3": "Packed safely and shipped with care",
-        "need_title": "What we need from you",
-        "need_1": "Design upload or link (optional)",
-        "need_2": "Name/message (optional)",
-        "need_3": "Print size preference (if needed)",
-        "show_cta": true,
-        "cta_message": "Ready to start? Browse products and place your custom order in minutes.",
-        "cta_label": "Start Your Order",
-        "cta_link": "shopify://collections"
+        "color_scheme": "background-1",
+        "hero_eyebrow": "HOW IT WORKS",
+        "hero_heading": "Design Your Product See It Before You Order",
+        "hero_subheading": "<p>Choose a product, upload your design, preview it when available, and approve before we print.</p>",
+        "primary_cta_label": "Start Designing",
+        "primary_cta_link": "shopify://collections/custom-apparel",
+        "secondary_cta_label": "Browse Design Ideas",
+        "secondary_cta_link": "/pages/design-ideaa",
+        "trust_line": "Crafted in-house • Never drop shipped • Secure checkout",
+        "process_heading": "How Your Custom Order Works",
+        "process_subheading": "<p>From idea to delivery, here’s the simple process.</p>",
+        "cta_heading": "Ready to create your own?",
+        "cta_text": "<p>We’ll help turn your idea into a custom product made with care.</p>",
+        "cta_button_label": "Start Designing Now",
+        "cta_button_link": "shopify://collections/custom-apparel",
+        "badge_one": "Live preview on supported products",
+        "badge_two": "Proof before print when needed",
+        "badge_three": "Secure checkout"
       }
     }
   },

@@ -1,0 +1,575 @@
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign selected_blog = blogs[section.settings.blog]
+-%}
+
+{%- style -%}
+  .saac-di-light-{{ section.id }} {
+    background: rgb(var(--color-background));
+    color: rgb(var(--color-foreground));
+    padding: 3.2rem 0 4.4rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__hero,
+  .saac-di-light-{{ section.id }} .saac-di__mid-cta,
+  .saac-di-light-{{ section.id }} .saac-di__category-card,
+  .saac-di-light-{{ section.id }} .saac-di__article-card {
+    border: 0.1rem solid rgba(var(--color-foreground), 0.08);
+    border-radius: 2rem;
+    background: rgba(var(--color-background), 1);
+    box-shadow: 0 1rem 2.4rem rgba(20, 24, 34, 0.05);
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__hero,
+  .saac-di-light-{{ section.id }} .saac-di__mid-cta {
+    text-align: center;
+    padding: 2.6rem 2.2rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__hero-copy,
+  .saac-di-light-{{ section.id }} .saac-di__section-copy,
+  .saac-di-light-{{ section.id }} .saac-di__cta-copy {
+    color: rgba(var(--color-foreground), 0.78);
+    font: 400 1.58rem/1.66 var(--font-body-family);
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__hero-copy,
+  .saac-di-light-{{ section.id }} .saac-di__cta-copy {
+    max-width: 68rem;
+    margin: 1rem auto 0;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__heading,
+  .saac-di-light-{{ section.id }} .saac-di__section-heading,
+  .saac-di-light-{{ section.id }} .saac-di__cta-heading,
+  .saac-di-light-{{ section.id }} .saac-di__card-title,
+  .saac-di-light-{{ section.id }} .saac-di__article-title {
+    margin: 0;
+    color: rgb(var(--color-foreground));
+    font-family: var(--font-heading-family);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__heading {
+    font-size: clamp(3rem, 4.2vw, 4.8rem);
+    line-height: 1.04;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__section-heading,
+  .saac-di-light-{{ section.id }} .saac-di__cta-heading {
+    font-size: clamp(2.4rem, 3vw, 3.4rem);
+    line-height: 1.08;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__hero-actions,
+  .saac-di-light-{{ section.id }} .saac-di__mid-actions,
+  .saac-di-light-{{ section.id }} .saac-di__card-actions,
+  .saac-di-light-{{ section.id }} .saac-di__article-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__hero-actions,
+  .saac-di-light-{{ section.id }} .saac-di__mid-actions {
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__section {
+    margin-top: 3rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__section-header {
+    max-width: 72rem;
+    margin: 0 auto 1.8rem;
+    text-align: center;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__category-grid,
+  .saac-di-light-{{ section.id }} .saac-di__article-grid {
+    display: grid;
+    gap: 1.6rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__category-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__article-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__category-card,
+  .saac-di-light-{{ section.id }} .saac-di__article-card {
+    height: 100%;
+    padding: 1.8rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__category-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__article-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__card-title,
+  .saac-di-light-{{ section.id }} .saac-di__article-title {
+    font-size: 2rem;
+    line-height: 1.16;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__article-title {
+    display: block;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__card-copy,
+  .saac-di-light-{{ section.id }} .saac-di__article-copy,
+  .saac-di-light-{{ section.id }} .saac-di__article-meta {
+    color: rgba(var(--color-foreground), 0.76);
+    font: 400 1.45rem/1.6 var(--font-body-family);
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__card-copy,
+  .saac-di-light-{{ section.id }} .saac-di__article-copy {
+    margin-top: 0.85rem;
+    margin-bottom: 0;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__card-actions,
+  .saac-di-light-{{ section.id }} .saac-di__article-actions {
+    margin-top: 0.7rem;
+    align-items: center;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__card-actions {
+    margin-top: auto;
+    padding-top: 1rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__article-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__article-actions {
+    margin-top: auto;
+    padding-top: 0;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__button-subtle {
+    min-height: 4rem;
+    padding: 0 0.95rem;
+    font-size: 1.22rem;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__button-small {
+    min-height: 3.8rem;
+    padding: 0 1rem;
+    font-size: 1.18rem;
+    white-space: nowrap;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__article-image {
+    display: block;
+    overflow: hidden;
+    margin: -1.8rem -1.8rem 1.3rem;
+    border-radius: 2rem 2rem 1.3rem 1.3rem;
+    background: rgba(var(--color-foreground), 0.04);
+    aspect-ratio: 4 / 3;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__article-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .saac-di-light-{{ section.id }} .saac-di__article-title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  @media screen and (max-width: 989px) {
+    .saac-di-light-{{ section.id }} .saac-di__category-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .saac-di-light-{{ section.id }} .saac-di__article-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .saac-di-light-{{ section.id }} {
+      padding: 2.4rem 0 3.2rem;
+    }
+
+    .saac-di-light-{{ section.id }} .saac-di__hero,
+    .saac-di-light-{{ section.id }} .saac-di__mid-cta {
+      padding: 2rem 1.6rem;
+    }
+
+    .saac-di-light-{{ section.id }} .saac-di__section {
+      margin-top: 2.2rem;
+    }
+
+    .saac-di-light-{{ section.id }} .saac-di__category-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .saac-di-light-{{ section.id }} .saac-di__hero-actions,
+    .saac-di-light-{{ section.id }} .saac-di__mid-actions,
+    .saac-di-light-{{ section.id }} .saac-di__card-actions,
+    .saac-di-light-{{ section.id }} .saac-di__article-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .saac-di-light-{{ section.id }} .saac-di__article-actions {
+      flex-wrap: wrap;
+    }
+  }
+{%- endstyle -%}
+
+<section class="saac-di-light saac-di-light-{{ section.id }} color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width">
+    <div class="saac-di__hero">
+      <h1 class="saac-di__heading">{{ section.settings.hero_heading }}</h1>
+      <div class="saac-di__hero-copy rte">{{ section.settings.hero_text }}</div>
+      <div class="saac-di__hero-actions">
+        {%- if section.settings.hero_button_label != blank and section.settings.hero_button_link != blank -%}
+          <a class="button button--primary" href="{{ section.settings.hero_button_link }}">{{ section.settings.hero_button_label }}</a>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="saac-di__section">
+      <div class="saac-di__category-grid">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'category' -%}
+            <article class="saac-di__category-card" {{ block.shopify_attributes }}>
+              <h2 class="saac-di__card-title">{{ block.settings.heading }}</h2>
+              <div class="saac-di__card-copy rte">{{ block.settings.text }}</div>
+              <div class="saac-di__card-actions">
+                {%- if block.settings.explore_label != blank and block.settings.explore_link != blank -%}
+                  <a class="button button--secondary saac-di__button-small saac-di__button-subtle" href="{{ block.settings.explore_link }}">{{ block.settings.explore_label }}</a>
+                {%- endif -%}
+              </div>
+            </article>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+
+    {%- if selected_blog != blank and selected_blog.articles_count > 0 -%}
+      <div class="saac-di__section">
+        <div class="saac-di__section-header">
+          <h2 class="saac-di__section-heading">{{ section.settings.articles_heading }}</h2>
+        </div>
+
+        <div class="saac-di__article-grid">
+          {%- for article in selected_blog.articles limit: section.settings.post_limit -%}
+            <article class="saac-di__article-card">
+              {%- if section.settings.show_image and article.image -%}
+                <a class="saac-di__article-image" href="{{ article.url }}">
+                  {{
+                    article.image
+                    | image_url: width: 900
+                    | image_tag:
+                      loading: 'lazy',
+                      widths: '360, 533, 720, 900',
+                      alt: article.image.alt | escape
+                  }}
+                </a>
+              {%- endif -%}
+
+              <div class="saac-di__article-body">
+                <h3 class="saac-di__article-title">
+                  <a href="{{ article.url }}">{{ article.title | escape }}</a>
+                </h3>
+
+                {%- if section.settings.show_date -%}
+                  <p class="saac-di__article-meta">{{ article.published_at | time_tag: format: 'date' }}</p>
+                {%- endif -%}
+
+                <p class="saac-di__article-copy">
+                  {%- if article.content.size > 0 -%}
+                    {{ article.content | strip_html | truncatewords: 34 }}
+                  {%- elsif article.excerpt.size > 0 -%}
+                    {{ article.excerpt | strip_html | truncatewords: 34 }}
+                  {%- else -%}
+                    {{ article.excerpt | strip_html | truncatewords: 34 }}
+                  {%- endif -%}
+                </p>
+
+                <div class="saac-di__article-actions">
+                  <a class="button button--secondary saac-di__button-small" href="{{ article.url }}">Read More</a>
+                </div>
+              </div>
+            </article>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    <div class="saac-di__section">
+      <div class="saac-di__mid-cta">
+        <h2 class="saac-di__cta-heading">{{ section.settings.mid_heading }}</h2>
+        <div class="saac-di__cta-copy rte">{{ section.settings.mid_text }}</div>
+        <div class="saac-di__mid-actions">
+          {%- if section.settings.mid_primary_label != blank and section.settings.mid_primary_link != blank -%}
+            <a class="button button--secondary saac-di__button-small saac-di__button-subtle" href="{{ section.settings.mid_primary_link }}">{{ section.settings.mid_primary_label }}</a>
+          {%- endif -%}
+          {%- if section.settings.mid_secondary_label != blank and section.settings.mid_secondary_link != blank -%}
+            <a class="button button--primary saac-di__button-small" href="{{ section.settings.mid_secondary_link }}">{{ section.settings.mid_secondary_label }}</a>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "SAAC Design Ideas Light",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "background-1"
+    },
+    {
+      "type": "header",
+      "content": "Hero"
+    },
+    {
+      "type": "text",
+      "id": "hero_heading",
+      "label": "Heading",
+      "default": "Design Ideas & Inspiration"
+    },
+    {
+      "type": "richtext",
+      "id": "hero_text",
+      "label": "Text",
+      "default": "<p>Browse ideas or start your own — customize any design in minutes with live preview on supported products.</p>"
+    },
+    {
+      "type": "text",
+      "id": "hero_button_label",
+      "label": "Button label",
+      "default": "Start Designing Now"
+    },
+    {
+      "type": "url",
+      "id": "hero_button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Shared links"
+    },
+    {
+      "type": "text",
+      "id": "start_designing_label",
+      "label": "Start designing label",
+      "default": "Start Designing"
+    },
+    {
+      "type": "url",
+      "id": "start_designing_link",
+      "label": "Start designing link"
+    },
+    {
+      "type": "url",
+      "id": "customize_idea_link",
+      "label": "Customize idea link"
+    },
+    {
+      "type": "header",
+      "content": "Articles"
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog"
+    },
+    {
+      "type": "text",
+      "id": "articles_heading",
+      "label": "Articles heading",
+      "default": "Personalized Gift Ideas for Family Events and Special Occasions"
+    },
+    {
+      "type": "range",
+      "id": "post_limit",
+      "label": "Posts to show",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image",
+      "label": "Show article image",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show article date",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Mid CTA"
+    },
+    {
+      "type": "text",
+      "id": "mid_heading",
+      "label": "Heading",
+      "default": "Not sure where to start?"
+    },
+    {
+      "type": "richtext",
+      "id": "mid_text",
+      "label": "Text",
+      "default": "<p>Browse ideas, or learn how the process works before you begin.</p>"
+    },
+    {
+      "type": "text",
+      "id": "mid_primary_label",
+      "label": "Primary button label",
+      "default": "See How It Works"
+    },
+    {
+      "type": "url",
+      "id": "mid_primary_link",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "mid_secondary_label",
+      "label": "Secondary button label",
+      "default": "Start Designing"
+    },
+    {
+      "type": "url",
+      "id": "mid_secondary_link",
+      "label": "Secondary button link"
+    },
+    {
+      "type": "header",
+      "content": "Bottom CTA"
+    },
+    {
+      "type": "text",
+      "id": "bottom_heading",
+      "label": "Heading",
+      "default": "Ready to create your own?"
+    },
+    {
+      "type": "richtext",
+      "id": "bottom_text",
+      "label": "Text",
+      "default": "<p>Turn your favorite idea into a custom product made just for you.</p>"
+    },
+    {
+      "type": "text",
+      "id": "bottom_button_label",
+      "label": "Button label",
+      "default": "Start Designing"
+    },
+    {
+      "type": "url",
+      "id": "bottom_button_link",
+      "label": "Button link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category card",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Gift Ideas"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Short category description.</p>"
+        },
+        {
+          "type": "text",
+          "id": "explore_label",
+          "label": "Explore label",
+          "default": "Explore Ideas"
+        },
+        {
+          "type": "url",
+          "id": "explore_link",
+          "label": "Explore link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "SAAC Design Ideas Light",
+      "blocks": [
+        {
+          "type": "category",
+          "settings": {
+            "heading": "Gift Ideas",
+            "text": "<p>Perfect for birthdays, holidays, and special occasions.</p>",
+            "explore_label": "Explore Gift Ideas"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "heading": "Apparel Design Ideas",
+            "text": "<p>T-shirts, polo shirts, hoodies, and matching outfits.</p>",
+            "explore_label": "Explore Apparel"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "heading": "Mugs and Tumblers",
+            "text": "<p>Personalized everyday products.</p>",
+            "explore_label": "Explore Mugs and Tumblers"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "heading": "How to Design",
+            "text": "<p>Learn how to create your own design step-by-step.</p>",
+            "explore_label": "Learn How It Works"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

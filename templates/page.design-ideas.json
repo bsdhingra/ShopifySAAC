@@ -10,189 +10,79 @@
 {
   "sections": {
     "main": {
-      "type": "main-page",
-      "disabled": true,
-      "settings": {
-        "padding_top": 12,
-        "padding_bottom": 12
-      }
-    },
-    "rich_text_xdFA7P": {
-      "type": "rich-text",
+      "type": "saac-design-ideas-light",
       "blocks": {
-        "heading_fYJcTr": {
-          "type": "heading",
+        "category_1": {
+          "type": "category",
           "settings": {
-            "heading": "Design Ideas & Inspiration",
-            "heading_size": "h1"
-          }
-        },
-        "text_4igwjw": {
-          "type": "text",
-          "settings": {
-            "text": "<p>Explore creative ideas and learn how to design your own custom products for every occasion.</p>"
-          }
-        },
-        "button_w8RJT8": {
-          "type": "button",
-          "settings": {
-            "button_label": "Start Designing Now",
-            "button_link": "shopify://collections",
-            "button_style_secondary": false,
-            "button_label_2": "",
-            "button_link_2": "",
-            "button_style_secondary_2": false
-          }
-        }
-      },
-      "block_order": [
-        "heading_fYJcTr",
-        "text_4igwjw",
-        "button_w8RJT8"
-      ],
-      "name": "t:sections.rich-text.presets.name",
-      "settings": {
-        "custom_class": "",
-        "desktop_content_position": "center",
-        "content_alignment": "center",
-        "color_scheme": "",
-        "full_width": true,
-        "padding_top": 40,
-        "padding_bottom": 28
-      }
-    },
-    "multicolumn_QNQxY8": {
-      "type": "multicolumn",
-      "blocks": {
-        "column_dggmeK": {
-          "type": "column",
-          "settings": {
-            "title": "Gift Ideas",
+            "heading": "Gift Ideas",
             "text": "<p>Perfect for birthdays, holidays, and special occasions</p>",
-            "link_label": "Explore Gift Ideas",
-            "link": "shopify://blogs/news/personalized-gift-ideas-for-family-events-and-special-occasions"
+            "explore_label": "Explore Gift Ideas",
+            "explore_link": "shopify://blogs/news/personalized-gift-ideas-for-family-events-and-special-occasions"
           }
         },
-        "column_ADzLWp": {
-          "type": "column",
+        "category_2": {
+          "type": "category",
           "settings": {
-            "title": "Apparel Design Ideas",
+            "heading": "Apparel Design Ideas",
             "text": "<p>T-shirts, Polo Shirts, Hoodies, and matching outfits</p>",
-            "link_label": "Explore Apparel",
-            "link": "shopify://blogs/design-ideas/how-to-design-your-own-custom-t-shirt-step-by-step-guide"
+            "explore_label": "Explore Apparel",
+            "explore_link": "shopify://blogs/design-ideas/how-to-design-your-own-custom-t-shirt-step-by-step-guide"
           }
         },
-        "column_THeMm9": {
-          "type": "column",
+        "category_3": {
+          "type": "category",
           "settings": {
-            "title": "Mugs and Tumblers",
+            "heading": "Mugs and Tumblers",
             "text": "<p>Personalized everyday products</p>",
-            "link_label": "Explore Mugs and Tumblers",
-            "link": "shopify://blogs/news/creative-mug-and-tumbler-design-ideas-step-by-step-guide"
+            "explore_label": "Explore Mugs and Tumblers",
+            "explore_link": "shopify://blogs/news/creative-mug-and-tumbler-design-ideas-step-by-step-guide"
           }
         },
-        "column_rbqAqt": {
-          "type": "column",
+        "category_4": {
+          "type": "category",
           "settings": {
-            "title": "How to Design",
+            "heading": "How to Design",
             "text": "<p>Learn how to create your own design step-by-step</p>",
-            "link_label": "Learn How It works",
-            "link": "shopify://pages/how-it-works"
+            "explore_label": "Learn How It Works",
+            "explore_link": "shopify://pages/how-it-works"
           }
         }
       },
       "block_order": [
-        "column_dggmeK",
-        "column_ADzLWp",
-        "column_THeMm9",
-        "column_rbqAqt"
+        "category_1",
+        "category_2",
+        "category_3",
+        "category_4"
       ],
-      "name": "t:sections.multicolumn.presets.name",
       "settings": {
-        "title": "",
-        "heading_size": "h1",
-        "image_width": "full",
-        "image_ratio": "adapt",
-        "button_label": "",
-        "button_link": "",
-        "columns_desktop": 4,
-        "column_alignment": "left",
-        "background_style": "primary",
-        "color_scheme": "",
-        "columns_mobile": "1",
-        "swipe_on_mobile": false,
-        "padding_top": 24,
-        "padding_bottom": 28
-      }
-    },
-    "featured_blog_8fFF9b": {
-      "type": "featured-blog",
-      "name": "t:sections.featured-blog.presets.name",
-      "settings": {
+        "color_scheme": "background-1",
+        "hero_heading": "Design Ideas & Inspiration",
+        "hero_text": "<p>Browse ideas or start your own — customize any design in minutes with live preview on supported products.</p>",
+        "hero_button_label": "Start Designing Now",
+        "hero_button_link": "shopify://collections",
+        "start_designing_label": "Start Designing",
+        "start_designing_link": "shopify://collections/custom-apparel",
+        "customize_idea_link": "shopify://collections/custom-apparel",
         "blog": "design-ideas",
+        "articles_heading": "Personalized Gift Ideas for Family Events and Special Occasions",
         "post_limit": 3,
-        "heading": "Personalized Gift Ideas for Family Events and Special Occasions",
-        "heading_size": "h1",
-        "columns_desktop": 3,
-        "show_view_all": true,
         "show_image": true,
         "show_date": true,
-        "show_author": false,
-        "color_scheme": "",
-        "padding_top": 36,
-        "padding_bottom": 36
-      }
-    },
-    "rich_text_Qi476M": {
-      "type": "rich-text",
-      "blocks": {
-        "heading_YKbTeQ": {
-          "type": "heading",
-          "settings": {
-            "heading": "Explore More Design Ideas",
-            "heading_size": "h1"
-          }
-        },
-        "text_Y4PdHm": {
-          "type": "text",
-          "settings": {
-            "text": "<p>Browse more inspiration and discover new ways to create your own custom products.</p>"
-          }
-        },
-        "button_LLMN3i": {
-          "type": "button",
-          "settings": {
-            "button_label": "View All Ideas",
-            "button_link": "shopify://pages/design-ideaa",
-            "button_style_secondary": false,
-            "button_label_2": "",
-            "button_link_2": "",
-            "button_style_secondary_2": false
-          }
-        }
-      },
-      "block_order": [
-        "heading_YKbTeQ",
-        "text_Y4PdHm",
-        "button_LLMN3i"
-      ],
-      "name": "t:sections.rich-text.presets.name",
-      "settings": {
-        "custom_class": "",
-        "desktop_content_position": "center",
-        "content_alignment": "center",
-        "color_scheme": "",
-        "full_width": true,
-        "padding_top": 40,
-        "padding_bottom": 52
+        "mid_heading": "Not sure where to start?",
+        "mid_text": "<p>Browse ideas, or learn how the process works before you begin.</p>",
+        "mid_primary_label": "See How It Works",
+        "mid_primary_link": "shopify://pages/how-it-works",
+        "mid_secondary_label": "Start Designing",
+        "mid_secondary_link": "shopify://collections/custom-apparel",
+        "bottom_heading": "Ready to create your own?",
+        "bottom_text": "<p>Turn your favorite idea into a custom product made just for you.</p>",
+        "bottom_button_label": "Start Designing",
+        "bottom_button_link": "shopify://collections/custom-apparel"
       }
     }
   },
   "order": [
-    "main",
-    "rich_text_xdFA7P",
-    "multicolumn_QNQxY8",
-    "featured_blog_8fFF9b",
-    "rich_text_Qi476M"
+    "main"
   ]
 }

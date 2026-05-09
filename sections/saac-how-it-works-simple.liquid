@@ -1,0 +1,583 @@
+{%- style -%}
+  .saac-hiw-simple-{{ section.id }} {
+    --saac-hiw-simple-surface: #fbf8f0;
+    --saac-hiw-simple-card: rgba(var(--color-background), 1);
+    --saac-hiw-simple-border: rgba(var(--color-foreground), 0.08);
+    --saac-hiw-simple-shadow: 0 1.2rem 2.6rem rgba(20, 24, 34, 0.06);
+    background: var(--saac-hiw-simple-surface);
+    color: rgb(var(--color-foreground));
+    padding: 1.5rem 0 2.8rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-strip,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card {
+    border: 0.1rem solid var(--saac-hiw-simple-border);
+    border-radius: 2.2rem;
+    box-shadow: var(--saac-hiw-simple-shadow);
+    background: var(--saac-hiw-simple-card);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(24rem, 0.75fr);
+    gap: 2rem;
+    align-items: center;
+    padding: 1.6rem 1.8rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.9)),
+      radial-gradient(circle at top right, rgba(var(--color-button), 0.08), transparent 42%);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__eyebrow {
+    margin: 0 0 0.8rem;
+    color: rgba(var(--color-foreground), 0.72);
+    font: 600 1.15rem/1.2 var(--font-body-family);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__heading,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section-heading,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-heading,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-title {
+    margin: 0;
+    color: rgb(var(--color-foreground));
+    font-family: var(--font-heading-family);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__heading {
+    font-size: clamp(3rem, 4.4vw, 4.7rem);
+    line-height: 1.02;
+    max-width: 14ch;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__heading-secondary {
+    display: block;
+    font-size: 0.72em;
+    line-height: 1.08;
+    white-space: nowrap;
+    margin-top: 0.14em;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section-heading,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-heading {
+    font-size: clamp(2.5rem, 3vw, 3.5rem);
+    line-height: 1.08;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__copy,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section-copy,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__trust-line,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-text,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-copy {
+    margin: 0;
+    color: rgba(var(--color-foreground), 0.78);
+    font: 400 1.55rem/1.66 var(--font-body-family);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__copy {
+    margin-top: 1.2rem;
+    max-width: 54rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-actions,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-actions,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__badge-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-actions {
+    margin-top: 1.8rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__trust-line {
+    margin-top: 1.3rem;
+    font-size: 1.35rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__visual {
+    position: relative;
+    overflow: hidden;
+    min-height: 20rem;
+    max-width: 40rem;
+    width: 100%;
+    justify-self: end;
+    border-radius: 1.9rem;
+    border: 0.1rem solid var(--saac-hiw-simple-border);
+    background: rgba(var(--color-background), 0.94);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__visual img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__placeholder {
+    display: grid;
+    place-items: center;
+    min-height: 100%;
+    padding: 2rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__placeholder-card {
+    width: min(100%, 24rem);
+    padding: 1.8rem;
+    border-radius: 1.6rem;
+    background: rgba(var(--color-background), 0.96);
+    border: 0.1rem dashed rgba(var(--color-foreground), 0.18);
+    text-align: center;
+    color: rgba(var(--color-foreground), 0.72);
+    font: 500 1.45rem/1.5 var(--font-body-family);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__placeholder-card strong {
+    display: block;
+    margin-bottom: 0.55rem;
+    color: rgb(var(--color-foreground));
+    font-size: 1.6rem;
+    font-weight: 600;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__placeholder-card span {
+    display: block;
+    font-size: 1.32rem;
+    line-height: 1.5;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section {
+    margin-top: 2.5rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section-header {
+    max-width: 62rem;
+    margin: 0 auto 1.8rem;
+    text-align: center;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1.3rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card {
+    height: 100%;
+    padding: 1.6rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(-n + 3) {
+    grid-column: span 4;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(4) {
+    grid-column: 3 / span 4;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(5) {
+    grid-column: 7 / span 4;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-number {
+    width: 3.8rem;
+    height: 3.8rem;
+    display: inline-grid;
+    place-items: center;
+    margin-bottom: 1.1rem;
+    border-radius: 1.1rem;
+    background: rgba(var(--color-button), 0.1);
+    color: rgb(var(--color-button));
+    font: 700 1.65rem/1 var(--font-body-family);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-title {
+    font-size: 1.9rem;
+    line-height: 1.14;
+    margin-bottom: 0.75rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-text {
+    font-size: 1.42rem;
+    line-height: 1.58;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-strip {
+    padding: 1.15rem 1.6rem;
+    text-align: center;
+    background:
+      linear-gradient(180deg, rgba(var(--color-button), 0.08), rgba(255, 255, 255, 0.92)),
+      rgba(var(--color-background), 1);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-copy {
+    max-width: 56rem;
+    margin: 0.6rem auto 0;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-actions {
+    justify-content: center;
+    margin-top: 1rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__badge-list {
+    justify-content: center;
+    margin-top: 0.8rem;
+    gap: 0.6rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.7rem 1rem;
+    border-radius: 999px;
+    background: rgba(var(--color-button), 0.1);
+    color: rgb(var(--color-button));
+    font: 600 1.18rem/1.2 var(--font-body-family);
+  }
+
+  @media screen and (max-width: 1180px) {
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(-n + 3),
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(4),
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(5) {
+      grid-column: auto;
+    }
+  }
+
+  @media screen and (max-width: 989px) {
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero {
+      grid-template-columns: 1fr;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__visual {
+      justify-self: stretch;
+      max-width: none;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .saac-hiw-simple-{{ section.id }} {
+      padding: 1.2rem 0 2.4rem;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero,
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-strip {
+      padding: 1.6rem;
+      border-radius: 2rem;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section {
+      margin-top: 2rem;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section-header {
+      margin-bottom: 1.6rem;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-actions,
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+{%- endstyle -%}
+
+<section class="saac-hiw-simple saac-hiw-simple-{{ section.id }} color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width">
+    <div class="saac-hiw-simple__hero">
+      <div>
+        {%- if section.settings.hero_eyebrow != blank -%}
+          <p class="saac-hiw-simple__eyebrow">{{ section.settings.hero_eyebrow }}</p>
+        {%- endif -%}
+        <h1 class="saac-hiw-simple__heading">
+          {{ section.settings.hero_heading | replace: ' See It Before You Order', '' }}
+          <span class="saac-hiw-simple__heading-secondary">See It Before You Order</span>
+        </h1>
+        <div class="saac-hiw-simple__copy rte">{{ section.settings.hero_subheading }}</div>
+        <div class="saac-hiw-simple__hero-actions">
+          {%- if section.settings.primary_cta_label != blank and section.settings.primary_cta_link != blank -%}
+            <a class="button button--primary" href="{{ section.settings.primary_cta_link }}">{{ section.settings.primary_cta_label }}</a>
+          {%- endif -%}
+          {%- if section.settings.secondary_cta_label != blank and section.settings.secondary_cta_link != blank -%}
+            <a class="button button--secondary" href="{{ section.settings.secondary_cta_link }}">{{ section.settings.secondary_cta_label }}</a>
+          {%- endif -%}
+        </div>
+        {%- if section.settings.trust_line != blank -%}
+          <p class="saac-hiw-simple__trust-line">{{ section.settings.trust_line }}</p>
+        {%- endif -%}
+      </div>
+
+      <div class="saac-hiw-simple__visual">
+        {%- if section.settings.hero_image != blank -%}
+          {{
+            section.settings.hero_image
+            | image_url: width: 1200
+            | image_tag:
+              loading: 'lazy',
+              widths: '480, 720, 960, 1200',
+              alt: section.settings.hero_image.alt | escape
+          }}
+        {%- else -%}
+          <div class="saac-hiw-simple__placeholder">
+            <div class="saac-hiw-simple__placeholder-card">
+              <strong>Live preview available on select products</strong>
+              <span>Upload, adjust, and preview your design where supported.</span>
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="saac-hiw-simple__section">
+      <div class="saac-hiw-simple__section-header">
+        <h2 class="saac-hiw-simple__section-heading">{{ section.settings.process_heading }}</h2>
+        <div class="saac-hiw-simple__section-copy rte">{{ section.settings.process_subheading }}</div>
+      </div>
+
+      <div class="saac-hiw-simple__step-grid">
+        {%- assign step_index = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'step' and step_index < 5 -%}
+            {%- assign step_index = step_index | plus: 1 -%}
+            <article class="saac-hiw-simple__step-card" {{ block.shopify_attributes }}>
+              <div class="saac-hiw-simple__step-number">{{ step_index }}</div>
+              <h3 class="saac-hiw-simple__step-title">{{ block.settings.heading }}</h3>
+              <div class="saac-hiw-simple__step-text rte">{{ block.settings.text }}</div>
+            </article>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+
+    <div class="saac-hiw-simple__section">
+      <div class="saac-hiw-simple__cta-strip">
+        <h2 class="saac-hiw-simple__cta-heading">{{ section.settings.cta_heading }}</h2>
+        <div class="saac-hiw-simple__cta-copy rte">{{ section.settings.cta_text }}</div>
+        <div class="saac-hiw-simple__cta-actions">
+          {%- if section.settings.cta_button_label != blank and section.settings.cta_button_link != blank -%}
+            <a class="button button--primary" href="{{ section.settings.cta_button_link }}">{{ section.settings.cta_button_label }}</a>
+          {%- endif -%}
+        </div>
+        <div class="saac-hiw-simple__badge-list">
+          {%- if section.settings.badge_one != blank -%}
+            <span class="saac-hiw-simple__badge">{{ section.settings.badge_one }}</span>
+          {%- endif -%}
+          {%- if section.settings.badge_two != blank -%}
+            <span class="saac-hiw-simple__badge">{{ section.settings.badge_two }}</span>
+          {%- endif -%}
+          {%- if section.settings.badge_three != blank -%}
+            <span class="saac-hiw-simple__badge">{{ section.settings.badge_three }}</span>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "SAAC How It Works Simple",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "background-1"
+    },
+    {
+      "type": "header",
+      "content": "Hero"
+    },
+    {
+      "type": "text",
+      "id": "hero_eyebrow",
+      "label": "Eyebrow",
+      "default": "HOW IT WORKS"
+    },
+    {
+      "type": "text",
+      "id": "hero_heading",
+      "label": "Heading",
+      "default": "Design Your Product See It Before You Order"
+    },
+    {
+      "type": "richtext",
+      "id": "hero_subheading",
+      "label": "Subheading",
+      "default": "<p>Choose a product, upload your design, preview it instantly on supported products, and approve before we print.</p>"
+    },
+    {
+      "type": "text",
+      "id": "primary_cta_label",
+      "label": "Primary button label",
+      "default": "Start Designing"
+    },
+    {
+      "type": "url",
+      "id": "primary_cta_link",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "secondary_cta_label",
+      "label": "Secondary button label",
+      "default": "Browse Design Ideas"
+    },
+    {
+      "type": "url",
+      "id": "secondary_cta_link",
+      "label": "Secondary button link"
+    },
+    {
+      "type": "text",
+      "id": "trust_line",
+      "label": "Trust line",
+      "default": "Crafted in-house • Never drop shipped • Secure checkout"
+    },
+    {
+      "type": "image_picker",
+      "id": "hero_image",
+      "label": "Hero image"
+    },
+    {
+      "type": "header",
+      "content": "Process"
+    },
+    {
+      "type": "text",
+      "id": "process_heading",
+      "label": "Heading",
+      "default": "How Your Custom Order Works"
+    },
+    {
+      "type": "richtext",
+      "id": "process_subheading",
+      "label": "Subheading",
+      "default": "<p>From idea to delivery, here’s the simple process.</p>"
+    },
+    {
+      "type": "header",
+      "content": "CTA strip"
+    },
+    {
+      "type": "text",
+      "id": "cta_heading",
+      "label": "Heading",
+      "default": "Ready to create your own?"
+    },
+    {
+      "type": "richtext",
+      "id": "cta_text",
+      "label": "Text",
+      "default": "<p>We’ll help turn your idea into a custom product made with care.</p>"
+    },
+    {
+      "type": "text",
+      "id": "cta_button_label",
+      "label": "Button label",
+      "default": "Start Designing Now"
+    },
+    {
+      "type": "url",
+      "id": "cta_button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "text",
+      "id": "badge_one",
+      "label": "Badge one",
+      "default": "Live preview on supported products"
+    },
+    {
+      "type": "text",
+      "id": "badge_two",
+      "label": "Badge two",
+      "default": "Proof before print when needed"
+    },
+    {
+      "type": "text",
+      "id": "badge_three",
+      "label": "Badge three",
+      "default": "Secure checkout"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "limit": 5,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Step title"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text",
+          "default": "<p>Step details go here.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "SAAC How It Works Simple",
+      "blocks": [
+        {
+          "type": "step",
+          "settings": {
+            "heading": "Choose Your Product",
+            "text": "<p>Pick from apparel, mugs, tumblers, wood signs, photo gifts, and more.</p>"
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "heading": "Upload or Customize",
+            "text": "<p>Add your photo, artwork, name, message, or design details.</p>"
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "heading": "Preview & Confirm",
+            "text": "<p>Use live preview where available, adjust your design, and confirm before checkout.</p>"
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "heading": "Made In-House",
+            "text": "<p>Your item is crafted with care by us — never drop shipped.</p>"
+          }
+        },
+        {
+          "type": "step",
+          "settings": {
+            "heading": "Packed & Delivered",
+            "text": "<p>We quality check, pack safely, and ship your finished order.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
