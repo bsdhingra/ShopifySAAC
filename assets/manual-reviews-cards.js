@@ -739,8 +739,7 @@
       }
       var metricMarkup = buildMetricMarkup(summaryText);
       var placement = root.getAttribute('data-top-metric-placement') || 'right';
-      var isMobile = window.matchMedia('(max-width: 749px)').matches;
-      var showHeadingMetric = isMobile || placement === 'inline';
+      var showHeadingMetric = placement === 'inline';
 
       if (ratingSummary) {
         if (root.getAttribute('data-show-rating-summary') === 'true' && !showHeadingMetric) {
