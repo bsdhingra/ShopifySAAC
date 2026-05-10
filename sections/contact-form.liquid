@@ -6,6 +6,26 @@
     padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
   }
 
+  .contact.section-{{ section.id }}-padding .saac-contact-support {
+    margin: 0 0 1.6rem;
+    color: rgba(var(--color-foreground), 0.78);
+    font-size: 1.5rem;
+    line-height: 1.65;
+  }
+
+  .contact.section-{{ section.id }}-padding .title {
+    margin-top: 0.8rem;
+    margin-bottom: 1.6rem;
+  }
+
+  .contact.section-{{ section.id }}-padding .saac-contact-support p {
+    margin: 0;
+  }
+
+  .contact.section-{{ section.id }}-padding .saac-contact-support p + p {
+    margin-top: 1rem;
+  }
+
   @media screen and (min-width: 750px) {
     .section-{{ section.id }}-padding {
       padding-top: {{ section.settings.padding_top }}px;
@@ -29,6 +49,12 @@
         assign contact_form_class = 'isolate scroll-trigger animate--slide-in'
       endif
     -%}
+    <div class="saac-contact-support rte">
+      <p>Have a question about a product, your order, or a custom design?</p>
+      <p>Email us at <a href="mailto:info@sarvsartsandcrafts.com">info@sarvsartsandcrafts.com</a> or use the chat button for quick questions. We typically respond within one business day. If your message is about an order, please include your order number or the email/phone used at checkout.</p>
+      <p>Need help getting started with a custom product? See our <a href="/pages/how-it-works">How It Works</a> page for quick guidance.</p>
+      <p>We look forward to assisting you!</p>
+    </div>
     {%- form 'contact', id: 'ContactForm', class: contact_form_class -%}
       {%- if form.posted_successfully? -%}
         <h2 class="form-status form-status-list form__message" tabindex="-1" autofocus>
@@ -128,7 +154,7 @@
       </div>
       <div class="contact__button">
         <button type="submit" class="button">
-          {{ 'templates.contact.form.send' | t }}
+          Send Message
         </button>
       </div>
     {%- endform -%}
