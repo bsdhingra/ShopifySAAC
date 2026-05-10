@@ -118,6 +118,7 @@
   let wrapCtx = null;
   let finalizeTimer = null;
   let draftPersistFrame = 0;
+  let interactionRenderFrame = 0;
   let draftEditableSourceSnapshot = null;
   let draftEditableSourceSeq = 0;
   let pendingDraftRestoreSnapshot = null;
@@ -2499,7 +2500,27 @@
     renderPreview(wrapPack);
   };
 
+  const queueInteractionRender = () => {
+    if (interactionRenderFrame) return;
+    interactionRenderFrame = window.requestAnimationFrame(() => {
+      interactionRenderFrame = 0;
+      renderEditor();
+    });
+  };
+
+  const flushInteractionRender = () => {
+    if (interactionRenderFrame) {
+      window.cancelAnimationFrame(interactionRenderFrame);
+      interactionRenderFrame = 0;
+    }
+    renderEditor();
+  };
+
   const renderAllNow = () => {
+    if (interactionRenderFrame) {
+      window.cancelAnimationFrame(interactionRenderFrame);
+      interactionRenderFrame = 0;
+    }
     ensurePlacement();
     normalizePlacement();
     renderEditor();
@@ -2663,6 +2684,7 @@
     normalizePlacement();
     if (isMobileViewport()) {
       applyDesignWrapUi(rect);
+      queueInteractionRender();
     } else {
       renderAllNow();
     }
@@ -2682,6 +2704,7 @@
       renderTimer = null;
     }
     if ((wasMode === "dragging" || wasMode === "resizing") && isMobileViewport()) {
+      flushInteractionRender();
       renderPreviewNow();
       finalizeAfterRender();
       persistDraftSessionNow();
