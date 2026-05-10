@@ -119,6 +119,23 @@
     object-fit: cover;
   }
 
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple-video-wrap {
+    width: 100%;
+    height: 100%;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 1.8rem;
+    background: #f7f4ed;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple-video-mobile {
+    display: none;
+  }
+
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__placeholder {
     display: grid;
     place-items: center;
@@ -293,6 +310,16 @@
       align-items: stretch;
     }
   }
+
+  @media screen and (max-width: 749px) {
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple-video-desktop {
+      display: none;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple-video-mobile {
+      display: block;
+    }
+  }
 {%- endstyle -%}
 
 <section class="saac-hiw-simple saac-hiw-simple-{{ section.id }} color-{{ section.settings.color_scheme }} gradient">
@@ -321,15 +348,34 @@
       </div>
 
       <div class="saac-hiw-simple__visual">
-        {%- if section.settings.hero_image != blank -%}
-          {{
-            section.settings.hero_image
-            | image_url: width: 1200
-            | image_tag:
-              loading: 'lazy',
-              widths: '480, 720, 960, 1200',
-              alt: section.settings.hero_image.alt | escape
-          }}
+        {% if section.settings.poster_image != blank %}
+          <div class="saac-hiw-simple-video-wrap">
+            <div class="saac-hiw-simple-video-desktop">
+              <video
+                class="saac-hiw-simple-video"
+                controls
+                preload="none"
+                poster="{{ section.settings.poster_image | image_url: width: 1200 }}"
+              >
+                <source src="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktopwebm-1920x1080-v12-compressed.webm" type="video/webm">
+                <source src="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktop-1920x1080-v12.mp4" type="video/mp4">
+                Your browser does not support video playback.
+              </video>
+            </div>
+
+            <div class="saac-hiw-simple-video-mobile">
+              <video
+                class="saac-hiw-simple-video"
+                controls
+                preload="none"
+                poster="{{ section.settings.poster_image | image_url: width: 800 }}"
+              >
+                <source src="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-Mobilewebm-430x932-v2.webm" type="video/webm">
+                <source src="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-mobile-430x932-v2.mp4" type="video/mp4">
+                Your browser does not support video playback.
+              </video>
+            </div>
+          </div>
         {%- else -%}
           <div class="saac-hiw-simple__placeholder">
             <div class="saac-hiw-simple__placeholder-card">
@@ -453,6 +499,31 @@
       "type": "image_picker",
       "id": "hero_image",
       "label": "Hero image"
+    },
+    {
+      "type": "url",
+      "id": "video_webm_desktop",
+      "label": "Desktop video WebM URL"
+    },
+    {
+      "type": "url",
+      "id": "video_mp4_desktop",
+      "label": "Desktop video MP4 URL"
+    },
+    {
+      "type": "url",
+      "id": "video_webm_mobile",
+      "label": "Mobile video WebM URL"
+    },
+    {
+      "type": "url",
+      "id": "video_mp4_mobile",
+      "label": "Mobile video MP4 URL"
+    },
+    {
+      "type": "image_picker",
+      "id": "poster_image",
+      "label": "Video poster image"
     },
     {
       "type": "header",
