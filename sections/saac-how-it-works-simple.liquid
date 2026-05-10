@@ -11,7 +11,8 @@
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero,
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-strip,
-  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card {
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__card {
     border: 0.1rem solid var(--saac-hiw-simple-border);
     border-radius: 2.2rem;
     box-shadow: var(--saac-hiw-simple-shadow);
@@ -224,6 +225,95 @@
     line-height: 1.58;
   }
 
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.4rem;
+    align-items: stretch;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__section {
+    margin-top: 3.9rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    overflow: hidden;
+    background: #f7f4ed;
+    border-bottom: 0.1rem solid var(--saac-hiw-simple-border);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-desktop,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-mobile {
+    width: 100%;
+    height: 100%;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__media img,
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #f7f4ed;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-mobile {
+    display: none;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__placeholder {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    text-align: center;
+    color: rgba(var(--color-foreground), 0.68);
+    font: 500 1.35rem/1.45 var(--font-body-family);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.2rem 1.6rem 1.5rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__title {
+    margin: 0;
+    color: rgb(var(--color-foreground));
+    font-family: var(--font-heading-family);
+    font-size: 2rem;
+    line-height: 1.14;
+    letter-spacing: -0.03em;
+    min-height: 2.28em;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__text {
+    margin: 0;
+    color: rgba(var(--color-foreground), 0.78);
+    font: 400 1.45rem/1.6 var(--font-body-family);
+    min-height: 3.2em;
+  }
+
+  @media screen and (max-width: 749px) {
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__title,
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__text {
+      min-height: 0;
+    }
+  }
+
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__cta-strip {
     padding: 1.15rem 1.6rem;
     text-align: center;
@@ -263,6 +353,10 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(-n + 3),
     .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(4),
     .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-card:nth-child(5) {
@@ -300,7 +394,8 @@
       margin-bottom: 1.6rem;
     }
 
-    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-grid {
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__step-grid,
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__grid {
       grid-template-columns: 1fr;
     }
 
@@ -317,6 +412,14 @@
     }
 
     .saac-hiw-simple-{{ section.id }} .saac-hiw-simple-video-mobile {
+      display: block;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-desktop {
+      display: none;
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-mobile {
       display: block;
     }
   }
@@ -387,7 +490,7 @@
       </div>
     </div>
 
-    <div class="saac-hiw-simple__section">
+    <div class="saac-hiw-simple__section saac-hiw-demo__section">
       <div class="saac-hiw-simple__section-header">
         <h2 class="saac-hiw-simple__section-heading">{{ section.settings.process_heading }}</h2>
         <div class="saac-hiw-simple__section-copy rte">{{ section.settings.process_subheading }}</div>
@@ -405,6 +508,145 @@
             </article>
           {%- endif -%}
         {%- endfor -%}
+      </div>
+    </div>
+
+    {%- assign demo_block_count = 0 -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'demo_card' -%}
+        {%- assign demo_block_count = demo_block_count | plus: 1 -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    <div class="saac-hiw-simple__section">
+      <div class="saac-hiw-simple__section-header">
+        <h2 class="saac-hiw-simple__section-heading">{{ section.settings.demo_heading }}</h2>
+        <div class="saac-hiw-simple__section-copy rte">{{ section.settings.demo_subheading }}</div>
+      </div>
+
+      <div class="saac-hiw-demo__grid">
+        {%- if demo_block_count > 0 -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'demo_card' -%}
+              {%- assign desktop_webm = block.settings.desktop_webm_url -%}
+              {%- assign desktop_mp4 = block.settings.desktop_mp4_url -%}
+              {%- assign mobile_webm = block.settings.mobile_webm_url | default: desktop_webm -%}
+              {%- assign mobile_mp4 = block.settings.mobile_mp4_url | default: desktop_mp4 -%}
+              {%- assign demo_poster = block.settings.poster_image -%}
+              {%- assign fallback_poster_url = '' -%}
+              {%- case block.settings.title -%}
+                {%- when 'Custom T-shirt' -%}
+                  {%- assign fallback_poster_url = 'https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Back_Proof_Poster.png?v=1778371351' -%}
+                {%- when 'Custom Tumbler' -%}
+                  {%- assign fallback_poster_url = 'https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Custom_Tumbler_Proof.png?v=1778387118' -%}
+                {%- when 'Custom Mug' -%}
+                  {%- assign fallback_poster_url = 'https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Custom_Mug_Proof.png?v=1778387118' -%}
+              {%- endcase -%}
+              {%- assign has_desktop_video = false -%}
+              {%- if desktop_webm != blank or desktop_mp4 != blank -%}
+                {%- assign has_desktop_video = true -%}
+              {%- endif -%}
+              {%- assign has_mobile_video = false -%}
+              {%- if mobile_webm != blank or mobile_mp4 != blank -%}
+                {%- assign has_mobile_video = true -%}
+              {%- endif -%}
+              <article class="saac-hiw-demo__card" {{ block.shopify_attributes }}>
+                <div class="saac-hiw-demo__media">
+                  {%- if has_desktop_video or has_mobile_video -%}
+                    <div class="saac-hiw-demo__video-desktop">
+                      <video
+                        class="saac-hiw-demo__video"
+                        controls
+                        preload="none"
+                        aria-label="{{ block.settings.title | escape }} demo video"
+                        {% if demo_poster != blank %}poster="{{ demo_poster | image_url: width: 1200 }}"{% elsif fallback_poster_url != blank %}poster="{{ fallback_poster_url }}"{% endif %}
+                      >
+                        {%- if desktop_webm != blank -%}<source src="{{ desktop_webm }}" type="video/webm">{%- endif -%}
+                        {%- if desktop_mp4 != blank -%}<source src="{{ desktop_mp4 }}" type="video/mp4">{%- endif -%}
+                        Your browser does not support video playback.
+                      </video>
+                    </div>
+                    <div class="saac-hiw-demo__video-mobile">
+                      <video
+                        class="saac-hiw-demo__video"
+                        controls
+                        preload="none"
+                        aria-label="{{ block.settings.title | escape }} demo video"
+                        {% if demo_poster != blank %}poster="{{ demo_poster | image_url: width: 800 }}"{% elsif fallback_poster_url != blank %}poster="{{ fallback_poster_url }}"{% endif %}
+                      >
+                        {%- if mobile_webm != blank -%}<source src="{{ mobile_webm }}" type="video/webm">{%- endif -%}
+                        {%- if mobile_mp4 != blank -%}<source src="{{ mobile_mp4 }}" type="video/mp4">{%- endif -%}
+                        Your browser does not support video playback.
+                      </video>
+                    </div>
+                  {%- elsif demo_poster != blank -%}
+                    {{
+                      demo_poster
+                      | image_url: width: 1200
+                      | image_tag:
+                        loading: 'lazy',
+                        widths: '400, 600, 800, 1200',
+                        alt: block.settings.title | escape
+                    }}
+                  {%- elsif fallback_poster_url != blank -%}
+                    <img src="{{ fallback_poster_url }}" alt="{{ block.settings.title | escape }}" loading="lazy">
+                  {%- else -%}
+                    <div class="saac-hiw-demo__placeholder">{{ block.settings.title }}</div>
+                  {%- endif -%}
+                </div>
+                <div class="saac-hiw-demo__content">
+                  <h3 class="saac-hiw-demo__title">{{ block.settings.title }}</h3>
+                  <p class="saac-hiw-demo__text">{{ block.settings.text }}</p>
+                </div>
+              </article>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- else -%}
+          {%- assign demo_titles = 'Custom T-shirt|Custom Tumbler|Custom Mug' | split: '|' -%}
+          {%- assign demo_texts = 'Upload your design and see it placed instantly.|Wrap your design and preview it from every angle.|See how your design wraps beautifully around a mug.' | split: '|' -%}
+          {%- assign demo_desktop_webms = 'https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktopwebm-1920x1080-v12-compressed.webm|https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/tumbler-guide-1920x1080-v1.webm|https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/mug-guide-1920x1080-v1.webm' | split: '|' -%}
+          {%- assign demo_desktop_mp4s = 'https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktop-1920x1080-v12.mp4|https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/tumbler-guide-1920x1080-v1.mp4|https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/mug-guide-1920x1080-v1.mp4' | split: '|' -%}
+          {%- assign demo_mobile_webms = 'https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-Mobilewebm-430x932-v2.webm|https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/tumbler-guide-mobile-430x932-v1.webm|https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/mug-guide-mobile-430x932-v1.webm' | split: '|' -%}
+          {%- assign demo_mobile_mp4s = 'https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-mobile-430x932-v2.mp4|https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/tumbler-guide-mobile-430x932-v1.mp4|https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/mug-guide-mobile-430x932-v1.mp4' | split: '|' -%}
+          {%- assign demo_posters = 'https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Front_Back_Proof_Poster.png?v=1778371351|https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Custom_Tumbler_Proof.png?v=1778387118|https://cdn.shopify.com/s/files/1/0695/3133/6869/files/Custom_Mug_Proof.png?v=1778387118' | split: '|' -%}
+          {%- for demo_title in demo_titles -%}
+            {%- assign idx = forloop.index0 -%}
+            <article class="saac-hiw-demo__card">
+              <div class="saac-hiw-demo__media">
+                <div class="saac-hiw-demo__video-desktop">
+                  <video
+                    class="saac-hiw-demo__video"
+                    controls
+                    preload="none"
+                    aria-label="{{ demo_title | escape }} demo video"
+                    poster="{{ demo_posters[idx] }}"
+                  >
+                    <source src="{{ demo_desktop_webms[idx] }}" type="video/webm">
+                    <source src="{{ demo_desktop_mp4s[idx] }}" type="video/mp4">
+                    Your browser does not support video playback.
+                  </video>
+                </div>
+                <div class="saac-hiw-demo__video-mobile">
+                  <video
+                    class="saac-hiw-demo__video"
+                    controls
+                    preload="none"
+                    aria-label="{{ demo_title | escape }} demo video"
+                    poster="{{ demo_posters[idx] }}"
+                  >
+                    <source src="{{ demo_mobile_webms[idx] }}" type="video/webm">
+                    <source src="{{ demo_mobile_mp4s[idx] }}" type="video/mp4">
+                    Your browser does not support video playback.
+                  </video>
+                </div>
+              </div>
+              <div class="saac-hiw-demo__content">
+                <h3 class="saac-hiw-demo__title">{{ demo_title }}</h3>
+                <p class="saac-hiw-demo__text">{{ demo_texts[idx] }}</p>
+              </div>
+            </article>
+          {%- endfor -%}
+        {%- endif -%}
       </div>
     </div>
 
@@ -543,6 +785,22 @@
     },
     {
       "type": "header",
+      "content": "Product demos"
+    },
+    {
+      "type": "text",
+      "id": "demo_heading",
+      "label": "Heading",
+      "default": "See Products Come to Life"
+    },
+    {
+      "type": "richtext",
+      "id": "demo_subheading",
+      "label": "Subheading",
+      "default": "<p>Watch quick demos of how your design looks on each product.</p>"
+    },
+    {
+      "type": "header",
       "content": "CTA strip"
     },
     {
@@ -606,6 +864,50 @@
           "default": "<p>Step details go here.</p>"
         }
       ]
+    },
+    {
+      "type": "demo_card",
+      "name": "Demo card",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Demo title"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Short demo description."
+        },
+        {
+          "type": "image_picker",
+          "id": "poster_image",
+          "label": "Poster image"
+        },
+        {
+          "type": "url",
+          "id": "desktop_webm_url",
+          "label": "Desktop WebM URL"
+        },
+        {
+          "type": "url",
+          "id": "desktop_mp4_url",
+          "label": "Desktop MP4 URL"
+        },
+        {
+          "type": "url",
+          "id": "mobile_webm_url",
+          "label": "Mobile WebM URL"
+        },
+        {
+          "type": "url",
+          "id": "mobile_mp4_url",
+          "label": "Mobile MP4 URL"
+        }
+      ]
     }
   ],
   "presets": [
@@ -645,6 +947,39 @@
           "settings": {
             "heading": "Packed & Delivered",
             "text": "<p>We quality check, pack safely, and ship your finished order.</p>"
+          }
+        },
+        {
+          "type": "demo_card",
+          "settings": {
+            "title": "Custom T-shirt",
+            "text": "Upload your design and see it placed instantly.",
+            "desktop_webm_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktopwebm-1920x1080-v12-compressed.webm",
+            "desktop_mp4_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktop-1920x1080-v12.mp4",
+            "mobile_webm_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-Mobilewebm-430x932-v2.webm",
+            "mobile_mp4_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-mobile-430x932-v2.mp4"
+          }
+        },
+        {
+          "type": "demo_card",
+          "settings": {
+            "title": "Custom Tumbler",
+            "text": "Wrap your design and preview it from every angle.",
+            "desktop_webm_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/tumbler-guide-1920x1080-v1.webm",
+            "desktop_mp4_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/tumbler-guide-1920x1080-v1.mp4",
+            "mobile_webm_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/tumbler-guide-mobile-430x932-v1.webm",
+            "mobile_mp4_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/tumbler-guide-mobile-430x932-v1.mp4"
+          }
+        },
+        {
+          "type": "demo_card",
+          "settings": {
+            "title": "Custom Mug",
+            "text": "See how your design wraps beautifully around a mug.",
+            "desktop_webm_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/mug-guide-1920x1080-v1.webm",
+            "desktop_mp4_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/mug-guide-1920x1080-v1.mp4",
+            "mobile_webm_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/mug-guide-mobile-430x932-v1.webm",
+            "mobile_mp4_url": "https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/mug-guide-mobile-430x932-v1.mp4"
           }
         }
       ]
