@@ -51,16 +51,8 @@
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__heading {
     font-size: clamp(3rem, 4.4vw, 4.7rem);
-    line-height: 1.02;
+    line-height: 1.05;
     max-width: 14ch;
-  }
-
-  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__heading-secondary {
-    display: block;
-    font-size: 0.72em;
-    line-height: 1.08;
-    white-space: nowrap;
-    margin-top: 0.14em;
   }
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section-heading,
@@ -81,7 +73,7 @@
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__copy {
     margin-top: 1.2rem;
-    max-width: 54rem;
+    max-width: 42rem;
   }
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-actions,
@@ -133,8 +125,64 @@
     background: #f7f4ed;
   }
 
-  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple-video-mobile {
-    display: none;
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-play {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-play::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(18, 24, 20, 0.04), rgba(18, 24, 20, 0.14));
+    transition: background 0.2s ease;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    width: 6.4rem;
+    height: 6.4rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #3d5c28;
+    box-shadow: 0 1rem 2.6rem rgba(26, 44, 27, 0.24);
+    transform: translate(-50%, -50%);
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-play-icon::before {
+    content: "";
+    width: 0;
+    height: 0;
+    margin-left: 0.5rem;
+    border-top: 1.15rem solid transparent;
+    border-bottom: 1.15rem solid transparent;
+    border-left: 1.8rem solid #fff;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-video-shell {
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-play:hover::after {
+      background: linear-gradient(180deg, rgba(18, 24, 20, 0.02), rgba(18, 24, 20, 0.08));
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__hero-play:hover .saac-hiw-simple__hero-play-icon {
+      transform: translate(-50%, -50%) scale(1.05);
+      background: #314b20;
+    }
   }
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__placeholder {
@@ -171,6 +219,32 @@
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section {
     margin-top: 2.5rem;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__maker-note {
+    margin-top: 1.2rem;
+    padding: 1.5rem 1.8rem;
+    border-radius: 1.8rem;
+    border: 0.1rem solid rgba(var(--color-foreground), 0.07);
+    border-left: 0.35rem solid #6e8b67;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 0.8rem 2rem rgba(20, 24, 34, 0.05);
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__maker-quote {
+    margin: 0;
+    color: rgba(var(--color-foreground), 0.88);
+    font-family: var(--font-heading-family);
+    font-size: 1.9rem;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__maker-signoff {
+    margin: 0.9rem 0 0;
+    color: rgba(var(--color-foreground), 0.72);
+    font: 600 1.3rem/1.35 var(--font-body-family);
+    letter-spacing: 0.04em;
   }
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__section-header {
@@ -233,7 +307,7 @@
   }
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__section {
-    margin-top: 3.9rem;
+    margin-top: 3.2rem;
   }
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__card {
@@ -267,8 +341,66 @@
     background: #f7f4ed;
   }
 
-  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-mobile {
-    display: none;
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__play {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__play::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(18, 24, 20, 0.04), rgba(18, 24, 20, 0.14));
+    transition: background 0.2s ease;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+    width: 5.6rem;
+    height: 5.6rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #3d5c28;
+    box-shadow: 0 1rem 2.4rem rgba(26, 44, 27, 0.22);
+    transform: translate(-50%, -50%);
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__play-icon::before {
+    content: "";
+    width: 0;
+    height: 0;
+    margin-left: 0.4rem;
+    border-top: 0.95rem solid transparent;
+    border-bottom: 0.95rem solid transparent;
+    border-left: 1.5rem solid #fff;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__play-label {
+    position: absolute;
+    left: 1.2rem;
+    bottom: 1.2rem;
+    z-index: 1;
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.88);
+    color: rgba(var(--color-foreground), 0.82);
+    font: 600 1.12rem/1.2 var(--font-body-family);
+    letter-spacing: 0.02em;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-shell {
+    width: 100%;
+    height: 100%;
   }
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__placeholder {
@@ -280,6 +412,17 @@
     text-align: center;
     color: rgba(var(--color-foreground), 0.68);
     font: 500 1.35rem/1.45 var(--font-body-family);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__play:hover::after {
+      background: linear-gradient(180deg, rgba(18, 24, 20, 0.02), rgba(18, 24, 20, 0.08));
+    }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__play:hover .saac-hiw-demo__play-icon {
+      transform: translate(-50%, -50%) scale(1.05);
+      background: #314b20;
+    }
   }
 
   .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__content {
@@ -305,6 +448,14 @@
     color: rgba(var(--color-foreground), 0.78);
     font: 400 1.45rem/1.6 var(--font-body-family);
     min-height: 3.2em;
+  }
+
+  .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__social-proof-copy {
+    margin: 0 0 0.9rem;
+    color: rgba(var(--color-foreground), 0.56);
+    font: 600 1rem/1.35 var(--font-body-family);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   @media screen and (max-width: 749px) {
@@ -404,6 +555,12 @@
       flex-direction: column;
       align-items: stretch;
     }
+
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__maker-note,
+    .saac-hiw-simple-{{ section.id }} .saac-hiw-simple__social-proof {
+      padding-left: 1.4rem;
+      padding-right: 1.4rem;
+    }
   }
 
   @media screen and (max-width: 749px) {
@@ -415,13 +572,6 @@
       display: block;
     }
 
-    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-desktop {
-      display: none;
-    }
-
-    .saac-hiw-simple-{{ section.id }} .saac-hiw-demo__video-mobile {
-      display: block;
-    }
   }
 {%- endstyle -%}
 
@@ -429,14 +579,19 @@
   <div class="page-width">
     <div class="saac-hiw-simple__hero">
       <div>
+        {%- assign hero_heading_display = section.settings.hero_heading -%}
+        {%- if hero_heading_display == blank or hero_heading_display contains 'Design Your Product' -%}
+          {%- assign hero_heading_display = 'Custom Made, Just for You' -%}
+        {%- endif -%}
+        {%- assign hero_subheading_display = section.settings.hero_subheading -%}
+        {%- if hero_subheading_display == blank or hero_subheading_display contains 'preview it instantly on supported products' -%}
+          {%- assign hero_subheading_display = '<p>Choose a product, upload your design, preview it on supported products, and approve before we print. Every order is crafted in-house with care.</p>' -%}
+        {%- endif -%}
         {%- if section.settings.hero_eyebrow != blank -%}
           <p class="saac-hiw-simple__eyebrow">{{ section.settings.hero_eyebrow }}</p>
         {%- endif -%}
-        <h1 class="saac-hiw-simple__heading">
-          {{ section.settings.hero_heading | replace: ' See It Before You Order', '' }}
-          <span class="saac-hiw-simple__heading-secondary">See It Before You Order</span>
-        </h1>
-        <div class="saac-hiw-simple__copy rte">{{ section.settings.hero_subheading }}</div>
+        <h1 class="saac-hiw-simple__heading">{{ hero_heading_display }}</h1>
+        <div class="saac-hiw-simple__copy rte">{{ hero_subheading_display }}</div>
         <div class="saac-hiw-simple__hero-actions">
           {%- if section.settings.primary_cta_label != blank and section.settings.primary_cta_link != blank -%}
             <a class="button button--primary" href="{{ section.settings.primary_cta_link }}">{{ section.settings.primary_cta_label }}</a>
@@ -453,31 +608,27 @@
       <div class="saac-hiw-simple__visual">
         {% if section.settings.poster_image != blank %}
           <div class="saac-hiw-simple-video-wrap">
-            <div class="saac-hiw-simple-video-desktop">
-              <video
-                class="saac-hiw-simple-video"
-                controls
-                preload="none"
-                poster="{{ section.settings.poster_image | image_url: width: 1200 }}"
-              >
-                <source src="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktopwebm-1920x1080-v12-compressed.webm" type="video/webm">
-                <source src="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktop-1920x1080-v12.mp4" type="video/mp4">
-                Your browser does not support video playback.
-              </video>
-            </div>
-
-            <div class="saac-hiw-simple-video-mobile">
-              <video
-                class="saac-hiw-simple-video"
-                controls
-                preload="none"
-                poster="{{ section.settings.poster_image | image_url: width: 800 }}"
-              >
-                <source src="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-Mobilewebm-430x932-v2.webm" type="video/webm">
-                <source src="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-mobile-430x932-v2.mp4" type="video/mp4">
-                Your browser does not support video playback.
-              </video>
-            </div>
+            <button
+              class="saac-hiw-simple__hero-play"
+              type="button"
+              aria-label="Play How It Works video"
+              data-desktop-webm="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktopwebm-1920x1080-v12-compressed.webm"
+              data-desktop-mp4="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-desktop-1920x1080-v12.mp4"
+              data-mobile-webm="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-Mobilewebm-430x932-v2.webm"
+              data-mobile-mp4="https://cdn.sarvsartsandcrafts.com/uploads/how-it-works/front-back-mobile-430x932-v2.mp4"
+              data-poster-desktop="{{ section.settings.poster_image | image_url: width: 1200 }}"
+              data-poster-mobile="{{ section.settings.poster_image | image_url: width: 800 }}"
+            >
+              {{
+                section.settings.poster_image
+                | image_url: width: 1200
+                | image_tag:
+                  loading: 'lazy',
+                  widths: '400, 600, 800, 1200',
+                  alt: 'How It Works video preview'
+              }}
+              <span class="saac-hiw-simple__hero-play-icon" aria-hidden="true"></span>
+            </button>
           </div>
         {%- else -%}
           <div class="saac-hiw-simple__placeholder">
@@ -501,13 +652,24 @@
         {%- for block in section.blocks -%}
           {%- if block.type == 'step' and step_index < 5 -%}
             {%- assign step_index = step_index | plus: 1 -%}
+            {%- assign step_heading_display = block.settings.heading -%}
+            {%- if step_heading_display == 'Packed & Delivered' -%}
+              {%- assign step_heading_display = 'Delivered to You' -%}
+            {%- endif -%}
             <article class="saac-hiw-simple__step-card" {{ block.shopify_attributes }}>
               <div class="saac-hiw-simple__step-number">{{ step_index }}</div>
-              <h3 class="saac-hiw-simple__step-title">{{ block.settings.heading }}</h3>
+              <h3 class="saac-hiw-simple__step-title">{{ step_heading_display }}</h3>
               <div class="saac-hiw-simple__step-text rte">{{ block.settings.text }}</div>
             </article>
           {%- endif -%}
         {%- endfor -%}
+      </div>
+    </div>
+
+    <div class="saac-hiw-simple__section">
+      <div class="saac-hiw-simple__maker-note">
+        <p class="saac-hiw-simple__maker-quote">{{ section.settings.maker_note_quote }}</p>
+        <p class="saac-hiw-simple__maker-signoff">{{ section.settings.maker_note_signature }}</p>
       </div>
     </div>
 
@@ -550,35 +712,43 @@
               {%- if mobile_webm != blank or mobile_mp4 != blank -%}
                 {%- assign has_mobile_video = true -%}
               {%- endif -%}
+              {%- assign poster_desktop_url = '' -%}
+              {%- assign poster_mobile_url = '' -%}
+              {%- if demo_poster != blank -%}
+                {%- assign poster_desktop_url = demo_poster | image_url: width: 1200 -%}
+                {%- assign poster_mobile_url = demo_poster | image_url: width: 800 -%}
+              {%- elsif fallback_poster_url != blank -%}
+                {%- assign poster_desktop_url = fallback_poster_url -%}
+                {%- assign poster_mobile_url = fallback_poster_url -%}
+              {%- endif -%}
               <article class="saac-hiw-demo__card" {{ block.shopify_attributes }}>
                 <div class="saac-hiw-demo__media">
                   {%- if has_desktop_video or has_mobile_video -%}
-                    <div class="saac-hiw-demo__video-desktop">
-                      <video
-                        class="saac-hiw-demo__video"
-                        controls
-                        preload="none"
-                        aria-label="{{ block.settings.title | escape }} demo video"
-                        {% if demo_poster != blank %}poster="{{ demo_poster | image_url: width: 1200 }}"{% elsif fallback_poster_url != blank %}poster="{{ fallback_poster_url }}"{% endif %}
-                      >
-                        {%- if desktop_webm != blank -%}<source src="{{ desktop_webm }}" type="video/webm">{%- endif -%}
-                        {%- if desktop_mp4 != blank -%}<source src="{{ desktop_mp4 }}" type="video/mp4">{%- endif -%}
-                        Your browser does not support video playback.
-                      </video>
-                    </div>
-                    <div class="saac-hiw-demo__video-mobile">
-                      <video
-                        class="saac-hiw-demo__video"
-                        controls
-                        preload="none"
-                        aria-label="{{ block.settings.title | escape }} demo video"
-                        {% if demo_poster != blank %}poster="{{ demo_poster | image_url: width: 800 }}"{% elsif fallback_poster_url != blank %}poster="{{ fallback_poster_url }}"{% endif %}
-                      >
-                        {%- if mobile_webm != blank -%}<source src="{{ mobile_webm }}" type="video/webm">{%- endif -%}
-                        {%- if mobile_mp4 != blank -%}<source src="{{ mobile_mp4 }}" type="video/mp4">{%- endif -%}
-                        Your browser does not support video playback.
-                      </video>
-                    </div>
+                    <button
+                      class="saac-hiw-demo__play"
+                      type="button"
+                      aria-label="Play {{ block.settings.title | escape }} demo"
+                      data-desktop-webm="{{ desktop_webm }}"
+                      data-desktop-mp4="{{ desktop_mp4 }}"
+                      data-mobile-webm="{{ mobile_webm }}"
+                      data-mobile-mp4="{{ mobile_mp4 }}"
+                      data-poster-desktop="{{ poster_desktop_url }}"
+                      data-poster-mobile="{{ poster_mobile_url }}"
+                    >
+                      {%- if poster_desktop_url != blank -%}
+                        <img
+                          src="{{ poster_desktop_url }}"
+                          alt="{{ block.settings.title | escape }} demo preview"
+                          loading="lazy"
+                          width="1200"
+                          height="675"
+                        >
+                      {%- else -%}
+                        <div class="saac-hiw-demo__placeholder">{{ block.settings.title }}</div>
+                      {%- endif -%}
+                      <span class="saac-hiw-demo__play-icon" aria-hidden="true"></span>
+                      <span class="saac-hiw-demo__play-label">Play demo</span>
+                    </button>
                   {%- elsif demo_poster != blank -%}
                     {{
                       demo_poster
@@ -613,32 +783,27 @@
             {%- assign idx = forloop.index0 -%}
             <article class="saac-hiw-demo__card">
               <div class="saac-hiw-demo__media">
-                <div class="saac-hiw-demo__video-desktop">
-                  <video
-                    class="saac-hiw-demo__video"
-                    controls
-                    preload="none"
-                    aria-label="{{ demo_title | escape }} demo video"
-                    poster="{{ demo_posters[idx] }}"
+                <button
+                  class="saac-hiw-demo__play"
+                  type="button"
+                  aria-label="Play {{ demo_title | escape }} demo"
+                  data-desktop-webm="{{ demo_desktop_webms[idx] }}"
+                  data-desktop-mp4="{{ demo_desktop_mp4s[idx] }}"
+                  data-mobile-webm="{{ demo_mobile_webms[idx] }}"
+                  data-mobile-mp4="{{ demo_mobile_mp4s[idx] }}"
+                  data-poster-desktop="{{ demo_posters[idx] }}"
+                  data-poster-mobile="{{ demo_posters[idx] }}"
+                >
+                  <img
+                    src="{{ demo_posters[idx] }}"
+                    alt="{{ demo_title | escape }} demo preview"
+                    loading="lazy"
+                    width="1200"
+                    height="675"
                   >
-                    <source src="{{ demo_desktop_webms[idx] }}" type="video/webm">
-                    <source src="{{ demo_desktop_mp4s[idx] }}" type="video/mp4">
-                    Your browser does not support video playback.
-                  </video>
-                </div>
-                <div class="saac-hiw-demo__video-mobile">
-                  <video
-                    class="saac-hiw-demo__video"
-                    controls
-                    preload="none"
-                    aria-label="{{ demo_title | escape }} demo video"
-                    poster="{{ demo_posters[idx] }}"
-                  >
-                    <source src="{{ demo_mobile_webms[idx] }}" type="video/webm">
-                    <source src="{{ demo_mobile_mp4s[idx] }}" type="video/mp4">
-                    Your browser does not support video playback.
-                  </video>
-                </div>
+                  <span class="saac-hiw-demo__play-icon" aria-hidden="true"></span>
+                  <span class="saac-hiw-demo__play-label">Play demo</span>
+                </button>
               </div>
               <div class="saac-hiw-demo__content">
                 <h3 class="saac-hiw-demo__title">{{ demo_title }}</h3>
@@ -652,6 +817,15 @@
 
     <div class="saac-hiw-simple__section">
       <div class="saac-hiw-simple__cta-strip">
+        {%- assign social_proof_display = section.settings.social_proof_text -%}
+        {%- if social_proof_display == blank -%}
+          {%- assign social_proof_display = 'Founded in 2024 · Fuquay-Varina, NC · Rated 5/5 on Facebook · Crafted in-house' -%}
+        {%- elsif social_proof_display contains 'Rated 5/5 on Facebook' -%}
+          {%- unless social_proof_display contains 'Founded in 2024' -%}
+            {%- assign social_proof_display = 'Founded in 2024 · Fuquay-Varina, NC · Rated 5/5 on Facebook · Crafted in-house' -%}
+          {%- endunless -%}
+        {%- endif -%}
+        <p class="saac-hiw-simple__social-proof-copy">{{ social_proof_display }}</p>
         <h2 class="saac-hiw-simple__cta-heading">{{ section.settings.cta_heading }}</h2>
         <div class="saac-hiw-simple__cta-copy rte">{{ section.settings.cta_text }}</div>
         <div class="saac-hiw-simple__cta-actions">
@@ -674,6 +848,108 @@
     </div>
   </div>
 </section>
+
+<script>
+  (function() {
+    var section = document.querySelector('.saac-hiw-simple-{{ section.id }}');
+    if (!section || section.dataset.demoVideoInit === 'true') return;
+    section.dataset.demoVideoInit = 'true';
+
+    var createVideoShell = function(options) {
+      var shell = document.createElement('div');
+      shell.className = options.shellClass;
+
+      var video = document.createElement('video');
+      video.className = options.videoClass;
+      video.controls = true;
+      video.preload = 'none';
+      video.autoplay = true;
+      video.playsInline = true;
+      if (options.poster) video.poster = options.poster;
+      if (options.ariaLabel) video.setAttribute('aria-label', options.ariaLabel);
+
+      if (options.webm) {
+        var webmSource = document.createElement('source');
+        webmSource.src = options.webm;
+        webmSource.type = 'video/webm';
+        video.appendChild(webmSource);
+      }
+
+      if (options.mp4) {
+        var mp4Source = document.createElement('source');
+        mp4Source.src = options.mp4;
+        mp4Source.type = 'video/mp4';
+        video.appendChild(mp4Source);
+      }
+
+      shell.appendChild(video);
+      return { shell: shell, video: video };
+    };
+
+    var getResponsiveSources = function(node) {
+      var isMobile = window.matchMedia('(max-width: 749px)').matches;
+      return {
+        webm: isMobile ? (node.dataset.mobileWebm || node.dataset.desktopWebm) : node.dataset.desktopWebm,
+        mp4: isMobile ? (node.dataset.mobileMp4 || node.dataset.desktopMp4) : node.dataset.desktopMp4,
+        poster: isMobile ? (node.dataset.posterMobile || node.dataset.posterDesktop) : node.dataset.posterDesktop
+      };
+    };
+
+    var heroPlay = section.querySelector('.saac-hiw-simple__hero-play');
+    if (heroPlay) {
+      heroPlay.addEventListener('click', function() {
+        var sources = getResponsiveSources(heroPlay);
+        if (!sources.webm && !sources.mp4) return;
+
+        var media = heroPlay.parentElement;
+        if (!media) return;
+
+        var built = createVideoShell({
+          shellClass: 'saac-hiw-simple__hero-video-shell',
+          videoClass: 'saac-hiw-simple-video',
+          webm: sources.webm,
+          mp4: sources.mp4,
+          poster: sources.poster,
+          ariaLabel: heroPlay.getAttribute('aria-label') || 'How It Works video'
+        });
+
+        media.replaceChildren(built.shell);
+
+        var heroPlayPromise = built.video.play();
+        if (heroPlayPromise && typeof heroPlayPromise.catch === 'function') {
+          heroPlayPromise.catch(function() {});
+        }
+      }, { once: true });
+    }
+
+    section.querySelectorAll('.saac-hiw-demo__play').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var sources = getResponsiveSources(button);
+
+        if (!sources.webm && !sources.mp4) return;
+
+        var media = button.parentElement;
+        if (!media) return;
+
+        var built = createVideoShell({
+          shellClass: 'saac-hiw-demo__video-shell',
+          videoClass: 'saac-hiw-demo__video',
+          webm: sources.webm,
+          mp4: sources.mp4,
+          poster: sources.poster,
+          ariaLabel: button.getAttribute('aria-label') || 'Product demo video'
+        });
+
+        media.replaceChildren(built.shell);
+
+        var playPromise = built.video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(function() {});
+        }
+      }, { once: true });
+    });
+  })();
+</script>
 
 {% schema %}
 {
@@ -701,13 +977,13 @@
       "type": "text",
       "id": "hero_heading",
       "label": "Heading",
-      "default": "Design Your Product See It Before You Order"
+      "default": "Custom Made, Just for You"
     },
     {
       "type": "richtext",
       "id": "hero_subheading",
       "label": "Subheading",
-      "default": "<p>Choose a product, upload your design, preview it instantly on supported products, and approve before we print.</p>"
+      "default": "<p>Choose a product, upload your design, preview it on supported products, and approve before we print. Every order is crafted in-house with care.</p>"
     },
     {
       "type": "text",
@@ -785,6 +1061,22 @@
     },
     {
       "type": "header",
+      "content": "Maker note"
+    },
+    {
+      "type": "textarea",
+      "id": "maker_note_quote",
+      "label": "Quote",
+      "default": "That feeling of something made specifically for you — that’s what I want every customer to have. Every order is handled with care, from design to final packing."
+    },
+    {
+      "type": "text",
+      "id": "maker_note_signature",
+      "label": "Signature",
+      "default": "— Sarv, Founder & Maker"
+    },
+    {
+      "type": "header",
       "content": "Product demos"
     },
     {
@@ -798,6 +1090,16 @@
       "id": "demo_subheading",
       "label": "Subheading",
       "default": "<p>Watch quick demos of how your design looks on each product.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Social proof"
+    },
+    {
+      "type": "text",
+      "id": "social_proof_text",
+      "label": "Social proof text",
+      "default": "Founded in 2024 · Fuquay-Varina, NC · Rated 5/5 on Facebook · Crafted in-house"
     },
     {
       "type": "header",
