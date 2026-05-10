@@ -775,7 +775,7 @@
       "type": "featured-collection",
       "custom_css": [],
       "settings": {
-        "collection": "featured-collection",
+        "collection": "featured-products",
         "products_to_show": 4,
         "title": "Featured Products",
         "heading_size": "h1",
