@@ -1786,12 +1786,21 @@
       key: zone.key,
       label: spec.nativeZones[zone.key] ? spec.nativeZones[zone.key].editorLabel : zone.key,
       color: spec.colors[zone.key],
+      x: zone.x * scale + offsetX,
+      y: zone.y * scale + offsetY,
       leftPx: zone.x * scale + offsetX,
-      topPx: zone.y * scale + offsetY,
+      topPx: (zone.y + zone.topOffset) * scale + offsetY,
+      width: zone.width * scale,
       widthPx: zone.width * scale,
-      heightPx: zone.height * scale,
+      height: zone.height * scale,
+      heightPx: Math.max(1, (zone.height - zone.topOffset) * scale),
+      centerX: zone.centerX * scale + offsetX,
       centerPx: zone.centerX * scale + offsetX,
-      curvePx: zone.bottomCurveDepth * scale
+      topOffset: zone.topOffset * scale,
+      curvePx: zone.bottomCurveDepth * scale,
+      bottomCurveDepth: zone.bottomCurveDepth * scale,
+      visibleWidthRatio: zone.visibleWidthRatio,
+      verticalBias: zone.verticalBias
     }));
   };
 
@@ -1854,7 +1863,13 @@
       guide.classList.toggle("is-guide-edge-left", index === 0);
       guide.classList.toggle("is-guide-edge-right", index === overlayZones.length - 1);
       const label = guide.querySelector("span");
-      if (label) label.textContent = zone.label;
+      if (label) {
+        const shortLabel = zone.key === "center" ? "Front" : zone.key === "left" ? "Left" : zone.key === "right" ? "Right" : zone.label;
+        label.textContent = shortLabel;
+        label.hidden = false;
+        label.style.display = "";
+        label.style.opacity = "0.42";
+      }
     });
   };
 
@@ -1964,8 +1979,8 @@
       const curveY = guideBottomY - zone.curvePx;
 
       ctx.save();
-      ctx.strokeStyle = "rgba(71, 85, 105, 0.18)";
-      ctx.lineWidth = 1.25;
+      ctx.strokeStyle = "rgba(71, 85, 105, 0.10)";
+      ctx.lineWidth = 1;
       ctx.setLineDash([6, 6]);
       ctx.beginPath();
       ctx.moveTo(x, guideTopY);
@@ -1978,23 +1993,41 @@
       ctx.beginPath();
       ctx.moveTo(leftVisibleX, guideTopY);
       ctx.lineTo(rightVisibleX, guideTopY);
-      ctx.strokeStyle = "rgba(239, 68, 68, 0.72)";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.34)";
+      ctx.lineWidth = 1.2;
       ctx.stroke();
 
       ctx.beginPath();
       ctx.moveTo(centerX, guideTopY);
       ctx.lineTo(centerX, guideBottomY);
-      ctx.strokeStyle = "rgba(220, 38, 38, 0.72)";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(220, 38, 38, 0.30)";
+      ctx.lineWidth = 1.1;
       ctx.stroke();
 
       ctx.beginPath();
       ctx.moveTo(leftVisibleX, curveY);
       ctx.quadraticCurveTo(centerX, guideBottomY, rightVisibleX, curveY);
-      ctx.strokeStyle = "rgba(234, 88, 12, 0.58)";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(234, 88, 12, 0.26)";
+      ctx.lineWidth = 1.1;
       ctx.stroke();
+      ctx.restore();
+    });
+  };
+
+  const renderEditorPreview = (ctx, rect, wrapPack) => {
+    if (!spec || !wrapPack || !state.src) return;
+    const topZones = buildTopOverlayZones(rect);
+    if (!topZones.length) return;
+
+    spec.order.forEach((key) => {
+      const topZone = topZones.find((zone) => zone.key === key);
+      if (!topZone) return;
+      const sourceRect = getPanelSourceRect(wrapPack, key);
+      const crop = getCoverCrop(sourceRect, topZone);
+      ctx.save();
+      tracePreviewZonePath(ctx, topZone);
+      ctx.clip();
+      drawPanelCoverIntoZone(ctx, wrapPack.canvas, crop, topZone);
       ctx.restore();
     });
   };
@@ -2004,8 +2037,15 @@
     designViewport.hidden = !state.src || !state.placement;
     if (resizeHandle) resizeHandle.hidden = !state.src || !state.placement;
     resetBtn.hidden = !state.src;
+    guideEls.forEach((guide) => {
+      const label = guide.querySelector("span");
+      if (label) {
+        label.style.display = "";
+        label.style.opacity = "0.42";
+      }
+    });
     if (!state.src || !state.placement) return;
-    designEditImg.style.opacity = "1";
+    designEditImg.style.opacity = "0";
     designWrap.style.left = "0px";
     designWrap.style.top = "0px";
     designWrap.style.width = `${Math.round(state.placement.w * rect.width)}px`;
@@ -2035,6 +2075,8 @@
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
+    const wrapPack = buildWrapCanvas();
+    renderEditorPreview(ctx, rect, wrapPack);
     drawEditorGuides(ctx, rect);
     applyDesignWrapUi(rect);
   };
