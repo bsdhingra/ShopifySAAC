@@ -91,6 +91,10 @@
     }
 
     @media screen and (max-width: 749px) {
+      #shopify-section-{{ section.id }} .bd-manual-reviews-cards {
+        padding-top: 20px;
+      }
+
       #shopify-section-{{ section.id }} .bd-manual-reviews-cards__shell {
         {% if section_width_mode == 'custom' %}
           max-width: var(--bd-manual-reviews-section-width-mobile);

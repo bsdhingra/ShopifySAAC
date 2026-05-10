@@ -680,7 +680,13 @@
   }
 
   .bd-manual-reviews-cards__summary-metrics {
-    display: none;
+    align-items: center;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    justify-content: center;
+    margin-top: 0.1rem;
+    text-align: center;
   }
 
   .bd-manual-reviews-cards__heading {
@@ -711,7 +717,7 @@
   .bd-manual-reviews-cards[data-top-metric-placement="right"] .bd-manual-reviews-cards__heading-count,
   .bd-manual-reviews-cards[data-top-metric-placement="inline"] .bd-manual-reviews-cards__heading-count,
   .bd-manual-reviews-cards[data-top-metric-placement="left"] .bd-manual-reviews-cards__heading-count {
-    display: inline-flex;
+    display: none;
   }
 
   .bd-manual-reviews-cards__summary-text,
@@ -731,11 +737,14 @@
     font-size: var(--bd-manual-reviews-summary-metric-size-mobile, 16px);
     gap: 0.55rem;
     justify-content: center;
+    order: 2;
   }
 
   .bd-manual-reviews-cards__source-label {
     font-size: var(--bd-manual-reviews-summary-metric-size-mobile, 16px);
     gap: 0.48rem;
+    justify-content: center;
+    order: 1;
   }
 
   .bd-manual-reviews-cards__source-icon {
