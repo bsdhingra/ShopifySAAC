@@ -644,6 +644,8 @@ media-gallery.bd-mug-thumbs-locked .thumbnail-list__item button.thumbnail.is-mug
 @media (max-width: 749px) {
   #cf-mug-preview-container {
     padding: 12px;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 
   #cf-mug-preview-container .cf-start-row {

@@ -644,6 +644,8 @@ media-gallery.bd-tumbler-thumbs-locked .thumbnail-list__item button.thumbnail.is
 @media (max-width: 749px) {
   #cf-tumbler-preview-container {
     padding: 12px;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 
   #cf-tumbler-preview-container .cf-start-row {
