@@ -1974,6 +1974,27 @@
     });
   };
 
+  const bdRestoreRealUploaderPreview = (side, designUrl) => {
+    const normalizedSide = side === "back" ? "back" : "front";
+    const idx = normalizedSide === "back" ? "2" : "1";
+    const nextUrl = String(designUrl || "").trim();
+    const realBlock = bdGetRealUploadBlock(normalizedSide);
+    if (!realBlock) return;
+
+    const previewWrap = realBlock.querySelector(`[data-preview-wrap="${idx}"]`);
+    const previewImg = realBlock.querySelector(`[data-preview-img="${idx}"]`);
+    if (!previewWrap || !previewImg) return;
+
+    if (nextUrl) {
+      previewImg.src = nextUrl;
+      previewWrap.hidden = false;
+      return;
+    }
+
+    previewImg.removeAttribute("src");
+    previewWrap.hidden = true;
+  };
+
   const bdEnsurePropertyInputs = (form) => {
     if (!form) return {};
 
@@ -4031,6 +4052,7 @@ const bdUseSideState = (side) => {
     }
 
     bdSetRealUploaderDesignUrl(s === "back" ? 2 : 1, nextUrl);
+    bdRestoreRealUploaderPreview(s, nextUrl);
     return true;
   };
 
